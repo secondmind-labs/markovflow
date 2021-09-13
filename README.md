@@ -45,7 +45,7 @@ Check that the installation was successful by running the tests:
 ```bash
 poetry run task test
 ```
-You can have a peek at the [poetry.toml](poetry.toml) for the commands.
+You can have a peek at the [pyproject.toml](pyproject.toml) for the commands.
 
 
 ## The Secondmind Labs Community
