@@ -39,13 +39,13 @@ $ pip install markovflow
 
 To install this project in editable mode, run the commands below from the root directory of the `markovflow` repository.
 ```bash
-make install
+poetry install
 ```
 Check that the installation was successful by running the tests:
 ```bash
-make test
+poetry run task test
 ```
-You can have a peek at the [Makefile](Makefile) for the commands.
+You can have a peek at the [pyproject.toml](pyproject.toml) for the commands.
 
 
 ## The Secondmind Labs Community
@@ -69,7 +69,7 @@ All constructive input is very much welcome. For detailed information, see the [
 
 Markovflow was originally created at [Secondmind Labs](https://www.secondmind.ai/labs/) and is now maintained by (in alphabetical order)
 [Vincent Adam](https://vincentadam87.github.io/),
-[Stefanos Eleftheriadis](https://stefanosele.github.io/), , 
+[Stefanos Eleftheriadis](https://stefanosele.github.io/),
 [Samuel Willis](https://uk.linkedin.com/in/samuel-j-willis).
 **We are grateful to [all contributors](CONTRIBUTORS.md) who have helped shape Markovflow.**
 
