@@ -69,7 +69,7 @@ All constructive input is very much welcome. For detailed information, see the [
 
 Markovflow was originally created at [Secondmind Labs](https://www.secondmind.ai/labs/) and is now maintained by (in alphabetical order)
 [Vincent Adam](https://vincentadam87.github.io/),
-[Stefanos Eleftheriadis](https://stefanosele.github.io/), , 
+[Stefanos Eleftheriadis](https://stefanosele.github.io/),
 [Samuel Willis](https://uk.linkedin.com/in/samuel-j-willis).
 **We are grateful to [all contributors](CONTRIBUTORS.md) who have helped shape Markovflow.**
 
