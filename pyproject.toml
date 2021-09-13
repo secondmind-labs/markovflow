@@ -42,7 +42,7 @@ pydata-sphinx-theme = "^0.4.1"
 sphinx-autodoc-typehints = "^1.11.0"
 matplotlib = "^3.2.2"
 pytest-timeout = "^1.4.1"
-wheel = "^0.35.1"
+wheel = "^0.37.0"
 
 [tool.taskipy.tasks]
 lint = "pytest --pylint --cache-clear -m pylint -v && pytest --pylint --cache-clear -m pylint --pylint-rcfile=extrapylint markovflow"
