@@ -39,11 +39,11 @@ $ pip install markovflow
 
 To install this project in editable mode, run the commands below from the root directory of the `markovflow` repository.
 ```bash
-make install
+poetry install
 ```
 Check that the installation was successful by running the tests:
 ```bash
-make test
+poetry run task test
 ```
 You can have a peek at the [Makefile](Makefile) for the commands.
 
