@@ -2,11 +2,8 @@
 name = "markovflow"
 version = "0.33.0"
 description = "A Tensorflow based library for Time Series Modelling with Gaussian Processes"
-authors = ["Markovflow Team <markovflow@prowler.io>"]
+authors = ["Markovflow Contributors <markovflow@secondmind.ai>"]
 packages = [{include = "markovflow"}]
-classifiers = [
-    'License :: PIO Internal'
-]
 
 # Note: Poetry will exclude files declared in .gitignore when creating the python package file.
 
@@ -45,10 +42,6 @@ pydata-sphinx-theme = "^0.4.1"
 sphinx-autodoc-typehints = "^1.11.0"
 matplotlib = "^3.2.2"
 pytest-timeout = "^1.4.1"
-# remove before open-sourcing or make optional?
-# pio-licence-checker = "^1.0.0"
-# pio_testing_utilities = "^0.31.0"
-# pio-licence-checker doesn't install wheel
 wheel = "^0.35.1"
 
 [tool.taskipy.tasks]
