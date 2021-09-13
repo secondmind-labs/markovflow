@@ -1,0 +1,92 @@
+[tool.poetry]
+name = "markovflow"
+version = "0.33.0"
+description = "A Tensorflow based library for Time Series Modelling with Gaussian Processes"
+authors = ["Markovflow Team <markovflow@prowler.io>"]
+packages = [{include = "markovflow"}]
+classifiers = [
+    'License :: PIO Internal'
+]
+
+# Note: Poetry will exclude files declared in .gitignore when creating the python package file.
+
+[tool.poetry.dependencies]
+python = "^3.7"
+importlib_metadata = "^1.6" # poetry requires this for python < 3.8
+gpflow = "^2.1"
+numpy = "^1.18.0"
+tensorflow = "^2.2.0"
+tensorflow-probability = "^0.10"
+# banded_matrices = "^0.32.0"
+# pip isn't smart enough to resolve these, so we need to include and pin these
+setuptools = "^41.0.0"
+google-auth = "^1.16.0"
+scipy = "^1.4.1"
+
+[tool.poetry.dev-dependencies]
+mypy = "0.711"
+pylint = "2.3.1"
+pytest = "^5.3.5"
+pytest-cov = "^2.8.1"
+pytest-mypy = "^0.6.1"
+pytest-pylint = "^0.17.0"
+taskipy = "^1.2.0"
+pytest-black = "^0.3.11"
+black = "19.10b0"
+pytest-isort = "^1.0.0"
+jupytext = "^1.5.1"
+jupyter = "^1.0.0"
+sphinx = "^3.2.1"
+ipython = "^7.15.0"
+pandoc = "^1.0.2"
+nbsphinx = "^0.7.0"
+sphinx-rtd-theme = "^0.5.0"
+pydata-sphinx-theme = "^0.4.1"
+sphinx-autodoc-typehints = "^1.11.0"
+matplotlib = "^3.2.2"
+pytest-timeout = "^1.4.1"
+# remove before open-sourcing or make optional?
+# pio-licence-checker = "^1.0.0"
+# pio_testing_utilities = "^0.31.0"
+# pio-licence-checker doesn't install wheel
+wheel = "^0.35.1"
+
+[tool.taskipy.tasks]
+lint = "pytest --pylint --cache-clear -m pylint -v && pytest --pylint --cache-clear -m pylint --pylint-rcfile=extrapylint markovflow"
+mypy = "pytest --mypy --cache-clear -m mypy -v"
+quicktest = "pytest -x --ff -rN -Wignore tests"
+test = "pytest --pylint --mypy --black --isort --cache-clear -ra -v --cov markovflow --cov-report term --cov-report html:cover_html --junitxml=reports/junit.xml -o junit_family=xunit2 tests && pytest --pylint --cache-clear -m pylint --pylint-rcfile=extrapylint markovflow tests"
+black = "black ."
+isort = "isort --atomic -y"
+format = "task isort && task black"
+check_format = "pytest -v --cache-clear --black --isort -m black,isort"
+licence_check = "pio-licence-checker markovflow"
+regen_requirements = "poetry export --dev --without-hashes -f requirements.txt > requirements.txt"
+regen_setup_py = "poetry build -f sdist && tar -xvf dist/markovflow-*.tar.gz --wildcards markovflow-*/setup.py && cp markovflow-*/setup.py ."
+regen_all = "task regen_requirements && task regen_setup_py"
+docsgen = "cd docs && make html"
+docsserve = "cd docs && python -m http.server"
+docsview = "xdg-open http://localhost:8000/_build/html/"
+
+[tool.black]
+line-length = 100
+target-version = ['py37']
+exclude = 'docs|setup.py'
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+line_length = 100
+skip = 'docs'
+
+[tool.pio-licence-checker]
+additional_licences = [
+]
+approved_libraries = [
+    "utilities"
+]
+
+[build-system]
+requires = ["poetry>=1.0.0"]
+build-backend = "poetry.masonry.api"
+

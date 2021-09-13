@@ -1,0 +1,6 @@
+[virtualenvs]
+in-project = true
+
+[repositories]
+[repositories.dev]
+[repositories.prod]
