@@ -17,10 +17,11 @@
 
 from abc import ABC, abstractmethod
 
+from gpflow import default_float
 import numpy as np
 import tensorflow as tf
 
-from markovflow.base import TensorType, default_float
+from markovflow.base import TensorType
 from markovflow.block_tri_diag import SymmetricBlockTriDiagonal
 from markovflow.emission_model import EmissionModel
 from markovflow.state_space_model import StateSpaceModel
@@ -182,7 +183,7 @@ class BaseKalmanFilter(tf.Module, ABC):
 
     def log_likelihood(self) -> tf.Tensor:
         r"""
-        Construct a tensorflow function to compute the likelihood.
+        Construct a TensorTlow function to compute the likelihood.
 
         We set :math:`y = obs - Hμ` (where :math:`μ` is the vector of marginal state means):
 

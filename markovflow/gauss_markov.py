@@ -205,12 +205,11 @@ def check_compatible(dist_1: GaussMarkovDistribution, dist_2: GaussMarkovDistrib
     Check that two :class:`~markovflow.gauss_markov.GaussMarkovDistribution` objects are
     compatible.
 
-    If not, raise a ValueError.
+    If not, raise an exception.
     """
 
     assert isinstance(dist_2, type(dist_1)), TypeError(
-        """`dist_2` has different representation than
-                                                          `dist_1`"""
+        """`dist_2` has different representation than `dist_1`"""
     )
     tf.debugging.assert_equal(dist_1.state_dim, dist_2.state_dim)
     tf.debugging.assert_equal(dist_1.batch_shape, dist_2.batch_shape)

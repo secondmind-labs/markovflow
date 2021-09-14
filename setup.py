@@ -27,7 +27,7 @@ setup_kwargs = {
     'description': 'A Tensorflow based library for Time Series Modelling with Gaussian Processes',
     'long_description': None,
     'author': 'Markovflow Team',
-    'author_email': 'markovflow@prowler.io',
+    'author_email': 'markovflow@secondmind.ai',
     'maintainer': None,
     'maintainer_email': None,
     'url': None,

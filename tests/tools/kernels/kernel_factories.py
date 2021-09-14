@@ -16,9 +16,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from gpflow import default_float
 from tensorflow import DType
 
-from markovflow.base import default_float
 from markovflow.kernels import Matern12, Matern32, Matern52, SDEKernel
 from tests.tools.kernels.kernels import (
     DataShape,

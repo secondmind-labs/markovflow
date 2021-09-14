@@ -157,7 +157,7 @@ class EmissionModel:
 class ComposedPairEmissionModel(EmissionModel):
     r"""
     Linear projection for use with kernels that have an intermediate projection. That is,
-    there exists a projection from state space to one space, and from that space to
+    there exists a projection from the state space to an intermediate space, and from that space to
     the observation space:
 
     .. math::

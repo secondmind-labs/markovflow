@@ -5,13 +5,11 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
-from gpflow.likelihoods import Likelihood
 
 from markovflow.base import Parameter, default_float, ordered
 from markovflow.conditionals import (
     _conditional_statistics,
     base_conditional_predict,
-    conditional_predict,
     conditional_statistics,
     pairwise_marginals,
 )

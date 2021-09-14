@@ -52,12 +52,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 
+from gpflow import default_float
+from gpflow.ci_utils import ci_niter
 from gpflow.likelihoods import Bernoulli
 
-from markovflow.base import ci_niter
 from markovflow.models.variational_cvi import CVIGaussianProcess
 from markovflow.kernels import Matern52
-from markovflow.base import default_float
 
 
 np.random.seed(0)
