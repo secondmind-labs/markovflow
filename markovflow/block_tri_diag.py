@@ -39,7 +39,7 @@ class BlockTriDiagonal(abc.ABC):
     Abstract class representing a block tridiagonal matrix.
 
     All precisions in Markovflow are of this form, so this class provides an adapter between the
-    TensorFlow banded_ops and the MarkovFlow code.
+    TensorFlow banded_matrices and the MarkovFlow code.
     """
 
     def __init__(
@@ -90,7 +90,7 @@ class BlockTriDiagonal(abc.ABC):
     @property
     def as_band(self) -> BandedMatrixTensor:
         """
-        Return a Tensorflow tensor (or NumPy array) representing a banded matrix.
+        Return a TensorFlow tensor (or NumPy array) representing a banded matrix.
 
         The (dense) tensor should be of dimension :math:`K×N`, where :math:`K` is the bandwidth
         of the represented :math:`N×N` matrix.

@@ -25,9 +25,7 @@ from typing import List, Tuple, Union
 
 import tensorflow as tf
 import tensorflow_probability as tfp
-from gpflow import Module, Parameter, default_float, default_int, set_trainable
-from gpflow.ci_utils import ci_niter
-from gpflow.utilities.bijectors import positive, triangular
+from gpflow import Parameter
 
 
 def ordered():
@@ -36,6 +34,9 @@ def ordered():
     TensorFlow Probability unfortunately got their naming the wrong way around, see
     https://github.com/tensorflow/probability/issues/765 - we need to construct
     Invert(Ordered()) to obtain a Parameter that is always ordered!
+
+    Note: when using TensorFlow Probability >= 0.12.0 this can be replaced with
+    `tfp.bijectors.Ascending`.
     """
     return tfp.bijectors.Invert(tfp.bijectors.Ordered())
 
@@ -58,7 +59,7 @@ Constant defining an appropriate level of approximate inference.
 
 AUTO_NAMESCOPE = "AUTO_NAMESCOPE"
 """
-Name of environmental variable which if set enables a well structured tensorflow graph for
+Name of environmental variable which if set enables a well structured TensorFlow graph for
 tensorboard debugging. In rare cases may cause issues, and will clutter the stacktrace so off by
 default.
 """
