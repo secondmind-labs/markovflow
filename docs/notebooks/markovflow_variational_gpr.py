@@ -53,12 +53,13 @@ import numpy as np
 import tensorflow as tf
 import gpflow
 
+from gpflow import default_float, set_trainable
+from gpflow.ci_utils import ci_niter
 from gpflow.likelihoods import Bernoulli
 
 from markovflow.models.variational import VariationalGaussianProcess
 from markovflow.kernels import Matern12, Product, HarmonicOscillator
 
-from markovflow.base import default_float, set_trainable, ci_niter
 
 FLOAT_TYPE = default_float()
 

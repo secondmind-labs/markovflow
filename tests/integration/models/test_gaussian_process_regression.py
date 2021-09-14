@@ -18,9 +18,10 @@ import gpflow.kernels as kernels_gpf
 import numpy as np
 import pytest
 import tensorflow as tf
+from gpflow import default_float
 from gpflow.models.gpr import GPR
 
-from markovflow.base import auto_namescope_enabled, default_float
+from markovflow.base import auto_namescope_enabled
 from markovflow.kernels import Matern32
 from markovflow.models import GaussianProcessRegression
 from tests.tools.generate_random_objects import generate_random_time_observations

@@ -21,8 +21,8 @@ import gpflow
 import numpy as np
 import pytest
 import tensorflow as tf
+from gpflow import default_float
 
-from markovflow.base import default_float
 from markovflow.conditionals import pairwise_marginals
 from markovflow.kernels import Matern32
 from markovflow.mean_function import LinearMeanFunction

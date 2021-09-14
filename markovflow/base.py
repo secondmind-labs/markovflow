@@ -17,15 +17,11 @@
 Module containing type aliases, attributes and helper functions.
 
 .. autodata:: SampleShape
-
-.. autodata:: TensorType
 """
 import os
 from typing import List, Tuple, Union
 
-import tensorflow as tf
 import tensorflow_probability as tfp
-from gpflow import Parameter
 
 
 def ordered():
@@ -46,11 +42,6 @@ SampleShape = Union[Tuple, List, int]
 A type that is either a ``Tuple``, a ``List``, or an ``int``.
 """
 
-TensorType = Union[tf.Tensor, tf.Variable, Parameter]
-"""
-A type that is either a TensorFlow :class:`~tf.Tensor`, a TensorFlow :class:`~tf.Variable`, or a
-GPflow `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
-"""
 
 APPROX_INF = 1e10
 """

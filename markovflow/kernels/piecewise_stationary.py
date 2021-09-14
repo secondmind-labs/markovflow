@@ -17,8 +17,9 @@
 from typing import List, Tuple
 
 import tensorflow as tf
+from gpflow.base import TensorType
 
-from markovflow.base import APPROX_INF, TensorType
+from markovflow.base import APPROX_INF
 from markovflow.emission_model import EmissionModel
 from markovflow.kernels.sde_kernel import NonStationaryKernel, StationaryKernel
 from markovflow.utils import tf_scope_class_decorator

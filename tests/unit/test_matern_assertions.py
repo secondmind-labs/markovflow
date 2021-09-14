@@ -17,9 +17,9 @@
 import numpy as np
 import pytest
 import tensorflow as tf
+from gpflow import default_float
 from tensorflow.python.framework.errors_impl import InvalidArgumentError
 
-from markovflow.base import default_float
 from markovflow.kernels.matern import Matern12, Matern32, Matern52
 from markovflow.utils import to_delta_time
 

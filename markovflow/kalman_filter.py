@@ -20,8 +20,8 @@ from abc import ABC, abstractmethod
 from gpflow import default_float
 import numpy as np
 import tensorflow as tf
+from gpflow.base import TensorType
 
-from markovflow.base import TensorType
 from markovflow.block_tri_diag import SymmetricBlockTriDiagonal
 from markovflow.emission_model import EmissionModel
 from markovflow.state_space_model import StateSpaceModel

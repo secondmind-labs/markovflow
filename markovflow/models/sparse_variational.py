@@ -17,9 +17,10 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
+from gpflow.base import Parameter
 from gpflow.likelihoods import Likelihood
 
-from markovflow.base import Parameter, ordered
+from markovflow.base import ordered
 from markovflow.gauss_markov import GaussMarkovDistribution
 from markovflow.kernels import SDEKernel
 from markovflow.mean_function import MeanFunction, ZeroMeanFunction

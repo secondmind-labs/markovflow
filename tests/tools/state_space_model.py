@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import tensorflow as tf
+from gpflow import default_float
 from banded_matrices.banded import (
     product_band_band,
     solve_triang_band,
@@ -25,7 +26,6 @@ from banded_matrices.banded import (
 )
 from banded_matrices.types import BandedMatrixTensor
 
-from markovflow.base import default_float
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal
 from markovflow.emission_model import EmissionModel
 from markovflow.state_space_model import StateSpaceModel, state_space_model_from_covariances

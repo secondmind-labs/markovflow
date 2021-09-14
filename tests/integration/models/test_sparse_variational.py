@@ -20,16 +20,12 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from gpflow.likelihoods import Bernoulli, Gaussian
-from tensorflow.python.util.nest import map_structure
 
 from markovflow.kernels import Matern12
 from markovflow.mean_function import LinearMeanFunction
 from markovflow.models import GaussianProcessRegression, SparseVariationalGaussianProcess
 from markovflow.models.variational import VariationalGaussianProcess
-from tests.tools.generate_random_objects import (
-    generate_random_pos_def_matrix,
-    generate_random_time_observations,
-)
+from tests.tools.generate_random_objects import generate_random_time_observations
 
 OUT_DIM = 1
 LENGTH_SCALE = 2.0

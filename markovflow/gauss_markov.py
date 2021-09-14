@@ -19,9 +19,9 @@ from typing import Tuple
 
 import tensorflow as tf
 
-from markovflow.base import SampleShape, TensorType
+from markovflow.base import SampleShape
 from markovflow.block_tri_diag import SymmetricBlockTriDiagonal
-from markovflow.utils import tf_scope_class_decorator, tf_scope_fn_decorator
+from markovflow.utils import tf_scope_class_decorator
 
 
 @tf_scope_class_decorator

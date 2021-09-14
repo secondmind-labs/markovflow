@@ -20,8 +20,9 @@ import numpy as np
 import pytest
 import tensorflow as tf
 import tensorflow_probability as tfp
+from gpflow import default_float
 
-from markovflow.base import auto_namescope_enabled, default_float
+from markovflow.base import auto_namescope_enabled
 from markovflow.state_space_model import StateSpaceModel
 from tests.tools.state_space_model import StateSpaceModelBuilder, precision_spingp
 

@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 """Module containing utility functions."""
-import os
 from functools import wraps
 from typing import List, Optional
 
@@ -24,8 +23,9 @@ from tensorflow.compat.v1.linalg import (
     LinearOperatorFullMatrix,
     LinearOperatorKronecker,
 )
+from gpflow import default_float
 
-from markovflow.base import auto_namescope_enabled, default_float
+from markovflow.base import auto_namescope_enabled
 
 
 def tf_scope_fn_decorator(fn):

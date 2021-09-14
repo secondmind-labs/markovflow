@@ -16,8 +16,9 @@
 """Module containing a periodic kernel."""
 import numpy as np
 import tensorflow as tf
+from gpflow import Parameter, default_float
+from gpflow.utilities import positive
 
-from markovflow.base import Parameter, default_float, positive
 from markovflow.kernels.sde_kernel import StationaryKernel
 from markovflow.utils import tf_scope_class_decorator
 

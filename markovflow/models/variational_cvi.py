@@ -17,9 +17,9 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
+from gpflow.base import Parameter
 from gpflow.likelihoods import Likelihood
 
-from markovflow.base import Parameter
 from markovflow.kalman_filter import KalmanFilterWithSites, UnivariateGaussianSitesNat
 from markovflow.kernels import SDEKernel
 from markovflow.mean_function import MeanFunction, ZeroMeanFunction
