@@ -17,8 +17,8 @@
 import numpy as np
 import pytest
 import tensorflow as tf
+from gpflow import default_float
 
-from markovflow.base import default_float
 from markovflow.kernels.periodic import HarmonicOscillator
 from markovflow.utils import to_delta_time
 from tests.tools.generate_random_objects import generate_random_time_points

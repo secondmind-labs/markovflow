@@ -20,7 +20,6 @@ from abc import abstractmethod
 from typing import Tuple
 
 import gpflow
-import numpy as np
 import tensorflow as tf
 
 from markovflow.utils import tf_scope_fn_decorator

@@ -32,13 +32,15 @@ import matplotlib
 import numpy as np
 import tensorflow as tf
 
-# Turn off warnings
+from gpflow import default_float
+from gpflow.ci_utils import ci_niter
+
 from markovflow.kernels import Matern32
 from markovflow.models import GaussianProcessRegression
-from markovflow.base import default_float, ci_niter
 
 FLOAT_TYPE = default_float()
 
+# Turn off warnings
 warnings.simplefilter('ignore')
 
 try:

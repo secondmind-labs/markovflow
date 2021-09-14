@@ -50,15 +50,15 @@ warnings.simplefilter('ignore')
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import gpflow
 
-from gpflow.likelihoods import Bernoulli, Gaussian
+from gpflow import default_float
+from gpflow.ci_utils import ci_niter
+from gpflow.likelihoods import Bernoulli
 
 
 from markovflow.likelihoods import PEPScalarLikelihood
 from markovflow.models.sparse_pep import SparsePowerExpectationPropagation
 from markovflow.kernels import Matern52
-from markovflow.base import default_float, ci_niter
 
 
 np.random.seed(0)

@@ -19,8 +19,8 @@ from typing import Tuple
 import numpy as np
 import pytest
 import tensorflow as tf
+from gpflow import default_float
 
-from markovflow.base import default_float
 from markovflow.emission_model import ComposedPairEmissionModel, EmissionModel, StackEmissionModel
 
 OUTPUT_DIM = 2

@@ -19,8 +19,10 @@ from typing import Tuple
 
 import tensorflow as tf
 import tensorflow_probability as tfp
+from gpflow import default_float
+from gpflow.base import TensorType, Parameter
+from gpflow.utilities import triangular
 
-from markovflow.base import Parameter, TensorType, default_float, triangular
 from markovflow.likelihoods.likelihoods import Likelihood, check_input_shapes
 from markovflow.utils import tf_scope_class_decorator
 

@@ -1,12 +1,11 @@
 # +
 import numpy as np
 import tensorflow as tf
+from gpflow import set_trainable
+from gpflow.ci_utils import ci_niter
 from gpflow.kernels import RBF
 from gpflow.likelihoods import Gaussian
 from matplotlib import pyplot as plt
-from markovflow.base import ci_niter
-
-from markovflow.base import set_trainable
 from markovflow.kernels import Matern32
 from markovflow.models import SparseSpatioTemporalVariational
 from markovflow.ssm_natgrad import SSMNaturalGradient

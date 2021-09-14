@@ -20,13 +20,10 @@ import numpy as np
 import pytest
 import tensorflow as tf
 import tensorflow_probability as tfp
+from gpflow import default_float
 
-from markovflow.base import default_float
 from markovflow.kernels import Matern12, Matern32, Matern52, PiecewiseKernel
-from markovflow.models.spatio_temporal_variational import (
-    SparseSpatioTemporalKernel,
-    SparseSpatioTemporalVariational,
-)
+from markovflow.models.spatio_temporal_variational import SparseSpatioTemporalKernel
 from markovflow.utils import kronecker_product
 from tests.tools.generate_random_objects import generate_random_time_points
 from tests.tools.state_space_model import f_covariances, stich_state_space_models

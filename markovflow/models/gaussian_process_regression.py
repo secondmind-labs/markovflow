@@ -17,8 +17,8 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
+from gpflow.base import TensorType
 
-from markovflow.base import TensorType
 from markovflow.kalman_filter import KalmanFilter
 from markovflow.kernels import SDEKernel
 from markovflow.likelihoods import MultivariateGaussian

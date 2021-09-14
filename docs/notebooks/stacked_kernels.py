@@ -17,6 +17,7 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+from gpflow.ci_utils import ci_niter
 
 from gpflow.likelihoods import Gaussian
 
@@ -24,7 +25,6 @@ from markovflow.models import SparseVariationalGaussianProcess
 from markovflow.kernels import Matern12, Matern32
 from markovflow.kernels.sde_kernel import IndependentMultiOutputStack
 from markovflow.ssm_natgrad import SSMNaturalGradient
-from markovflow.base import ci_niter
 
 # %% [markdown]
 # # Stacked kernels and multiple outputs

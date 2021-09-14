@@ -21,8 +21,8 @@ from typing import Tuple
 
 import tensorflow as tf
 from banded_matrices.banded import band_to_block, inverse_from_cholesky_band, solve_triang_band
+from gpflow.base import TensorType
 
-from markovflow.base import TensorType
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal, SymmetricBlockTriDiagonal
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.utils import tf_scope_fn_decorator

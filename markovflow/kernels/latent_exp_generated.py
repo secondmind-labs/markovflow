@@ -15,11 +15,11 @@
 #
 """Module containing the LEG-GPs family of kernels."""
 
-from typing import Tuple
 
 import tensorflow as tf
 
-from markovflow.base import Parameter, default_float
+from gpflow import Parameter, default_float
+
 from markovflow.kernels.sde_kernel import StationaryKernel
 from markovflow.utils import tf_scope_class_decorator
 

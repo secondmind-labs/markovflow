@@ -14,13 +14,15 @@
 # limitations under the License.
 #
 """Module containing a state space model."""
-from typing import List, Tuple, Union
+from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
+from gpflow import default_float
+from gpflow.base import TensorType, Parameter
 
-from markovflow.base import Parameter, SampleShape, TensorType, default_float, triangular
+from markovflow.base import SampleShape
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal, SymmetricBlockTriDiagonal
 from markovflow.gauss_markov import GaussMarkovDistribution, check_compatible
 from markovflow.utils import tf_scope_class_decorator, tf_scope_fn_decorator

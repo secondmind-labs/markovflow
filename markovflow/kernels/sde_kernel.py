@@ -22,8 +22,9 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 import tensorflow as tf
+from gpflow import default_float
+from gpflow.base import TensorType, Parameter
 
-from markovflow.base import Parameter, TensorType, default_float
 from markovflow.emission_model import ComposedPairEmissionModel, EmissionModel, StackEmissionModel
 from markovflow.gauss_markov import GaussMarkovDistribution
 from markovflow.kernels.kernel import Kernel

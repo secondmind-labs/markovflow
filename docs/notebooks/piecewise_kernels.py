@@ -56,13 +56,13 @@ import numpy as np
 import tensorflow as tf
 import gpflow
 
+from gpflow import default_float, set_trainable
+from gpflow.ci_utils import ci_niter
 from gpflow.likelihoods import Gaussian
 
 from markovflow.models.sparse_variational import SparseVariationalGaussianProcess
 from markovflow.kernels import Matern52
 from markovflow.kernels import PiecewiseKernel
-from markovflow.base import set_trainable
-from markovflow.base import default_float, ci_niter
 from markovflow.ssm_natgrad import SSMNaturalGradient
 FLOAT_TYPE = default_float()
 
