@@ -24,17 +24,15 @@ course!) using importance-weighted variational inference.
 # %%
 import numpy as np
 import tensorflow as tf
-
+from gpflow.ci_utils import ci_niter
 from gpflow.likelihoods import Bernoulli
 
 from markovflow.models.iwvi import ImportanceWeightedVI
 from markovflow.kernels import Matern32
-from markovflow.base import ci_niter
-import markovflow as mf
 
+import matplotlib.pyplot as plt
 # %%
 # Setup
-import matplotlib.pyplot as plt
 learning_rate = 1e-3
 importance_K = 10
 
