@@ -11,7 +11,7 @@ package_data = \
 {'': ['*']}
 
 install_requires = \
-['banded_matrices>=0.32.1,<0.33.0',
+['banded-matrices==0.0.6',
  'google-auth==1.16.0',
  'gpflow>=2.0.5,<3.0.0',
  'importlib_metadata>=1.6,<2.0',
