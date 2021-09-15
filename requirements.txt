@@ -10,10 +10,7 @@ atomicwrites==1.4.0; sys_platform == "win32"
 attrs==20.3.0
 babel==2.9.0
 backcall==0.2.0
-
-# git+https://github.com/Prowler-io/banded_matrices.git
-# banded-matrices==0.32.1
-
+banded-matrices==0.32.0
 black==19.10b0
 bleach==3.2.1
 cachetools==4.1.1
