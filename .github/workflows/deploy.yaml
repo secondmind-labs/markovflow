@@ -50,7 +50,7 @@ jobs:
       run: |
         cd docs
         pip install -r docs_requirements.txt
-        make docs
+        make html
     - run: |
         TMP_DIR=$(mktemp -d -p $(pwd))
         mv docs/_build/html/* $TMP_DIR
