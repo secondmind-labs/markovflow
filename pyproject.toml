@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "markovflow"
-version = "0.0.1"
+version = "0.0.7"
 description = "A Tensorflow based library for Time Series Modelling with Gaussian Processes"
 authors = ["Markovflow Contributors <markovflow@secondmind.ai>"]
 packages = [{include = "markovflow"}]
