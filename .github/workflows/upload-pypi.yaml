@@ -60,19 +60,13 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      # ------------ Install poetry
-#      - name: Setup pip/poetry
-#        run: |
-#          pip install -U pip poetry twine
-#          poetry config virtualenvs.create false
+
       # ------------ build and install package
       - name: Install package
         run: |
-#          poetry install
-#          poetry build
-           pip install -e .
-           python setup.py sdist
-           pip wheel . -w dist
+          pip install -e .
+          python setup.py sdist
+          pip wheel . -w dist
       # ------------ publish to pypi
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
