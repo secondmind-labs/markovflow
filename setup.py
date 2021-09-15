@@ -31,6 +31,7 @@ setup_kwargs = {
     'name': 'markovflow',
     "version": version,
     "long_description": long_description,
+    "long_description_content_type": "text/markdown",
     'description': 'A Tensorflow based library for Time Series Modelling with Gaussian Processes',
     'author': 'Markovflow Team',
     'author_email': 'markovflow@secondmind.ai',
