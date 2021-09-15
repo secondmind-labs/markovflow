@@ -18,7 +18,7 @@ install_requires = \
  'numpy>=1.18.0,<2.0.0',
  'scipy==1.4.1',
  'setuptools>=41.0.0,<42.0.0',
- 'tensorflow-probability==0.10.1',
+ 'tensorflow-probability==0.11.0',
  'tensorflow==2.2.1']
 
 setup_kwargs = {

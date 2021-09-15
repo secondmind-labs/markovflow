@@ -228,11 +228,11 @@ importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 
 [[package]]
 name = "cloudpickle"
-version = "2.0.0"
+version = "1.3.0"
 description = "Extended pickling support for Python objects"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = "*"
 
 [[package]]
 name = "cmake"
@@ -1857,14 +1857,14 @@ python-versions = "*"
 
 [[package]]
 name = "tensorflow-probability"
-version = "0.13.0"
+version = "0.11.0"
 description = "Probabilistic modeling and statistical inference in TensorFlow"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-cloudpickle = ">=1.3"
+cloudpickle = "1.3"
 decorator = "*"
 dm-tree = "*"
 gast = ">=0.3.2"
@@ -2027,7 +2027,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">3.7,<3.8"
-content-hash = "ec180ff41cf81a17dd8007f0018fd22e722e1b5bdec673399734b9b38e13a897"
+content-hash = "e7b9ec8e20a21043803771d6a7c0cbdd68ecb7260404314a3ecc77b2fda0275b"
 
 [metadata.files]
 absl-py = [
@@ -2163,8 +2163,8 @@ click = [
     {file = "click-8.0.1.tar.gz", hash = "sha256:8c04c11192119b1ef78ea049e0a6f0463e4c48ef00a30160c704337586f3ad7a"},
 ]
 cloudpickle = [
-    {file = "cloudpickle-2.0.0-py3-none-any.whl", hash = "sha256:6b2df9741d06f43839a3275c4e6632f7df6487a1f181f5f46a052d3c917c3d11"},
-    {file = "cloudpickle-2.0.0.tar.gz", hash = "sha256:5cd02f3b417a783ba84a4ec3e290ff7929009fe51f6405423cfccfadd43ba4a4"},
+    {file = "cloudpickle-1.3.0-py2.py3-none-any.whl", hash = "sha256:8664761f810efc07dbb301459e413c99b68fcc6d8703912bd39d86618ac631e3"},
+    {file = "cloudpickle-1.3.0.tar.gz", hash = "sha256:38af54d0e7705d87a287bdefe1df00f936aadb1f629dca383e825cca927fa753"},
 ]
 cmake = [
     {file = "cmake-3.18.4.post1-py2-none-macosx_10_6_x86_64.whl", hash = "sha256:10c46b0fd2c087b0cae611d1e734f065a1a8169d0b54ec834a9dff005c1857ca"},
@@ -3292,7 +3292,7 @@ tensorflow-estimator = [
     {file = "tensorflow_estimator-2.4.0-py2.py3-none-any.whl", hash = "sha256:5b7b7bf2debe19a8794adacc43e8ba6459daa4efaf54d3302623994a359b17f0"},
 ]
 tensorflow-probability = [
-    {file = "tensorflow_probability-0.13.0-py2.py3-none-any.whl", hash = "sha256:308c05998731d0de077a81f4537bef34523cab406fdae09e3e11854d45a075bb"},
+    {file = "tensorflow_probability-0.11.0-py2.py3-none-any.whl", hash = "sha256:60e66a376f8b3602d3f61b0ac0bf844796b2cc10c104a13bced5cb65e1770eae"},
 ]
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},

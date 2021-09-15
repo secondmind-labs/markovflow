@@ -13,7 +13,7 @@ importlib_metadata = "^1.6" # poetry requires this for python < 3.8
 gpflow = "^2.1"
 numpy = "^1.18.0"
 tensorflow = ">2.2.0"
-tensorflow-probability = ">0.10"
+tensorflow-probability = "0.11.0"
 banded-matrices = "0.0.6"
 # pip isn't smart enough to resolve these, so we need to include and pin these
 setuptools = "^41.0.0"
