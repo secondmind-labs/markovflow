@@ -47,7 +47,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-from markovflow.base import ci_niter
+from gpflow.ci_utils import ci_niter
 from markovflow.kernels import Matern52, Matern32
 from markovflow.ssm_natgrad import SSMNaturalGradient
 
@@ -148,7 +148,6 @@ from gpflow.likelihoods import Gaussian
 
 from markovflow.models.sparse_variational import SparseVariationalGaussianProcess as SVGP
 from markovflow.kernels import FactorAnalysisKernel
-from markovflow.base import ci_niter
 
 tf_X = tf.constant(np.repeat(X[None, :], Bn, axis=0), default_float())  # [Bn, N]
 tf_Z = tf.constant(np.repeat(Z[None, :], Bn, axis=0), default_float())  # [Bn, N]
