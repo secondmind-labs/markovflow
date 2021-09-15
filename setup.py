@@ -30,8 +30,8 @@ with open("README.md") as file:
 setup_kwargs = {
     'name': 'markovflow',
     "version": version,
-    "long_description": long_description,
-    "long_description_content_type": "text/markdown",
+    "long_description": None,
+    "long_description_content_type": None,
     'description': 'A Tensorflow based library for Time Series Modelling with Gaussian Processes',
     'author': 'Markovflow Team',
     'author_email': 'markovflow@secondmind.ai',
