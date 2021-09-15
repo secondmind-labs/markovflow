@@ -11,14 +11,14 @@ package_data = \
 {'': ['*']}
 
 install_requires = \
-['banded_matrices>=0.32.1,<0.33.0',
+['banded-matrices==0.0.6',
  'google-auth==1.16.0',
  'gpflow>=2.0.5,<3.0.0',
  'importlib_metadata>=1.6,<2.0',
  'numpy>=1.18.0,<2.0.0',
  'scipy==1.4.1',
  'setuptools>=41.0.0,<42.0.0',
- 'tensorflow-probability==0.10.1',
+ 'tensorflow-probability==0.11.0',
  'tensorflow==2.2.1']
 
 setup_kwargs = {

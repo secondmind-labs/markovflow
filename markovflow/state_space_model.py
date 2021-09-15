@@ -21,6 +21,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from gpflow import default_float
 from gpflow.base import TensorType, Parameter
+from gpflow.utilities import triangular
 
 from markovflow.base import SampleShape
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal, SymmetricBlockTriDiagonal
