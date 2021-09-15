@@ -21,11 +21,17 @@ install_requires = \
  'tensorflow-probability==0.11.0',
  'tensorflow==2.2.1']
 
+with open("VERSION") as file:
+    version = file.read().strip()
+
+with open("README.md") as file:
+    long_description = file.read()
+
 setup_kwargs = {
     'name': 'markovflow',
-    'version': '0.33.0',
+    "version": version,
+    "long_description": long_description,
     'description': 'A Tensorflow based library for Time Series Modelling with Gaussian Processes',
-    'long_description': None,
     'author': 'Markovflow Team',
     'author_email': 'markovflow@secondmind.ai',
     'maintainer': None,
