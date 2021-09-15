@@ -49,7 +49,7 @@ jobs:
     - name: make documentation
       run: |
         cd docs
-        pip install -r doc_requirements.txt
+        pip install -r docs_requirements.txt
         make docs
     - run: |
         TMP_DIR=$(mktemp -d -p $(pwd))
