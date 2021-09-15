@@ -60,16 +60,29 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
-      # ------------ build and install package
-      - name: Install package
+      # ------------ Install poetry
+      - name: Setup pip/poetry
         run: |
-          pip install -e .
-          python setup.py sdist
-          pip wheel . -w dist
-      # ------------ publish to pypi
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+          pip install -U pip poetry twine
+          poetry config virtualenvs.create false
+      # ------------ build and install package
+      #      - name: Install package
+      #        run: |
+      #          poetry install
+      #          poetry build
+      - name: Build and publish to pypi
+        uses: JRubics/poetry-publish@v1.8
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
+          python_version: "3.7"
+          poetry_version: "==1.1.6" # (PIP version specifier syntax)
+          pypi_token: ${{ secrets.PYPI_TOKEN }}
+          build_format: "sdist"
+          repository_name: "markovflow"
+          repository_url: "https://github.com/secondmind-labs/markovflow"
+          ignore_dev_requirements: "yes"
+      #      # ------------ publish to pypi
+      #      - name: Publish to PyPI
+      #        uses: pypa/gh-action-pypi-publish@release/v1
+      #        with:
+      #          user: __token__
+      #          password: ${{ secrets.PYPI_TOKEN }}

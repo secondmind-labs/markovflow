@@ -2,6 +2,7 @@
 name = "markovflow"
 version = "0.0.7"
 description = "A Tensorflow based library for Time Series Modelling with Gaussian Processes"
+long_description = "A Tensorflow based library for Time Series Modelling with Gaussian Processes"
 authors = ["Markovflow Contributors <markovflow@secondmind.ai>"]
 packages = [{include = "markovflow"}]
 
