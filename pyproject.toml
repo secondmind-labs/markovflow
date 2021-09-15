@@ -14,7 +14,7 @@ gpflow = "^2.1"
 numpy = "^1.18.0"
 tensorflow = ">2.2.0"
 tensorflow-probability = ">0.10"
-# banded_matrices = "^0.32.0"
+banded-matrices = "0.0.6"
 # pip isn't smart enough to resolve these, so we need to include and pin these
 setuptools = "^41.0.0"
 google-auth = "^1.16.0"
