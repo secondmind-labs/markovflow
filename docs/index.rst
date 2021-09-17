@@ -24,7 +24,7 @@
 
 
 Welcome to Markovflow
-==================
+=====================
 
 Markovflow is a research toolbox dedicated to Markovian Gaussian processes.
 
@@ -40,7 +40,7 @@ Getting started
 
 We have provided multiple `Tutorials <tutorials>` showing the basic functionality of the toolbox, and have a comprehensive `API Reference <autoapi/markovflow/index>`.
 
-As a quick teaser, here's a snippet from the `intro notebook <notebooks/intro>` that demonstrates how to perform classic GP regression for a simple one-dimensional dataset:
+As a quick teaser, here's a snippet that demonstrates how to perform classic GP regression for a simple one-dimensional dataset:
 
 
 .. code-block:: python
