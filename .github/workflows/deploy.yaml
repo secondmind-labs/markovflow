@@ -48,9 +48,7 @@ jobs:
       run: poetry install
     - name: make documentation
       run: |
-        cd docs
-        make html
-        cd ..
+        make docs
     - run: |
         TMP_DIR=$(mktemp -d -p $(pwd))
         mv docs/_build/html/* $TMP_DIR
