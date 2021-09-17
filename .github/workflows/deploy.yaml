@@ -14,10 +14,11 @@
 
 name: Deploy
 
-on:
-  push:
-    branches:
-      - develop
+on: [push]
+# on:
+#  push:
+#    branches:
+#      - develop
 
 jobs:
   docs:
@@ -35,17 +36,17 @@ jobs:
     - uses: actions/setup-python@v2
       with:
           python-version: ${{ matrix.python-version }}
-    - name: Run image
-      uses: abatilo/actions-poetry@v2.0.0
-      with:
-          poetry-version: ${{ matrix.poetry-version }}
+    # - name: Run image
+    #  uses: abatilo/actions-poetry@v2.0.0
+    #  with:
+    #      poetry-version: ${{ matrix.poetry-version }}
     - uses: actions/cache@v2
       with:
         path: ${{ env.pythonLocation }}
         key: ${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ hashFiles('notebook_requirements.txt') }}-${{ hashFiles('tests_requirements.txt') }}
     # ------------ install markovflow
     - name: Install package
-      run: poetry install
+      run: make install
     - name: make documentation
       run: |
         make docs
