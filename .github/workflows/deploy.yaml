@@ -48,7 +48,6 @@ jobs:
       run: poetry install
     - name: make documentation
       run: |
-        cd docs
         make docs
     - run: |
         TMP_DIR=$(mktemp -d -p $(pwd))

@@ -25,7 +25,7 @@ from markovflow.base import ordered
 from markovflow.conditionals import conditional_statistics
 from markovflow.kernels import SDEKernel
 from markovflow.mean_function import MeanFunction, ZeroMeanFunction
-from markovflow.models import MarkovFlowSparseModel
+from markovflow.models.models import MarkovFlowSparseModel
 from markovflow.models.variational_cvi import (
     back_project_nats,
     gradient_transformation_mean_var_to_expectation,

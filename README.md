@@ -8,6 +8,7 @@
 
 [Documentation](https://secondmind-labs.github.io/markovflow/) |
 [Tutorials](https://secondmind-labs.github.io/markovflow/tutorials.html) |
+[API reference](https://secondmind-labs.github.io/markovflow/autoapi/markovflow/index.html) |
 [Slack](https://join.slack.com/t/secondmind-labs/shared_invite/zt-ph07nuie-gMlkle__tjvXBay4FNSLkw)
 
 ## What does Markovflow do?
@@ -22,7 +23,8 @@ Markovflow uses the mathematical building blocks from [GPflow](http://www.gpflow
 
 ## Getting started
 
-In the [Documentation](https://secondmind-labs.github.io/markovflow/), we have multiple [Tutorials](https://secondmind-labs.github.io/markovflow/tutorials.html) showing the basic functionality of the toolbox.
+In the [Documentation](https://secondmind-labs.github.io/markovflow/), we have multiple [Tutorials](https://secondmind-labs.github.io/markovflow/tutorials.html) showing the basic functionality of the toolbox,
+and a comprehensive [API reference](https://secondmind-labs.github.io/markovflow/autoapi/markovflow/index.html).
 
 
 ## Install Markovflow

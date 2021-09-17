@@ -30,7 +30,7 @@ from markovflow.gauss_markov import GaussMarkovDistribution
 from markovflow.kernels import SDEKernel
 from markovflow.likelihoods import PEPGaussian, PEPScalarLikelihood
 from markovflow.mean_function import MeanFunction, ZeroMeanFunction
-from markovflow.models import MarkovFlowSparseModel
+from markovflow.models.models import MarkovFlowSparseModel
 from markovflow.models.pep import gradient_correction
 from markovflow.models.variational_cvi import back_project_nats
 from markovflow.posterior import ConditionalProcess, PosteriorProcess
