@@ -14,14 +14,17 @@
 
 name: Deploy
 
-on:
-  push:
-    branches:
-      - develop
+#on:
+#  push:
+#    branches:
+#      - develop
+on: [push]
 
 jobs:
-  check-and-test:
+  check-test-deploy-docs:
     runs-on: ubuntu-latest
+    env:
+      DOCS: ""
     strategy:
       matrix:
         python-version: [ 3.7 ]
