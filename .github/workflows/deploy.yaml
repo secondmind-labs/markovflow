@@ -14,16 +14,13 @@
 
 name: Deploy
 
-#on:
-#  push:
-#    branches:
-#      - develop
-
-on: [push]
-
+on:
+  push:
+    branches:
+      - develop
 
 jobs:
-  test:
+  check-and-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -71,6 +68,11 @@ jobs:
       #----------------------------------------------
       - name: Install library
         run: poetry install --no-interaction
+      #----------------------------------------------
+      #              run test suite
+      #----------------------------------------------
+      - name: Run tests
+        run: poetry run task quicktest
       #----------------------------------------------
       # build documentation
       #----------------------------------------------
