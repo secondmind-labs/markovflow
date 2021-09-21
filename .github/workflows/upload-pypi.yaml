@@ -14,8 +14,6 @@
 
 name: Upload-PyPI
 
-
-
 on:
   workflow_dispatch:
   push:
@@ -23,66 +21,62 @@ on:
     tags: v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
-  check-and-test:
+  check-test-deploy-docs:
     runs-on: ubuntu-latest
+    env:
+      DOCS: ""
     strategy:
       matrix:
-          python-version: [3.7]
-          tensorflow: [2.2.1]
-          poetry-version: [1.1.6]
-    name: Python-${{ matrix.python-version }}
+        python-version: [ 3.7 ]
+        tensorflow: [ 2.2.1 ]
+    name: Python-${{ matrix.python-version }} tensorflow${{ matrix.tensorflow }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      #----------------------------------------------
+      #       check-out repo and set-up python
+      #----------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Set up python
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      # ------------ Install poetry
-      - name: Setup pip/poetry
-        run: |
-          pip install -U pip poetry twine
-          poetry config virtualenvs.create false
-      # ------------ build and install package
-      - name: Install package
-        run: poetry install
-      # ------------ run tests
-      - name: Run tests
-        run: poetry run task test
-  pypi:
-    # needs: check-and-test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.7]
-        poetry-version: [1.1.6]
-    name: Release PyPi package
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      #----------------------------------------------
+      #  -----  install & configure poetry  -----
+      #----------------------------------------------
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
         with:
-          python-version: ${{ matrix.python-version }}
-      # ------------ Install poetry
-      - name: Setup pip/poetry
-        run: |
-          pip install -U pip poetry twine
-          poetry config virtualenvs.create false
-      # ------------ build and install package
-      #      - name: Install package
-      #        run: |
-      #          poetry install
-      #          poetry build
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v1.8
+          version: 1.1.6
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+      #----------------------------------------------
+      #       load cached venv if cache exists
+      #----------------------------------------------
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
         with:
-          python_version: "3.7"
-          poetry_version: "==1.1.6" # (PIP version specifier syntax)
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
-          build_format: "sdist"
-          repository_name: "markovflow"
-          repository_url: "https://github.com/secondmind-labs/markovflow"
-          ignore_dev_requirements: "yes"
-      #      # ------------ publish to pypi
-      #      - name: Publish to PyPI
-      #        uses: pypa/gh-action-pypi-publish@release/v1
-      #        with:
-      #          user: __token__
-      #          password: ${{ secrets.PYPI_TOKEN }}
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      #----------------------------------------------
+      # install dependencies if cache does not exist
+      #----------------------------------------------
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      #----------------------------------------------
+      # install root project
+      #----------------------------------------------
+      - name: Install library
+        run: |
+          poetry install --no-interaction
+          poetry build
+      #----------------------------------------------
+      # publish to pypi
+      #----------------------------------------------
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
