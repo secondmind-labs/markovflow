@@ -74,8 +74,8 @@ jobs:
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
-      - name: Run tests
-        run: poetry run task quicktest
+      # - name: Run tests
+      #  run: poetry run task quicktest
       #----------------------------------------------
       # build documentation
       #----------------------------------------------
