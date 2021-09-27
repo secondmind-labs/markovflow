@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 """Module containing Stochastic Differential Equation (SDE) kernels."""
+
+
 from __future__ import annotations
 
 import abc
@@ -23,8 +25,10 @@ from typing import Callable, List, Tuple
 import numpy as np
 import tensorflow as tf
 from gpflow import default_float
-from gpflow.base import TensorType, Parameter
+from gpflow.base import Parameter, TensorType
 
+from markovflow.conditionals import cyclic_reduction_conditional_statistics
+from markovflow.cyclic_reduction import CyclicReduction
 from markovflow.emission_model import ComposedPairEmissionModel, EmissionModel, StackEmissionModel
 from markovflow.gauss_markov import GaussMarkovDistribution
 from markovflow.kernels.kernel import Kernel
@@ -340,6 +344,28 @@ class SDEKernel(Kernel, abc.ABC):
         """
         return tf.eye(self.state_dim, dtype=default_float()) * self._jitter
 
+    @property
+    @abc.abstractmethod
+    def feedback_matrix(self) -> tf.Tensor:
+        """
+        The feedback matrix F
+
+        where: dx(t)/dt = F x(t) + L w(t),
+
+        :return: A tensor of shape [state_dim, state_dim]
+        """
+
+    @property
+    @abc.abstractmethod
+    def steady_state_covariance(self) -> tf.Tensor:
+        """
+        The steady state covariance P∞, given implicitly by
+
+        F P∞ + P∞ Fᵀ + LQ_cLᵀ = 0
+
+        :return: A tensor of shape [state_dim, state_dim]
+        """
+
     def __add__(self, other: "SDEKernel") -> "Sum":
         """ Operator for combining kernel objects by summing them. """
         assert self.output_dim == other.output_dim
@@ -349,6 +375,100 @@ class SDEKernel(Kernel, abc.ABC):
         """ Operator for combining kernel objects by multiplying them. """
         assert self.output_dim == other.output_dim
         return Product(kernels=[self, other])
+
+    def cyclic_reduction_decomposition(self, time_points: tf.Tensor) -> CyclicReduction:
+        """
+        For a vector of ordered time points,
+        returns the cyclic reduction conditional statistics
+
+        Ordered Input vector x is recursively split in two ordered lists
+        according to odd (xᵉ explained) and even indices (xᶜ conditioning)
+        The same procedure is then applied to the conditioning list xᶜ
+
+        At each iteration, the conditional statistics Fₜ, Gₜ, Lₜ are returned
+        p(xᵉₜ | xᶜₜ₋₁,  xᶜₜ₊₁) = 𝓝(xᵉₜ; Fₜ @ xᶜₜ₋₁ + Gₜ @ xᶜₜ₊₁,
+                                         Tₜ = (Lₜ Lₜᵀ)⁻¹ = Lₜ⁻ᵀLₜ⁻¹)
+
+        :param time_points: time points
+               batch_shape + [num__time_points,]
+        :return: a list of tensors containing the cyclic reduction  conditional
+                statistics Fₜ, Gₜ, Lₜ at each level l with shapes
+                batch_shape + [num_explained_l, state_dim, state_dim]
+        """
+        # number of data points in input vector
+        batch_shape = tf.TensorShape(time_points.shape)[:-1]
+        state_dim = self.state_dim
+
+        shape = tf.shape(time_points)
+        num_time_points = shape[-1]
+
+        ragged_shape = (
+            tf.TensorShape([None, None]) + batch_shape + tf.TensorShape([state_dim, state_dim])
+        )
+        ragged_rank = 1  # len(batch_shape) + 1
+        # depth of the cyclic reduction binary tree
+        log2_num_points = tf.math.log(tf.cast(num_time_points, default_float())) / tf.cast(
+            tf.math.log(2.0), default_float()
+        )
+        tree_depth = tf.cast(tf.math.ceil(log2_num_points), tf.int32)
+
+        empty_tensor = tf.zeros(
+            shape=(1, 0) + batch_shape + (state_dim, state_dim), dtype=default_float()
+        )
+        Fs = tf.RaggedTensor.from_tensor(empty_tensor, ragged_rank=ragged_rank)
+        Gs = tf.RaggedTensor.from_tensor(empty_tensor, ragged_rank=ragged_rank)
+        chols = tf.RaggedTensor.from_tensor(empty_tensor, ragged_rank=ragged_rank)
+
+        # Fs, Gs, chols = [], [], []
+        for i in tf.range(tree_depth):
+            tf.autograph.experimental.set_loop_options(
+                shape_invariants=[(Fs, ragged_shape), (Gs, ragged_shape), (chols, ragged_shape)]
+            )
+
+            # ragged.range behaves as np.arange when arg#1 is higher than arg#2, instead of erroring
+            e = tf.ragged.range(2 ** i - 1, num_time_points, 2 ** (i + 1))[0]
+            c = tf.ragged.range(2 ** (i + 1) - 1, num_time_points, 2 ** (i + 1))[0]
+            # explained times points
+            explained_time_points = tf.gather(time_points, e, axis=-1)
+            conditioning_time_points = tf.gather(time_points, c, axis=-1)
+
+            f, g, l = cyclic_reduction_conditional_statistics(
+                explained_time_points, conditioning_time_points, kernel=self
+            )
+
+            # bring the time axis in the front
+            f = tf.einsum("...ijk->i...jk", f)
+            g = tf.einsum("...ijk->i...jk", g)
+            l = tf.einsum("...ijk->i...jk", l)
+
+            if tf.greater(tf.shape(f)[0], 0):
+                Fs = tf.concat([Fs, f[None]], axis=0)
+                Gs = tf.concat([Gs, g[None]], axis=0)
+            if tf.greater(tf.shape(l)[0], 0):
+                chols = tf.concat([chols, l[None]], axis=0)
+
+        # remove the dummy empty tensor from the beginning
+        Fs = Fs[1:]
+        Gs = Gs[1:]
+        chols = chols[1:]
+
+        final_node_shape = batch_shape + tf.TensorShape([1, state_dim, state_dim])
+        final_node_chol = tf.broadcast_to(
+            tf.linalg.cholesky(tf.linalg.inv(self.steady_state_covariance)), final_node_shape
+        )
+
+        final_node_chol = tf.einsum("...ijk->i...jk", final_node_chol)
+        chols = tf.concat([chols, final_node_chol[None]], axis=0)
+        mean = tf.zeros(
+            tf.concat([shape, tf.TensorShape([state_dim])], axis=-1), dtype=default_float()
+        )
+
+        # return mean, Fs, Gs, chols
+
+        # mean = tf.zeros(tf.concat([shape, tf.TensorShape([state_dim])], axis=-1),
+        #                 dtype=default_float())
+
+        return CyclicReduction(mean, chols, Fs, Gs)
 
 
 class StationaryKernel(SDEKernel, abc.ABC):
