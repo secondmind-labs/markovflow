@@ -123,15 +123,21 @@ class SDEKernel(Kernel, abc.ABC):
         &m \verb| is the output_dim|
     """
 
-    def __init__(self, output_dim: int = 1, jitter: float = 0) -> None:
+    def __init__(
+        self, output_dim: int = 1, cr_representation: bool = False, jitter: float = 0
+    ) -> None:
         """
-        :param output_dim: The output dimension of the kernel.
-        :param jitter: A small non-negative number to add into a matrix's diagonal to
+        :param output_dim: the output dimension of the kernel
+        :param cr_representation: Flag to indicate if we want to represent the distribution with a
+            cyclic reduction or a state space model. Defaults to `False` which returns a state space
+            model.
+        :param jitter: a small non-negative number to add into a matrix's diagonal to
             maintain numerical stability during inversion.
         """
         super().__init__(self.__class__.__name__)
         assert jitter >= 0.0, "jitter must be a non-negative float number."
         self._jitter = jitter
+        self._cr_representation = cr_representation
         self._output_dim = output_dim
 
     @property
@@ -143,16 +149,15 @@ class SDEKernel(Kernel, abc.ABC):
 
     def build_finite_distribution(self, time_points: tf.Tensor) -> GaussMarkovDistribution:
         """
-        Return the :class:`~markovflow.gauss_markov.GaussMarkovDistribution` that this kernel
-        represents on the provided time points.
-
-        .. note:: Currently the only representation we can use is
-            :class:`~markovflow.state_space_model.StateSpaceModel`.
-
-        :param time_points: The times between which to define the distribution, with
-            shape ``batch_shape + [num_data]``.
+        Return the `GaussMarkovDistribution` that this kernel represents on the provided time points
+        :param time_points: The times between which to define the `GaussMarkovDistribution`
+                            shape: batch_shape + [num_data]
+        :return: The `GaussMarkovDistribution`.
         """
-        return self.state_space_model(time_points)
+        if self._cr_representation:
+            return self.cyclic_reduction_decomposition(time_points)
+        else:
+            return self.state_space_model(time_points)
 
     def state_space_model(self, time_points: tf.Tensor) -> StateSpaceModel:
         """

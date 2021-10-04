@@ -17,9 +17,9 @@
 
 from abc import ABC, abstractmethod
 
-from gpflow import default_float
 import numpy as np
 import tensorflow as tf
+from gpflow import default_float
 from gpflow.base import TensorType
 
 from markovflow.block_tri_diag import SymmetricBlockTriDiagonal

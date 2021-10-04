@@ -17,9 +17,9 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
-
 from gpflow import default_float
 
+import markovflow as mf
 from markovflow.base import APPROX_INF
 from markovflow.gauss_markov import GaussMarkovDistribution
 from markovflow.kernels import SDEKernel
