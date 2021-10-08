@@ -23,7 +23,7 @@ from typing import Callable, List, Tuple
 import numpy as np
 import tensorflow as tf
 from gpflow import default_float
-from gpflow.base import TensorType, Parameter
+from gpflow.base import Parameter, TensorType
 
 from markovflow.emission_model import ComposedPairEmissionModel, EmissionModel, StackEmissionModel
 from markovflow.gauss_markov import GaussMarkovDistribution
@@ -129,6 +129,7 @@ class SDEKernel(Kernel, abc.ABC):
         assert jitter >= 0.0, "jitter must be a non-negative float number."
         self._jitter = jitter
         self._output_dim = output_dim
+        self._state_offset = tf.zeros([self.state_dim], dtype=default_float())
 
     @property
     def output_dim(self) -> int:
@@ -159,7 +160,6 @@ class SDEKernel(Kernel, abc.ABC):
             ``batch_shape + [num_data]``. This must be strictly increasing.
         """
         batch_shape = time_points.shape[:-1]
-        num_transitions = tf.shape(time_points)[-1] - 1
 
         As, Qs = self.transition_statistics_from_time_points(time_points)
 
@@ -167,7 +167,7 @@ class SDEKernel(Kernel, abc.ABC):
             initial_mean=self.initial_mean(batch_shape),
             initial_covariance=self.initial_covariance(time_points[..., 0:1]),
             state_transitions=As,
-            state_offsets=self.state_offsets(batch_shape, num_transitions),
+            state_offsets=self.state_offsets(time_points[..., :-1]),
             process_covariances=Qs,
         )
 
@@ -224,7 +224,7 @@ class SDEKernel(Kernel, abc.ABC):
         shape = tf.concat([tf.TensorShape(batch_shape), [self.state_dim]], axis=0)
         return tf.zeros(shape, dtype=default_float())
 
-    def state_offsets(self, batch_shape: tf.TensorShape, num_transitions: int) -> tf.Tensor:
+    def state_offsets(self, time_points: tf.Tensor) -> tf.Tensor:
         """
         Return the state offsets :math:`bₖ` of the generated
         :class:`~markovflow.state_space_model.StateSpaceModel`.
@@ -235,8 +235,16 @@ class SDEKernel(Kernel, abc.ABC):
         :param num_transitions: The number of transitions in the state space model.
         :return: A tensor of zeros with shape ``batch_shape + [num_transitions, state_dim]``.
         """
-        shape = tf.concat([tf.TensorShape(batch_shape), [num_transitions, self.state_dim]], axis=0)
-        return tf.zeros(shape, dtype=default_float())
+        batch_shape = time_points.shape[:-1]  # num_data may be undefined so skip last dim
+        shape = tf.concat(
+            [tf.ones(len(batch_shape) + 1, dtype=tf.int32), tf.shape(self.state_offset)], axis=0
+        )
+        state_offset = tf.reshape(self.state_offset, shape)
+
+        batch_shape = time_points.shape[:-1]
+        num_transitions = tf.shape(time_points)[-1]
+        repetitions = tf.concat([tf.TensorShape(batch_shape), [num_transitions, 1]], axis=0)
+        return tf.tile(state_offset, repetitions)
 
     @property
     @abstractmethod
@@ -421,6 +429,10 @@ class StationaryKernel(SDEKernel, abc.ABC):
         raise NotImplementedError
 
     @property
+    def state_offset(self) -> tf.Tensor:
+        return tf.zeros([self.state_dim], dtype=default_float())
+
+    @property
     @abstractmethod
     def steady_state_covariance(self) -> tf.Tensor:
         """
@@ -431,6 +443,85 @@ class StationaryKernel(SDEKernel, abc.ABC):
         :return: A tensor with shape ``[state_dim, state_dim]``.
         """
         raise NotImplementedError
+
+
+class StationaryWithOffset(StationaryKernel):
+
+    def __init__(self, base_kernel: StationaryKernel, state_offset: tf.Tensor) -> None:
+        """
+        :param output_dim: The output dimension of the kernel.
+        :param jitter: A small non-negative number to add into a matrix's diagonal to
+            maintain numerical stability during inversion.
+        """
+        if state_offset is None:
+            state_offset = tf.zeros([self.state_dim], dtype=default_float())
+        self.base_kernel = base_kernel
+        super().__init__(base_kernel.output_dim, jitter=base_kernel._jitter)
+        self._state_offset = Parameter(state_offset, trainable=False)
+
+    def initial_covariance(self, initial_time_point: tf.Tensor) -> tf.Tensor:
+        """
+        Return the initial covariance of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        For stationary kernels this is the covariance of the stationary distribution for
+        :math:`x,P∞` and is independent of the time passed in.
+
+        :param initial_time_point: The time point associated with the first state, with shape
+            ``batch_shape + [1,]``.
+        :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.
+        """
+        return self.base_kernel.initial_covariance(initial_time_point)
+
+    def transition_statistics(
+        self, transition_times: tf.Tensor, time_deltas: tf.Tensor
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
+        return self.base_kernel.transition_statistics(transition_times, time_deltas)
+
+    def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
+        """
+        Return the initial mean of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        This will usually be zero, but can be overridden if necessary.
+
+        :param batch_shape: Leading dimensions for the initial mean.
+        :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
+        """
+        return self.state_offset
+
+    @property
+    def feedback_matrix(self) -> tf.Tensor:
+        """
+        Return the feedback matrix :math:`F`. This is where:
+
+        .. math:: dx(t)/dt = F x(t) + L w(t)
+
+        :return: A tensor with shape ``[state_dim, state_dim]``.
+        """
+        return self.base_kernel.feedback_matrix
+
+    @property
+    def state_offset(self) -> tf.Tensor:
+        return self._state_offset
+
+    @property
+    def steady_state_covariance(self) -> tf.Tensor:
+        """
+        Return the steady state covariance :math:`P∞`, given implicitly by:
+
+        .. math:: F P∞ + P∞ Fᵀ + LQ_cLᵀ = 0
+
+        :return: A tensor with shape ``[state_dim, state_dim]``.
+        """
+        return self.base_kernel.steady_state_covariance
+
+    @property
+    def state_dim(self) -> int:
+        return self.base_kernel.state_dim
+
+    def state_transitions(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
+        return self.base_kernel.state_transitions(transition_times, time_deltas)
 
 
 class NonStationaryKernel(SDEKernel, abc.ABC):
@@ -455,6 +546,17 @@ class NonStationaryKernel(SDEKernel, abc.ABC):
         :param time_points: The times at which the feedback matrix is evaluated, with shape
             ``batch_shape + [num_time_points]``.
         :return: A tensor with shape ``batch_shape + [num_time_points, state_dim, state_dim]``.
+        """
+        raise NotImplementedError
+
+    def state_offsets(self, time_points: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state offsets :math:`bₖ` of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        This will usually be zero, but can be overridden if necessary.
+        :param time_points: The times at which the feedback matrix is evaluated, with shape
+            ``batch_shape + [num_time_points]``.
         """
         raise NotImplementedError
 
@@ -492,10 +594,10 @@ class ConcatKernel(StationaryKernel, abc.ABC):
         assert self._kernels, "There must be at least one child kernel."
         kernels_output_dims = set(k.output_dim for k in kernels)
         assert len(kernels_output_dims) == 1, "All kernels must have the same output dimension"
-        super().__init__(kernels_output_dims.pop(), jitter=jitter)
         if not all(isinstance(k, SDEKernel) for k in kernels):
             raise TypeError("Can only combine SDEKernel instances.")
         self._state_dim = sum(k.state_dim for k in kernels)
+        super().__init__(kernels_output_dims.pop(), jitter=jitter)
 
     @property
     def state_dim(self) -> int:
@@ -669,11 +771,10 @@ class Product(StationaryKernel):
         assert self._kernels, "There must be at least one child kernel."
         kernels_output_dims = set(k.output_dim for k in kernels)
         assert len(kernels_output_dims) == 1, "All kernels must have the same output dimension"
-        super().__init__(kernels_output_dims.pop(), jitter=jitter)
         if not all(isinstance(k, SDEKernel) for k in kernels):
             raise TypeError("can only combine Kernel instances")
-
         self._state_dim = np.prod([k.state_dim for k in kernels])
+        super().__init__(kernels_output_dims.pop(), jitter=jitter)
 
     @property
     def state_dim(self) -> int:

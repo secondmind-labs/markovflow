@@ -18,13 +18,13 @@ from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import tensorflow as tf
-from gpflow import default_float
 from banded_matrices.banded import (
     product_band_band,
     solve_triang_band,
     unpack_banded_matrix_to_dense,
 )
 from banded_matrices.types import BandedMatrixTensor
+from gpflow import default_float
 
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal
 from markovflow.emission_model import EmissionModel

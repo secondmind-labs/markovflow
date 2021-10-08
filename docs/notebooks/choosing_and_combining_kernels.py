@@ -279,3 +279,28 @@ product = Product(
 X, Ys = sample(product, 3)
 plt.plot(X, Ys)
 plt.show()
+
+
+# %% [markdown]
+"""
+### Learning a state offset for the kernel
+
+"""
+
+# %%
+
+if __name__ == '__main__':
+
+    from markovflow.kernels.sde_kernel import StationaryWithOffset
+
+    base_kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
+    state_offset = np.zeros((base_kernel.state_dim,))
+    state_offset[0] = 1
+    kernel = StationaryWithOffset(
+        base_kernel=base_kernel,
+        state_offset=state_offset
+    )
+
+    X, Ys = sample(kernel, 3)
+    plt.plot(X, Ys)
+    plt.show()

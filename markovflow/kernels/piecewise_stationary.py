@@ -60,7 +60,6 @@ class PiecewiseKernel(NonStationaryKernel):
         :param jitter: A small non-negative number to add into a matrix's diagonal to
             maintain numerical stability during inversion.
         """
-        super().__init__(output_dim=output_dim, jitter=jitter)
         self.kernels = kernels
         assert self.kernels, "There must be at least one child kernel."
         kernels_output_dims = set(k.output_dim for k in kernels)
@@ -77,6 +76,7 @@ class PiecewiseKernel(NonStationaryKernel):
         self._output_dim = kernels[0].output_dim
         self._state_dim = kernels[0].state_dim
         self.jitter = jitter
+        super().__init__(output_dim=output_dim, jitter=jitter)
 
     @property
     def state_dim(self) -> int:
@@ -244,3 +244,21 @@ class PiecewiseKernel(NonStationaryKernel):
         # tiling the steady state covariance accordingly
         selected_feedback_matrices = tf.gather(feedback_matrices, y)
         return tf.gather(selected_feedback_matrices, idx)
+
+    def state_offsets(self, time_points: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state offsets :math:`bₖ` of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        This will usually be zero, but can be overridden if necessary.
+        :param time_points: The times at which the feedback matrix is evaluated, with shape
+            ``batch_shape + [num_time_points]``.
+        """
+        # feedback matrices for each time interval
+        state_offsets = [k.state_offset for k in self.kernels]
+        # counting time points falling in each interval
+        indices = self.split_time_indices(time_points)
+        y, idx, _ = tf.unique_with_counts(indices)
+        # tiling the steady state covariance accordingly
+        selected_state_offsets = tf.gather(state_offsets, y)
+        return tf.gather(selected_state_offsets, idx)
