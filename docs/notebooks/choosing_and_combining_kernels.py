@@ -248,8 +248,8 @@ The following example shows some samples from a Matern5/2 + Matern1/2 kernel:
 # %%
 from markovflow.kernels.sde_kernel import Sum
 
-sum_kernel = Sum([Matern52(lengthscale=8., variance=1., jitter=JITTER), 
-                  Matern12(lengthscale=2,  variance=1., jitter=JITTER)], 
+sum_kernel = Sum([Matern52(lengthscale=8., variance=1., jitter=JITTER),
+                  Matern12(lengthscale=2,  variance=1., jitter=JITTER)],
            jitter=JITTER)
 
 X, Ys = sample(sum_kernel, 3)
@@ -272,8 +272,8 @@ This is an interesting combination. It requires a more strict periodic character
 from markovflow.kernels.sde_kernel import Product
 
 product = Product(
-    [Matern32(lengthscale=8, variance=1., jitter=JITTER), 
-     HarmonicOscillator(variance=2., period=5*np.pi, jitter=JITTER)], 
+    [Matern32(lengthscale=8, variance=1., jitter=JITTER),
+     HarmonicOscillator(variance=2., period=5*np.pi, jitter=JITTER)],
     jitter=JITTER)
 
 X, Ys = sample(product, 3)
@@ -289,18 +289,16 @@ plt.show()
 
 # %%
 
-if __name__ == '__main__':
+from markovflow.kernels.sde_kernel import StationaryWithStateMean
 
-    from markovflow.kernels.sde_kernel import StationaryWithOffset
+base_kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
+state_mean = np.zeros((base_kernel.state_dim,))
+state_mean[0] = 1
+kernel = StationaryWithStateMean(
+    base_kernel=base_kernel,
+    state_mean=state_mean
+)
 
-    base_kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
-    state_offset = np.zeros((base_kernel.state_dim,))
-    state_offset[0] = 1
-    kernel = StationaryWithOffset(
-        base_kernel=base_kernel,
-        state_offset=state_offset
-    )
-
-    X, Ys = sample(kernel, 3)
-    plt.plot(X, Ys)
-    plt.show()
+X, Ys = sample(kernel, 3)
+plt.plot(X, Ys)
+plt.show()

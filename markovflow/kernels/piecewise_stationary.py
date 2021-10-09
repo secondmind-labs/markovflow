@@ -245,7 +245,7 @@ class PiecewiseKernel(NonStationaryKernel):
         selected_feedback_matrices = tf.gather(feedback_matrices, y)
         return tf.gather(selected_feedback_matrices, idx)
 
-    def state_offsets(self, time_points: tf.Tensor) -> tf.Tensor:
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
         """
         Return the state offsets :math:`bₖ` of the generated
         :class:`~markovflow.state_space_model.StateSpaceModel`.
@@ -254,11 +254,15 @@ class PiecewiseKernel(NonStationaryKernel):
         :param time_points: The times at which the feedback matrix is evaluated, with shape
             ``batch_shape + [num_time_points]``.
         """
-        # feedback matrices for each time interval
-        state_offsets = [k.state_offset for k in self.kernels]
-        # counting time points falling in each interval
-        indices = self.split_time_indices(time_points)
-        y, idx, _ = tf.unique_with_counts(indices)
-        # tiling the steady state covariance accordingly
-        selected_state_offsets = tf.gather(state_offsets, y)
-        return tf.gather(selected_state_offsets, idx)
+        indices = self.split_time_indices(transition_times)
+        split_transition_times = self.split_input(transition_times, indices)
+        split_time_deltas = self.split_input(time_deltas, indices)
+        split_state_transitions_args = zip(split_transition_times, split_time_deltas)
+        # apply different kernel method to each segment
+        return tf.concat(
+            [
+                self.kernels[i].state_offsets(*state_transitions_args)
+                for i, state_transitions_args in enumerate(split_state_transitions_args)
+            ],
+            axis=-2,
+        )
