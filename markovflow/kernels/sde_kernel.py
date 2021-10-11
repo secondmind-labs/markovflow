@@ -224,28 +224,6 @@ class SDEKernel(Kernel, abc.ABC):
         shape = tf.concat([tf.TensorShape(batch_shape), [self.state_dim]], axis=0)
         return tf.zeros(shape, dtype=default_float())
 
-    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
-        """
-        Return the state offsets :math:`bₖ` of the generated
-        :class:`~markovflow.state_space_model.StateSpaceModel`.
-
-        This will usually be zero, but can be overridden if necessary.
-
-        :param batch_shape: Leading dimensions for the initial mean.
-        :param num_transitions: The number of transitions in the state space model.
-        :return: A tensor of zeros with shape ``batch_shape + [num_transitions, state_dim]``.
-        """
-        batch_shape = time_deltas.shape[:-1]  # num_data may be undefined so skip last dim
-        shape = tf.concat(
-            [tf.ones(len(batch_shape) + 1, dtype=tf.int32), tf.shape(self.state_offset)], axis=0
-        )
-        state_offset = tf.reshape(self.state_offset, shape)
-
-        batch_shape = time_deltas.shape[:-1]
-        num_transitions = tf.shape(time_deltas)[-1]
-        repetitions = tf.concat([tf.TensorShape(batch_shape), [num_transitions, 1]], axis=0)
-        return tf.tile(state_offset, repetitions)
-
     @property
     @abstractmethod
     def state_dim(self) -> int:
@@ -301,6 +279,20 @@ class SDEKernel(Kernel, abc.ABC):
         :return: A tuple of two tensors, with respective shapes
             ``batch_shape + [num_transitions, state_dim, state_dim]``.
             ``batch_shape + [num_transitions, state_dim, state_dim]``.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state offsets :math:`bₖ` of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``.
         """
         raise NotImplementedError
 
@@ -432,6 +424,28 @@ class StationaryKernel(SDEKernel, abc.ABC):
     def state_offset(self) -> tf.Tensor:
         return tf.zeros([self.state_dim], dtype=default_float())
 
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state offsets :math:`bₖ` of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``.
+        """
+        batch_shape = time_deltas.shape[:-1]  # num_data may be undefined so skip last dim
+        shape = tf.concat(
+            [tf.ones(len(batch_shape) + 1, dtype=tf.int32), tf.shape(self.state_offset)], axis=0
+        )
+        state_offset = tf.reshape(self.state_offset, shape)
+
+        batch_shape = time_deltas.shape[:-1]
+        num_transitions = tf.shape(time_deltas)[-1]
+        repetitions = tf.concat([tf.TensorShape(batch_shape), [num_transitions, 1]], axis=0)
+        return tf.tile(state_offset, repetitions)
+
     @property
     @abstractmethod
     def steady_state_covariance(self) -> tf.Tensor:
@@ -446,12 +460,18 @@ class StationaryKernel(SDEKernel, abc.ABC):
 
 
 class StationaryWithStateMean(StationaryKernel):
+    r"""
+    Class endowing stationary kernels with a state mean m:
 
+    .. math::
+        &dx(t)/dt = F (x(t) - m) + L w(t),\\
+        &f(t) = H(t) x(t)
+
+    """
     def __init__(self, base_kernel: StationaryKernel, state_mean: tf.Tensor) -> None:
         """
         :param output_dim: The output dimension of the kernel.
-        :param jitter: A small non-negative number to add into a matrix's diagonal to
-            maintain numerical stability during inversion.
+        :param state_mean: A tensor with shape [state_dim,].
         """
         if state_mean is None:
             state_mean = tf.zeros([self.state_dim], dtype=default_float())
@@ -503,22 +523,20 @@ class StationaryWithStateMean(StationaryKernel):
 
     def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
         """
-        dx = F (x - m)dt
-        y = x - m
-        dy = F y dt
-        y(t) = A y(0)
-        x(t) - m = A (x(0) - m)
-        x(t) = A x(0) + (I-A)m
-        """
-        # TODO need to operate on the time deltas which are split better in piecewise kernel
-        state_transitions = self.state_transitions(transition_times, time_deltas)
-        ImA = -(state_transitions - tf.eye(self.state_dim, dtype=default_float()))
-        ImAmu = tf.einsum('...ij,j->...i', ImA, self._state_mean)
-        return ImAmu
+        :math:`dx = F (x - m)dt  \to  x(t) = A x(0) + (I-A)m`
 
-    @property
-    def state_offset(self) -> tf.Tensor:
-        return self._state_mean
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
+        """
+        state_transitions = self.state_transitions(transition_times, time_deltas)
+        return tf.einsum(
+            '...ij,j->...i',
+            -(state_transitions - tf.eye(self.state_dim, dtype=default_float())),
+            self._state_mean
+        )
 
     @property
     def steady_state_covariance(self) -> tf.Tensor:

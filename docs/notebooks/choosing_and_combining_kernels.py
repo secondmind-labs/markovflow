@@ -283,7 +283,7 @@ plt.show()
 
 # %% [markdown]
 """
-### Learning a state offset for the kernel
+### Using a state mean for the kernel
 
 """
 
@@ -301,4 +301,49 @@ kernel = StationaryWithStateMean(
 
 X, Ys = sample(kernel, 3)
 plt.plot(X, Ys)
+plt.hlines(state_mean[0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3)
+
+plt.show()
+
+
+# %% [markdown]
+"""
+### Using a Piecewise Stationary kernel
+
+$dx(t) = F_i (x(t) - \mu_i)) + L d\beta$
+
+
+
+"""
+
+# %%
+
+
+from markovflow.kernels.piecewise_stationary import PiecewiseKernel
+from gpflow import default_float
+
+
+num_inducing = 2
+
+
+change_points = np.linspace(0,100,num_inducing+2)[1:-1]
+
+base = Matern52
+lengthscales = np.array([2.,6.,2.])
+variances = np.array([1.,1.,1.])
+state_means = np.array([[-3., 0., 0.], [3., 0., 0.], [-3., 0., 0.]])
+
+ks = [
+    StationaryWithStateMean(base(variance=variances[l], lengthscale=lengthscales[l]), state_mean=state_means[l])
+    for l in range(num_inducing + 1)
+]
+
+kernel = PiecewiseKernel(
+    ks, tf.convert_to_tensor(change_points, dtype=default_float()))
+
+X, Ys = sample(kernel, 3)
+plt.plot(X, Ys)
+plt.hlines(state_means[:, 0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3, label='offset')
+plt.vlines(change_points, ymin=Ys.min(), ymax=Ys.max(), ls='--', color='r', alpha=.3, label='change points')
+plt.legend()
 plt.show()

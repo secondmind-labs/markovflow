@@ -176,11 +176,12 @@ adam_var_list = s2vgp.trainable_variables
 set_trainable(s2vgp.dist_q, True)
 
 
-#@tf.function
+@tf.function
 def loss(input_data):
     return -s2vgp.elbo(input_data)
 
-#@tf.function
+
+@tf.function
 def opt_step(input_data):
     natgrad_opt.minimize(lambda : loss(input_data), s2vgp.dist_q)
     adam_opt.minimize(lambda : loss(input_data), adam_var_list)
