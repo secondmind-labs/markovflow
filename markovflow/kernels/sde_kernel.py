@@ -1185,7 +1185,7 @@ class StackKernel(StationaryKernel):
                 )
                 for i, k in enumerate(self.kernels)
             ],
-            axis=-4,
+            axis=-3,
         )
 
         shape = tf.concat(
