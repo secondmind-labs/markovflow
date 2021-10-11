@@ -1182,7 +1182,6 @@ class StackKernel(StationaryKernel):
                 augment_matrix(
                     k.state_offsets(transition_times[..., i, :], time_deltas[..., i, :]),
                     self.state_dim - k.state_dim,
-                    fill_zeros=True,
                 )
                 for i, k in enumerate(self.kernels)
             ],
