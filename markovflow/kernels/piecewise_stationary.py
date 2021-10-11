@@ -251,8 +251,11 @@ class PiecewiseKernel(NonStationaryKernel):
         :class:`~markovflow.state_space_model.StateSpaceModel`.
 
         This will usually be zero, but can be overridden if necessary.
-        :param time_points: The times at which the feedback matrix is evaluated, with shape
-            ``batch_shape + [num_time_points]``.
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
         """
         indices = self.split_time_indices(transition_times)
         split_transition_times = self.split_input(transition_times, indices)

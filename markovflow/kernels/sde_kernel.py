@@ -129,7 +129,6 @@ class SDEKernel(Kernel, abc.ABC):
         assert jitter >= 0.0, "jitter must be a non-negative float number."
         self._jitter = jitter
         self._output_dim = output_dim
-        self._state_mean = tf.zeros([self.state_dim], dtype=default_float())
 
     @property
     def output_dim(self) -> int:
@@ -1156,7 +1155,7 @@ class StackKernel(StationaryKernel):
 
         return super().initial_mean(batch_shape)
 
-    def state_offsets(self, batch_shape: tf.TensorShape, num_transitions: int) -> tf.Tensor:
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
         """
         Return the state offsets :math:`bₖ` of the generated
         :class:`~markovflow.state_space_model.StateSpaceModel`.
@@ -1166,16 +1165,39 @@ class StackKernel(StationaryKernel):
         We override :meth:`SDEKernel.state_offsets` from the
         parent class to check there is a compatible `batch_shape`.
 
-        :param batch_shape: A tuple of leading dimensions for the state_offsets, where
-            batch_shape can be ``(..., num_kernels)``.
-        :param num_transitions: The number of transitions in the state space model.
-        :return: A tensor of zeros with shape ``batch_shape + [num_transition, state_dim]``,
-            where ``batch_shape = (..., num_kernels)``.
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
         """
+        batch_shape = time_deltas.shape[:-1]
+        num_transitions = tf.shape(time_deltas)[-1]
+
         # raise if batch_shape is provided and batch_shape's last dim is not num_kernel or 1
         self._check_batch_shape_is_compatible(batch_shape)
 
-        return super().state_offsets(batch_shape, num_transitions)
+        result = tf.stack(
+            [
+                augment_matrix(
+                    k.state_offsets(transition_times[..., i, :], time_deltas[..., i, :]),
+                    self.state_dim - k.state_dim,
+                    fill_zeros=True,
+                )
+                for i, k in enumerate(self.kernels)
+            ],
+            axis=-4,
+        )
+
+        shape = tf.concat(
+            [
+                batch_shape[:-1],
+                [self.num_kernels, num_transitions, self.state_dim],
+            ],
+            axis=0,
+        )
+        tf.debugging.assert_equal(tf.shape(result), shape)
+        return result
 
     @property
     def feedback_matrix(self) -> tf.Tensor:
