@@ -31,8 +31,8 @@ def _natgrad_models_setup_fixture():
 
 
 def _setup():
-    X = tf.identity(np.linspace(0, 1, 100))
-    Y = tf.identity(np.random.randn(100, 1))
+    X = tf.identity(np.linspace(0, 1, 10))
+    Y = tf.identity(np.random.randn(10, 1))
     kern_list = [Matern52(lengthscale=0.3, variance=0.1) for _ in range(10)]
     kern = Sum(kern_list)
     lik = Gaussian(variance=0.01)

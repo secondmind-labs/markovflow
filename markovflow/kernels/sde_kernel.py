@@ -388,7 +388,7 @@ class StationaryKernel(SDEKernel, abc.ABC):
         :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
         """
         shape = tf.concat([batch_shape, [self.state_dim]], 0)
-        return tf.broadcast_to(self._state_mean, shape)
+        return tf.broadcast_to(tf.identity(self._state_mean), shape)
 
     def initial_covariance(self, initial_time_point: tf.Tensor) -> tf.Tensor:
         """
