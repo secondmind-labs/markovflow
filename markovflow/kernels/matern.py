@@ -135,7 +135,7 @@ class OrnsteinUhlenbeck(StationaryKernel):
 
     .. math:: C(x, x') = q/2λ exp(-λ|x - x'|)
 
-    ...where decay :math:`λ` and signal variance :math:`σ²` are kernel parameters.
+    ...where decay :math:`λ` and diffusion coefficient :math:`q` are kernel parameters.
 
     This defines an SDE where:
 
@@ -207,7 +207,7 @@ class OrnsteinUhlenbeck(StationaryKernel):
     def steady_state_covariance(self) -> tf.Tensor:
         """
         Return the steady state covariance :math:`P∞`. For this kernel,
-        this is the variance hyperparameter.
+        this is q/2λ.
 
         :return: A tensor with shape ``[state_dim, state_dim]``.
         """
