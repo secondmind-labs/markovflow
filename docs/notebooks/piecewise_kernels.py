@@ -128,16 +128,14 @@ change_points = np.linspace(np.min(time_points), np.max(time_points), num_change
 assert num_change_points == len(change_points)
 
 base = Matern52
+state_dim = 3
 variances = np.array([1.] * (num_change_points + 1))
 lengthscales = np.array([4.] * (num_change_points + 1))
 
-from markovflow.kernels.sde_kernel import StationaryWithStateMean
-
 ks = [base(variance=variances[l],
-                  lengthscale=lengthscales[l])
+            lengthscale=lengthscales[l])
       for l in range(num_change_points + 1)]
-ks = [StationaryWithStateMean(k, state_mean=np.zeros((k.state_dim))) for k in ks]
-
+[set_trainable(k._state_mean, True) for k in ks]
 kernel = PiecewiseKernel(
     ks, tf.convert_to_tensor(change_points, dtype=default_float()))
 

@@ -289,15 +289,11 @@ plt.show()
 
 # %%
 
-from markovflow.kernels.sde_kernel import StationaryWithStateMean
-
-base_kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
-state_mean = np.zeros((base_kernel.state_dim,))
+state_dim = 2
+state_mean = np.zeros((state_dim,))
 state_mean[0] = 1
-kernel = StationaryWithStateMean(
-    base_kernel=base_kernel,
-    state_mean=state_mean
-)
+kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
+kernel._state_mean.assign(state_mean)
 
 X, Ys = sample(kernel, 3)
 plt.plot(X, Ys)
@@ -334,9 +330,11 @@ variances = np.array([1.,1.,1.])
 state_means = np.array([[-3., 0., 0.], [3., 0., 0.], [-3., 0., 0.]])
 
 ks = [
-    StationaryWithStateMean(base(variance=variances[l], lengthscale=lengthscales[l]), state_mean=state_means[l])
+    base(variance=variances[l], lengthscale=lengthscales[l])
     for l in range(num_inducing + 1)
 ]
+[k._state_mean.assign(state_means[i]) for i, k in enumerate(ks)]
+
 
 kernel = PiecewiseKernel(
     ks, tf.convert_to_tensor(change_points, dtype=default_float()))

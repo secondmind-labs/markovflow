@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import abc
 from abc import abstractmethod
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -361,6 +361,35 @@ class StationaryKernel(SDEKernel, abc.ABC):
     For most kernels :math:`H` will not be time varying; that is, :math:`f(t) = H x(t)`.
     """
 
+    def __init__(
+        self,
+        output_dim: int = 1,
+        jitter: float = 0,
+        state_mean: Optional[tf.Tensor] = None,
+        **kwargs,
+    ) -> None:
+        """
+        :param output_dim: The output dimension of the kernel.
+        :param state_mean: A tensor with shape [state_dim,].
+        """
+        if state_mean is None:
+            state_mean = tf.zeros([self.state_dim], dtype=default_float())
+        super().__init__(output_dim, jitter)
+        self._state_mean = Parameter(state_mean, trainable=False)
+
+    def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
+        """
+        Return the initial mean of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        This will usually be zero, but can be overridden if necessary.
+
+        :param batch_shape: Leading dimensions for the initial mean.
+        :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
+        """
+        shape = tf.concat([batch_shape, [self.state_dim]], 0)
+        return tf.broadcast_to(self._state_mean, shape)
+
     def initial_covariance(self, initial_time_point: tf.Tensor) -> tf.Tensor:
         """
         Return the initial covariance of the generated
@@ -419,107 +448,6 @@ class StationaryKernel(SDEKernel, abc.ABC):
         """
         raise NotImplementedError
 
-    @property
-    def state_offset(self) -> tf.Tensor:
-        return tf.zeros([self.state_dim], dtype=default_float())
-
-    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
-        """
-        Return the state offsets :math:`bₖ` of the generated
-        :class:`~markovflow.state_space_model.StateSpaceModel`.
-
-        :param transition_times: A tensor of times at which to produce matrices, with shape
-            ``batch_shape + [num_transitions]``.
-        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
-            ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``.
-        """
-        batch_shape = time_deltas.shape[:-1]  # num_data may be undefined so skip last dim
-        shape = tf.concat(
-            [tf.ones(len(batch_shape) + 1, dtype=tf.int32), tf.shape(self.state_offset)], axis=0
-        )
-        state_offset = tf.reshape(self.state_offset, shape)
-
-        batch_shape = time_deltas.shape[:-1]
-        num_transitions = tf.shape(time_deltas)[-1]
-        repetitions = tf.concat([tf.TensorShape(batch_shape), [num_transitions, 1]], axis=0)
-        return tf.tile(state_offset, repetitions)
-
-    @property
-    @abstractmethod
-    def steady_state_covariance(self) -> tf.Tensor:
-        """
-        Return the steady state covariance :math:`P∞`, given implicitly by:
-
-        .. math:: F P∞ + P∞ Fᵀ + LQ_cLᵀ = 0
-
-        :return: A tensor with shape ``[state_dim, state_dim]``.
-        """
-        raise NotImplementedError
-
-
-class StationaryWithStateMean(StationaryKernel):
-    r"""
-    Class endowing stationary kernels with a state mean m:
-
-    .. math::
-        &dx(t)/dt = F (x(t) - m) + L w(t),\\
-        &f(t) = H(t) x(t)
-
-    """
-    def __init__(self, base_kernel: StationaryKernel, state_mean: tf.Tensor) -> None:
-        """
-        :param output_dim: The output dimension of the kernel.
-        :param state_mean: A tensor with shape [state_dim,].
-        """
-        if state_mean is None:
-            state_mean = tf.zeros([self.state_dim], dtype=default_float())
-        self.base_kernel = base_kernel
-        super().__init__(base_kernel.output_dim, jitter=base_kernel._jitter)
-        self._state_mean = Parameter(state_mean, trainable=False)
-
-    def initial_covariance(self, initial_time_point: tf.Tensor) -> tf.Tensor:
-        """
-        Return the initial covariance of the generated
-        :class:`~markovflow.state_space_model.StateSpaceModel`.
-
-        For stationary kernels this is the covariance of the stationary distribution for
-        :math:`x,P∞` and is independent of the time passed in.
-
-        :param initial_time_point: The time point associated with the first state, with shape
-            ``batch_shape + [1,]``.
-        :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.
-        """
-        return self.base_kernel.initial_covariance(initial_time_point)
-
-    def transition_statistics(
-        self, transition_times: tf.Tensor, time_deltas: tf.Tensor
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
-        return self.base_kernel.transition_statistics(transition_times, time_deltas)
-
-    def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
-        """
-        Return the initial mean of the generated
-        :class:`~markovflow.state_space_model.StateSpaceModel`.
-
-        This will usually be zero, but can be overridden if necessary.
-
-        :param batch_shape: Leading dimensions for the initial mean.
-        :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
-        """
-        return self.state_offset
-
-    @property
-    def feedback_matrix(self) -> tf.Tensor:
-        """
-        Return the feedback matrix :math:`F`. This is where:
-
-        .. math:: dx(t)/dt = F x(t) + L w(t)
-
-        :return: A tensor with shape ``[state_dim, state_dim]``.
-        """
-        return self.base_kernel.feedback_matrix
-
     def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
         """
         :math:`dx = F (x - m)dt  \to  x(t) = A x(0) + (I-A)m`
@@ -532,12 +460,13 @@ class StationaryWithStateMean(StationaryKernel):
         """
         state_transitions = self.state_transitions(transition_times, time_deltas)
         return tf.einsum(
-            '...ij,j->...i',
+            "...ij,j->...i",
             -(state_transitions - tf.eye(self.state_dim, dtype=default_float())),
-            self._state_mean
+            self._state_mean,
         )
 
     @property
+    @abstractmethod
     def steady_state_covariance(self) -> tf.Tensor:
         """
         Return the steady state covariance :math:`P∞`, given implicitly by:
@@ -546,14 +475,7 @@ class StationaryWithStateMean(StationaryKernel):
 
         :return: A tensor with shape ``[state_dim, state_dim]``.
         """
-        return self.base_kernel.steady_state_covariance
-
-    @property
-    def state_dim(self) -> int:
-        return self.base_kernel.state_dim
-
-    def state_transitions(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
-        return self.base_kernel.state_transitions(transition_times, time_deltas)
+        raise NotImplementedError
 
 
 class NonStationaryKernel(SDEKernel, abc.ABC):
@@ -581,14 +503,17 @@ class NonStationaryKernel(SDEKernel, abc.ABC):
         """
         raise NotImplementedError
 
-    def state_offsets(self, time_points: tf.Tensor) -> tf.Tensor:
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
         """
         Return the state offsets :math:`bₖ` of the generated
         :class:`~markovflow.state_space_model.StateSpaceModel`.
 
         This will usually be zero, but can be overridden if necessary.
-        :param time_points: The times at which the feedback matrix is evaluated, with shape
-            ``batch_shape + [num_time_points]``.
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
         """
         raise NotImplementedError
 
@@ -1189,11 +1114,7 @@ class StackKernel(StationaryKernel):
         )
 
         shape = tf.concat(
-            [
-                batch_shape[:-1],
-                [self.num_kernels, num_transitions, self.state_dim],
-            ],
-            axis=0,
+            [batch_shape[:-1], [self.num_kernels, num_transitions, self.state_dim],], axis=0,
         )
         tf.debugging.assert_equal(tf.shape(result), shape)
         return result
