@@ -589,7 +589,7 @@ class ConcatKernel(StationaryKernel, abc.ABC):
             [k.state_transitions(transition_times, time_deltas) for k in self.kernels]
         )
         tf.debugging.assert_shapes(
-            [(time_deltas, [..., 'N']), (result, [..., 'N', self.state_dim, self.state_dim])])
+            [(result, [*time_deltas.shape, self.state_dim, self.state_dim])])
         return result
 
     def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
