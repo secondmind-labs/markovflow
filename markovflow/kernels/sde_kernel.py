@@ -372,9 +372,9 @@ class StationaryKernel(SDEKernel, abc.ABC):
         :param output_dim: The output dimension of the kernel.
         :param state_mean: A tensor with shape [state_dim,].
         """
+        super().__init__(output_dim, jitter)
         if state_mean is None:
             state_mean = tf.zeros([self.state_dim], dtype=default_float())
-        super().__init__(output_dim, jitter)
         self._state_mean = Parameter(state_mean, trainable=False)
 
     def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
@@ -588,8 +588,8 @@ class ConcatKernel(StationaryKernel, abc.ABC):
         result = block_diag(
             [k.state_transitions(transition_times, time_deltas) for k in self.kernels]
         )
-        shape = tf.concat([tf.shape(time_deltas), [self.state_dim, self.state_dim]], axis=0)
-        tf.debugging.assert_shapes((result, shape))
+        tf.debugging.assert_shapes(
+            [(time_deltas, [..., 'N']), (result, [..., 'N', self.state_dim, self.state_dim])])
         return result
 
     def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
@@ -973,10 +973,10 @@ class StackKernel(StationaryKernel):
         kernels_output_dims = set(k.output_dim for k in kernels)
         assert len(kernels_output_dims) == 1, "All kernels must have the same output dimension"
         assert kernels[0].output_dim == 1, "All kernels must have individual output dimensions of 1"
+        self._state_dim = max(k.state_dim for k in kernels)
         super().__init__(kernels_output_dims.pop(), jitter=jitter)
         if not all(isinstance(k, SDEKernel) for k in kernels):
             raise TypeError("Can only combine SDEKernel instances.")
-        self._state_dim = max(k.state_dim for k in kernels)
         self.num_kernels = len(kernels)
 
     @property
