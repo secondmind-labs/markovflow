@@ -19,7 +19,7 @@ Package containing kernels.
 from .constant import Constant
 from .kernel import Kernel
 from .latent_exp_generated import LatentExponentiallyGenerated
-from .matern import Matern12, Matern32, Matern52
+from .matern import Matern12, Matern32, Matern52, OrnsteinUhlenbeck
 from .periodic import HarmonicOscillator
 from .piecewise_stationary import PiecewiseKernel
 from .sde_kernel import (

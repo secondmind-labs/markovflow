@@ -17,7 +17,6 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
-
 from gpflow import default_float
 
 from markovflow.base import APPROX_INF

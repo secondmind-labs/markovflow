@@ -127,6 +127,113 @@ class Matern12(StationaryKernel):
 
 
 @tf_scope_class_decorator
+class OrnsteinUhlenbeck(StationaryKernel):
+    r"""
+    Represents the Ornstein–Uhlenbeck kernel.
+    This is an alternative parameterization of the Matern1/2 kernel.
+    This kernel has the formula:
+
+    .. math:: C(x, x') = q/2λ exp(-λ|x - x'|)
+
+    ...where decay :math:`λ` and signal variance :math:`σ²` are kernel parameters.
+
+    This defines an SDE where:
+
+    .. math::
+        &F = - λ\\
+        &L = q
+
+    ...so that :math:`Aₖ = exp(-λ Δtₖ)`.
+    """
+
+    def __init__(
+        self, decay: float, diffusion: float, output_dim: int = 1, jitter: float = 0.0
+    ) -> None:
+        """
+        :param decay: A value for the decay parameter.
+        :param diffusion: A value for the diffusion parameter.
+        :param output_dim: The output dimension of the kernel.
+        :param jitter: A small non-negative number to add into a matrix's diagonal to
+            maintain numerical stability during inversion.
+        """
+        super().__init__(output_dim, jitter=jitter)
+
+        _check_lengthscale_and_variance(decay, diffusion)
+
+        self._decay = Parameter(decay, transform=positive(), name="decay")
+        self._diffusion = Parameter(diffusion, transform=positive(), name="diffusion")
+
+    @property
+    def state_dim(self) -> int:
+        """Return the state dimension of the kernel, which is always one."""
+        return 1
+
+    def state_transitions(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state transition matrices kernel.
+
+        The state dimension is one, so the matrix exponential reduces to a standard one:
+
+        .. math:: Aₖ = exp(-λ Δtₖ)
+
+        Because this is a stationary kernel, `transition_times` is ignored.
+
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``. Ignored.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+        """
+        tf.debugging.assert_rank_at_least(time_deltas, 1, message="time_deltas cannot be a scalar.")
+        state_transitions = tf.exp(-time_deltas * self._decay)[..., None, None]
+        shape = tf.concat([tf.shape(time_deltas), [self.state_dim, self.state_dim]], axis=0)
+        tf.debugging.assert_equal(tf.shape(state_transitions), shape)
+        return state_transitions
+
+    @property
+    def feedback_matrix(self) -> tf.Tensor:
+        """
+        Return the feedback matrix :math:`F`. This is where:
+
+        .. math:: dx(t)/dt = F x(t) + L w(t)
+
+        For this kernel, note that :math:`F = -λ`.
+
+        :return: A tensor with shape ``[state_dim, state_dim]``.
+        """
+        return tf.identity([[-self._decay]])
+
+    @property
+    def steady_state_covariance(self) -> tf.Tensor:
+        """
+        Return the steady state covariance :math:`P∞`. For this kernel,
+        this is the variance hyperparameter.
+
+        :return: A tensor with shape ``[state_dim, state_dim]``.
+        """
+
+        return tf.identity(
+            tf.reshape(0.5 * self._diffusion / self._decay, (self.state_dim, self.state_dim))
+        )
+
+    @property
+    def decay(self) -> Parameter:
+        """
+        Return the decay parameter. This is a GPflow
+        `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+        """
+        return self._decay
+
+    @property
+    def diffusion(self) -> Parameter:
+        """
+        Return the diffusion parameter. This is a GPflow
+        `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+        """
+        return self._variance
+
+
+@tf_scope_class_decorator
 class Matern32(StationaryKernel):
     r"""
     Represents the Matern3/2 kernel. This kernel has the formula:
