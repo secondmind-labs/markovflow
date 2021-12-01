@@ -255,7 +255,7 @@ class PiecewiseKernel(NonStationaryKernel):
             ``batch_shape + [num_transitions]``.
         :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
             ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
         """
         indices = self.split_time_indices(transition_times)
         split_transition_times = self.split_input(transition_times, indices)

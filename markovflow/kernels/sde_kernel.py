@@ -291,7 +291,7 @@ class SDEKernel(Kernel, abc.ABC):
             ``batch_shape + [num_transitions]``.
         :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
             ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``.
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``.
         """
         raise NotImplementedError
 
@@ -456,7 +456,7 @@ class StationaryKernel(SDEKernel, abc.ABC):
             ``batch_shape + [num_transitions]``.
         :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
             ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
         """
         state_transitions = self.state_transitions(transition_times, time_deltas)
         return tf.einsum(
@@ -513,7 +513,7 @@ class NonStationaryKernel(SDEKernel, abc.ABC):
             ``batch_shape + [num_transitions]``.
         :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
             ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
         """
         raise NotImplementedError
 
@@ -589,7 +589,7 @@ class ConcatKernel(StationaryKernel, abc.ABC):
             [k.state_transitions(transition_times, time_deltas) for k in self.kernels]
         )
         shape = tf.concat([tf.shape(time_deltas), [self.state_dim, self.state_dim]], axis=0)
-        tf.debugging.assert_equal(tf.shape(result), shape)
+        tf.debugging.assert_shapes((result, shape))
         return result
 
     def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
@@ -1094,7 +1094,7 @@ class StackKernel(StationaryKernel):
             ``batch_shape + [num_transitions]``.
         :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
             ``batch_shape + [num_transitions]``.
-        :return: A with shape ``batch_shape + [num_transitions, state_dim]``
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
         """
         batch_shape = time_deltas.shape[:-1]
         num_transitions = tf.shape(time_deltas)[-1]
