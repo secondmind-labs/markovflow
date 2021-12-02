@@ -230,7 +230,7 @@ class OrnsteinUhlenbeck(StationaryKernel):
         Return the diffusion parameter. This is a GPflow
         `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
         """
-        return self._variance
+        return self._diffusion
 
 
 @tf_scope_class_decorator
