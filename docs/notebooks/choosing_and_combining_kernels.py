@@ -248,8 +248,8 @@ The following example shows some samples from a Matern5/2 + Matern1/2 kernel:
 # %%
 from markovflow.kernels.sde_kernel import Sum
 
-sum_kernel = Sum([Matern52(lengthscale=8., variance=1., jitter=JITTER), 
-                  Matern12(lengthscale=2,  variance=1., jitter=JITTER)], 
+sum_kernel = Sum([Matern52(lengthscale=8., variance=1., jitter=JITTER),
+                  Matern12(lengthscale=2,  variance=1., jitter=JITTER)],
            jitter=JITTER)
 
 X, Ys = sample(sum_kernel, 3)
@@ -272,10 +272,76 @@ This is an interesting combination. It requires a more strict periodic character
 from markovflow.kernels.sde_kernel import Product
 
 product = Product(
-    [Matern32(lengthscale=8, variance=1., jitter=JITTER), 
-     HarmonicOscillator(variance=2., period=5*np.pi, jitter=JITTER)], 
+    [Matern32(lengthscale=8, variance=1., jitter=JITTER),
+     HarmonicOscillator(variance=2., period=5*np.pi, jitter=JITTER)],
     jitter=JITTER)
 
 X, Ys = sample(product, 3)
 plt.plot(X, Ys)
+plt.show()
+
+
+# %% [markdown]
+"""
+### Using a state mean for the kernel
+
+"""
+
+# %%
+
+state_dim = 2
+state_mean = np.zeros((state_dim,))
+state_mean[0] = 1
+kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
+kernel._state_mean.assign(state_mean)
+
+X, Ys = sample(kernel, 3)
+plt.plot(X, Ys)
+plt.hlines(state_mean[0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3)
+
+plt.show()
+
+
+# %% [markdown]
+"""
+### Using a Piecewise Stationary kernel
+
+$dx(t) = F_i (x(t) - \mu_i)) + L d\beta$
+
+
+
+"""
+
+# %%
+
+
+from markovflow.kernels.piecewise_stationary import PiecewiseKernel
+from gpflow import default_float
+
+
+num_inducing = 2
+
+
+change_points = np.linspace(0,100,num_inducing+2)[1:-1]
+
+base = Matern52
+lengthscales = np.array([2.,6.,2.])
+variances = np.array([1.,1.,1.])
+state_means = np.array([[-3., 0., 0.], [3., 0., 0.], [-3., 0., 0.]])
+
+ks = [
+    base(variance=variances[l], lengthscale=lengthscales[l])
+    for l in range(num_inducing + 1)
+]
+[k._state_mean.assign(state_means[i]) for i, k in enumerate(ks)]
+
+
+kernel = PiecewiseKernel(
+    ks, tf.convert_to_tensor(change_points, dtype=default_float()))
+
+X, Ys = sample(kernel, 3)
+plt.plot(X, Ys)
+plt.hlines(state_means[:, 0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3, label='offset')
+plt.vlines(change_points, ymin=Ys.min(), ymax=Ys.max(), ls='--', color='r', alpha=.3, label='change points')
+plt.legend()
 plt.show()
