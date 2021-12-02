@@ -22,7 +22,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from gpflow import default_float
 
-from markovflow.kernels import Matern12, Matern32, Matern52, PiecewiseKernel
+from markovflow.kernels import Matern12, Matern32, Matern52, OrnsteinUhlenbeck, PiecewiseKernel
 from markovflow.models.spatio_temporal_variational import SparseSpatioTemporalKernel
 from markovflow.utils import kronecker_product
 from tests.tools.generate_random_objects import generate_random_time_points
@@ -302,3 +302,25 @@ def test_spatio_temporal_kernel():
 
     # comparing
     np.testing.assert_allclose(gpf_covs, f_covs, rtol=1e-6)
+
+
+def test_ou_match_matern12():
+    """ Testing that the Ornstein-Uhlenbeck implementation matches the Matern1/2 implementation """
+    length_scale = 0.9
+    amplitude = 1.1
+    variance = amplitude * amplitude
+    time_points = np.linspace(0, 1, 2).reshape(-1,)
+
+    decay = 1.0 / length_scale
+    diffusion = variance * 2 * decay
+
+    mat = Matern12(lengthscale=length_scale, variance=variance)
+    ou = OrnsteinUhlenbeck(decay=decay, diffusion=diffusion)
+    ssm_ou = ou.state_space_model(time_points)
+    ssm_mat = mat.state_space_model(time_points)
+
+    np.testing.assert_allclose(ou.steady_state_covariance, mat.steady_state_covariance, rtol=1e-6)
+    np.testing.assert_allclose(ssm_ou.marginal_covariances, ssm_mat.marginal_covariances, rtol=1e-6)
+    np.testing.assert_allclose(
+        ssm_ou.cholesky_process_covariances, ssm_mat.cholesky_process_covariances, rtol=1e-6
+    )

@@ -18,12 +18,12 @@ from functools import wraps
 from typing import List, Optional
 
 import tensorflow as tf
+from gpflow import default_float
 from tensorflow.compat.v1.linalg import (
     LinearOperatorBlockDiag,
     LinearOperatorFullMatrix,
     LinearOperatorKronecker,
 )
-from gpflow import default_float
 
 from markovflow.base import auto_namescope_enabled
 

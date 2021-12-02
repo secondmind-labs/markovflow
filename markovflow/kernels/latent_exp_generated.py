@@ -17,7 +17,6 @@
 
 
 import tensorflow as tf
-
 from gpflow import Parameter, default_float
 
 from markovflow.kernels.sde_kernel import StationaryKernel

@@ -16,8 +16,8 @@
 """Module containing a model for CVI"""
 from typing import Optional, Tuple
 
-from gpflow import default_float
 import tensorflow as tf
+from gpflow import default_float
 
 from markovflow.kernels import SDEKernel
 from markovflow.likelihoods import PEPScalarLikelihood
