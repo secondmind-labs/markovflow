@@ -23,6 +23,6 @@ from .pep import PowerExpectationPropagation
 from .sparse_pep import SparsePowerExpectationPropagation
 from .sparse_variational import SparseVariationalGaussianProcess
 from .sparse_variational_cvi import SparseCVIGaussianProcess
-from .spatio_temporal_variational import SparseSpatioTemporalVariational
+from .spatio_temporal_variational import SparseSpatioTemporalVariational, SparseCVISpatioTemporalGaussianProcess
 from .variational import VariationalGaussianProcess
 from .variational_cvi import CVIGaussianProcess
