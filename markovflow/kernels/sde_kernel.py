@@ -390,6 +390,15 @@ class StationaryKernel(SDEKernel, abc.ABC):
         shape = tf.concat([tf.TensorShape(batch_shape), self._state_mean.shape], axis=0)
         return tf.broadcast_to(self._state_mean, shape)
 
+    def set_state_mean(self, state_mean: tf.Tensor, trainable: bool = False):
+        """
+        Sets the state mean for the kernel.
+
+        :param state_mean: A tensor with shape [state_dim,].
+        :param trainable: Boolean value to set the state mean trainable.
+        """
+        self._state_mean = Parameter(state_mean, trainable=trainable)
+
     def initial_covariance(self, initial_time_point: tf.Tensor) -> tf.Tensor:
         """
         Return the initial covariance of the generated
@@ -484,7 +493,7 @@ class StationaryKernel(SDEKernel, abc.ABC):
 
         :return: A tensor with shape ``[state_dim,]``.
         """
-        return self._state_mean
+        return tf.convert_to_tensor(self._state_mean)
 
 
 class NonStationaryKernel(SDEKernel, abc.ABC):

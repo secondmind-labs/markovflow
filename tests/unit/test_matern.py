@@ -144,3 +144,20 @@ def test_can_generate_state_space_model(with_tf_random_seed, kernel_setup):
     kernel = kernel_factory.create_kernel()
     kernel.state_space_model(time_points)
     kernel.state_space_model(tf.identity(time_points))
+
+
+def test_matern_kernels_state_mean(with_tf_random_seed, kernel_setup):
+    """Test the Matern kernel state mean"""
+    _, kernel_factory, _ = kernel_setup
+    kernel = kernel_factory.create_kernel()
+
+    np.testing.assert_allclose(
+        kernel.state_mean, tf.zeros([kernel.state_dim], dtype=tf.float64)
+    )
+
+    updated_state_mean = tf.ones([kernel.state_dim], dtype=tf.float64)
+    kernel.set_state_mean(updated_state_mean)
+
+    np.testing.assert_allclose(
+        kernel.state_mean, updated_state_mean
+    )
