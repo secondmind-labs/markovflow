@@ -151,13 +151,15 @@ def test_matern_kernels_state_mean(with_tf_random_seed, kernel_setup):
     _, kernel_factory, _ = kernel_setup
     kernel = kernel_factory.create_kernel()
 
-    np.testing.assert_allclose(
-        kernel.state_mean, tf.zeros([kernel.state_dim], dtype=tf.float64)
-    )
+    np.testing.assert_allclose(kernel.state_mean, tf.zeros([kernel.state_dim], dtype=tf.float64))
 
-    updated_state_mean = tf.ones([kernel.state_dim], dtype=tf.float64)
+
+def test_matern_kernels_set_state_mean(with_tf_random_seed, kernel_setup):
+    """Test the setter of Matern kernel state mean"""
+    _, kernel_factory, _ = kernel_setup
+    kernel = kernel_factory.create_kernel()
+
+    updated_state_mean = 0.2 * tf.ones([kernel.state_dim], dtype=tf.float64)
     kernel.set_state_mean(updated_state_mean)
 
-    np.testing.assert_allclose(
-        kernel.state_mean, updated_state_mean
-    )
+    np.testing.assert_allclose(kernel.state_mean, updated_state_mean)

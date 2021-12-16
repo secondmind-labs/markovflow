@@ -493,7 +493,7 @@ class StationaryKernel(SDEKernel, abc.ABC):
 
         :return: A tensor with shape ``[state_dim,]``.
         """
-        return tf.convert_to_tensor(self._state_mean)
+        return tf.identity(self._state_mean)
 
 
 class NonStationaryKernel(SDEKernel, abc.ABC):
@@ -606,8 +606,7 @@ class ConcatKernel(StationaryKernel, abc.ABC):
         result = block_diag(
             [k.state_transitions(transition_times, time_deltas) for k in self.kernels]
         )
-        tf.debugging.assert_shapes(
-            [(result, [*time_deltas.shape, self.state_dim, self.state_dim])])
+        tf.debugging.assert_shapes([(result, [*time_deltas.shape, self.state_dim, self.state_dim])])
         return result
 
     def initial_mean(self, batch_shape: tf.TensorShape) -> tf.Tensor:
