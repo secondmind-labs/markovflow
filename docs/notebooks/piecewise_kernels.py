@@ -135,7 +135,10 @@ lengthscales = np.array([4.] * (num_change_points + 1))
 ks = [base(variance=variances[l],
             lengthscale=lengthscales[l])
       for l in range(num_change_points + 1)]
-[set_trainable(k._state_mean, True) for k in ks]
+
+# Set state mean trainable
+[k.set_state_mean(tf.zeros(state_dim,), trainable=True) for k in ks]
+
 kernel = PiecewiseKernel(
     ks, tf.convert_to_tensor(change_points, dtype=default_float()))
 

@@ -290,10 +290,9 @@ plt.show()
 # %%
 
 state_dim = 2
-state_mean = np.zeros((state_dim,))
-state_mean[0] = 1
+state_mean = tf.identity([0., 1.])
 kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)
-kernel._state_mean.assign(state_mean)
+kernel.set_state_mean(state_mean)
 
 X, Ys = sample(kernel, 3)
 plt.plot(X, Ys)
@@ -333,8 +332,8 @@ ks = [
     base(variance=variances[l], lengthscale=lengthscales[l])
     for l in range(num_inducing + 1)
 ]
-[k._state_mean.assign(state_means[i]) for i, k in enumerate(ks)]
 
+[k.set_state_mean(state_means[i]) for i, k in enumerate(ks)]
 
 kernel = PiecewiseKernel(
     ks, tf.convert_to_tensor(change_points, dtype=default_float()))

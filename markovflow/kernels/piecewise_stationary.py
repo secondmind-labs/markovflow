@@ -269,3 +269,20 @@ class PiecewiseKernel(NonStationaryKernel):
             ],
             axis=-2,
         )
+
+    def state_means(self, time_points: tf.Tensor) -> tf.Tensor:
+        """
+        For each time point, return the state mean of the kernel active for that
+        time point.
+
+        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+        :return: The state mean at each time point ``batch_shape + [num_time_points, state_dim]``.
+        """
+        # state means for each time interval
+        state_means = [k.state_mean for k in self.kernels]
+        # counting time points falling in each interval
+        indices = self.split_time_indices(time_points)
+        y, idx, _ = tf.unique_with_counts(indices)
+        # tiling the state means accordingly
+        selected_state_means = tf.gather(state_means, y)
+        return tf.gather(selected_state_means, idx)
