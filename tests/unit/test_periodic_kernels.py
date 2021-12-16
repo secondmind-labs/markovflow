@@ -114,3 +114,11 @@ def test_steady_state(with_tf_random_seed, kernel_setup):
     np.testing.assert_allclose(
         kernel.steady_state_covariance, tf.eye(2, dtype=default_float()) * kernel._variance
     )
+
+
+def test_state_mean(with_tf_random_seed, kernel_setup):
+    """Test the state mean for the HarmonicOscillator"""
+    _, kernel, _ = kernel_setup
+    np.testing.assert_allclose(
+        kernel.state_mean.numpy(), tf.zeros([kernel.state_dim], dtype=default_float())
+    )

@@ -477,6 +477,15 @@ class StationaryKernel(SDEKernel, abc.ABC):
         """
         raise NotImplementedError
 
+    @property
+    def state_mean(self) -> tf.Tensor:
+        """
+        Return the state mean.
+
+        :return: A tensor with shape ``[state_dim,]``.
+        """
+        return self._state_mean
+
 
 class NonStationaryKernel(SDEKernel, abc.ABC):
     r"""
