@@ -34,7 +34,7 @@ class SDE(ABC):
         Drift function of the SDE i.e. `f(x(t),t)`
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim].
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Drift value i.e. `f(x(t), t)` with shape ``batch_shape + [state_dim]``.
 
@@ -48,7 +48,7 @@ class SDE(ABC):
         Diffusion function of the SDE i.e. `l(x(t),t)`
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim]``.
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``batch_shape + [state_dim, state_dim]``.
 
@@ -81,10 +81,11 @@ class OrnsteinUhlenbeckSDE(SDE):
         ..math:: f(x(t), t) = -λ x(t)
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim]``.
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Drift value i.e. `f(x(t), t)` with shape ``batch_shape + [state_dim]``.
         """
+        assert x.shape[-1] == self.state_dim
         return -self.decay * x
 
     def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
@@ -93,11 +94,12 @@ class OrnsteinUhlenbeckSDE(SDE):
         ..math:: l(x(t), t) = sqrt(q)
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim]``.
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``batch_shape + [state_dim, state_dim]``.
         """
-        return tf.sqrt(self.q) * tf.ones((self.state_dim, self.state_dim), dtype=x.dtype)
+        assert x.shape[-1] == self.state_dim
+        return tf.linalg.cholesky(self.q)
 
 
 class DoubleWellSDE(SDE):
@@ -124,10 +126,11 @@ class DoubleWellSDE(SDE):
         ..math:: f(x(t), t) = 4 x(t) (1 - x(t)^2)
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim]``.
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Drift value i.e. `f(x(t), t)` with shape ``batch_shape + [state_dim]``.
         """
+        assert x.shape[-1] == self.state_dim
         return 4. * x * (1. - tf.square(x))
 
     def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
@@ -136,9 +139,10 @@ class DoubleWellSDE(SDE):
         ..math:: l(x(t), t) = sqrt(q)
 
         :param x: state at `t` i.e. `x(t)` with shape ``batch_shape + [state_dim]``.
-        :param t: time `t` with shape ``batch_shape + [state_dim]``.
+        :param t: time `t` with shape ``batch_shape + [1]``.
 
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``batch_shape + [state_dim, state_dim]``.
         """
+        assert x.shape[-1] == self.state_dim
         self.q = tf.cast(self.q, dtype=x.dtype)
-        return tf.sqrt(self.q) * tf.ones((self.state_dim, self.state_dim), dtype=x.dtype)
+        return tf.linalg.cholesky(self.q)

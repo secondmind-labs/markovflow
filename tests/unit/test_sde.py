@@ -36,11 +36,13 @@ def _setup(state_dim):
     t0 = 0.
     t1 = 10.
     n = 10
+    n_batch = 2
     dt = float((t1 - t0) / n)
-    x0 = tf.random.normal((1, state_dim), dtype=DTYPE)
+    x0 = tf.random.normal((n_batch, state_dim), dtype=DTYPE)
 
     decay = tf.random.normal((1, 1), dtype=DTYPE)
-    ou_sde = OrnsteinUhlenbeckSDE(decay)
+    q = tf.eye(state_dim, dtype=DTYPE)
+    ou_sde = OrnsteinUhlenbeckSDE(decay, q)
 
     linearize_points = tf.cast(tf.linspace(t0 + dt, t1, n), dtype=DTYPE)
 
@@ -83,8 +85,7 @@ def test_euler_maruyama_shapes(setup):
 
     simulated_vals = euler_maruyama(ou_sde, x0, t)
 
-    tf.assert_equal(tf.gather(simulated_vals, [0]), x0)
-
-    assert simulated_vals.shape[0] == n+1
+    assert simulated_vals.shape[0] == x0.shape[0]
+    assert simulated_vals.shape[1] == n+1
     assert simulated_vals.shape[-1] == state_dim
 

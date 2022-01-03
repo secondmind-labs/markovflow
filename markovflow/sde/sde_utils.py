@@ -15,10 +15,7 @@
 #
 """Utility functions for SDE"""
 
-import math
-
 import tensorflow as tf
-import numpy as np
 
 from markovflow.sde import SDE
 
@@ -30,32 +27,44 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tens
     ..math:: x(t+1) = x(t) + f(x,t)dt + L(x,t)*sqrt(dt*q)*N(0,I)
 
     :param sde: Object of SDE class
-    :param x0: value at start time, t0, (1, D)
+    :param x0: state at start time, t0, with shape (batch_shape, state_dim)
     :param time_interval: Time grid for simulation, (N, )
 
-    :return: Simulated SDE values, (N+1, D)
+    :return: Simulated SDE values, (batch_shape, N+1, D)
 
     Note: evaluation time interval is [t0, tn], x0 value is appended for t0 time. Thus, simulated values are (N+1).
     """
 
     DTYPE = x0.dtype
-    N = time_interval.shape[0]
-    D = x0.shape[-1]
+    num_data = time_interval.shape[0]
+    state_dim = x0.shape[-1]
+    n_batch = x0.shape[0]
 
-    dt = float(time_interval[1] - time_interval[0])
+    dt = tf.convert_to_tensor([[time_interval[1] - time_interval[0]]], dtype=DTYPE)
     f = sde.drift
     l = sde.diffusion
 
-    sde_values = np.zeros((N+1, D), dtype=np.float64)
-    sde_values[0] = x0
-    for t_idx in range(N):
-        t = time_interval[t_idx]
-        x_last = tf.cast(sde_values[t_idx], dtype=DTYPE)
+    def _step(current_val, nxt_val):
+        x, t = current_val
+        _, t_nxt = nxt_val
+        diffusion_term = l(x, t) * tf.math.sqrt(dt)
+        x_nxt = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
+        return x_nxt, t_nxt
 
-        diffusion_term = l(x_last, t) * math.sqrt(dt)
-        x_tmp = x_last + f(x_last, t) * dt + tf.random.normal(x_last.shape, dtype=DTYPE) * diffusion_term
+    # [num_data, batch_shape, state_dim] for tf.scan
+    sde_values = tf.zeros((num_data, n_batch, state_dim), dtype=DTYPE)
 
-        sde_values[t_idx+1] = x_tmp
+    # Adding time for batches for tf.scan
+    t0 = tf.zeros((n_batch, 1), dtype=DTYPE)
+    time_interval = tf.reshape(time_interval, (-1, 1, 1))
+    time_interval = tf.repeat(time_interval, n_batch, axis=1)
 
-    sde_values = tf.convert_to_tensor(sde_values, dtype=DTYPE)
+    sde_values, _ = tf.scan(_step, (sde_values, time_interval), (x0, t0))
+
+    # [batch_shape, num_data, state_dim]
+    sde_values = tf.transpose(sde_values, [1, 0, 2])
+
+    # Appending the initial value
+    sde_values = tf.concat([tf.expand_dims(x0, axis=1), sde_values], axis=1)
+
     return sde_values
