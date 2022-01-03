@@ -83,9 +83,28 @@ def test_euler_maruyama_shapes(setup):
     state_dim, decay, ou_sde, x0, dt, t = setup
     n = t.shape[0]
 
-    simulated_vals = euler_maruyama(ou_sde, x0, t)
+    simulated_values = euler_maruyama(ou_sde, x0, t)
 
-    assert simulated_vals.shape[0] == x0.shape[0]
-    assert simulated_vals.shape[1] == n+1
-    assert simulated_vals.shape[-1] == state_dim
+    assert simulated_values.shape[0] == x0.shape[0]
+    assert simulated_values.shape[1] == n+1
+    assert simulated_values.shape[-1] == state_dim
 
+
+def test_euler_maruyama_value(setup):
+    """Test checking the simulated values by Euler-Maruyama for Ornstein-Uhlenbeck SDE."""
+    state_dim, decay, ou_sde, x0, dt, t = setup
+    n = t.shape[0]
+    n_batch = x0.shape[0]
+
+    # make diffusion zero, decay as -1 and simulate
+    ou_sde.q = 1e-20 * ou_sde.q
+    ou_sde.decay = -1 * tf.ones_like(ou_sde.decay)
+    simulated_values = euler_maruyama(ou_sde, x0, t)
+
+    expected_values = tf.zeros((n, n_batch, state_dim))
+    expected_values = tf.concat([tf.expand_dims(x0, axis=0), expected_values], axis=0)
+
+    expected_values = tf.scan(lambda a, x: 2*a, expected_values)
+    expected_values = tf.transpose(expected_values, [1, 0, 2])
+
+    np.testing.assert_allclose(simulated_values, expected_values)
