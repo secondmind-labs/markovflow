@@ -621,13 +621,13 @@ def state_space_model_from_covariances(
     Construct a state space model using the full covariance matrices for convenience.
 
     :param initial_mean: The initial mean, with shape ``batch_shape + [state_dim]``.
-    :param initial_covariance: Cholesky of the initial covariance, with shape
+    :param initial_covariance: Initial covariance, with shape
         ``batch_shape + [state_dim, state_dim]``.
     :param state_transitions: State transition matrices, with shape
         ``batch_shape + [num_transitions, state_dim, state_dim]``.
     :param state_offsets: The process means :math:`bₖ`, with shape
         ``batch_shape + [num_transitions, state_dim]``.
-    :param process_covariances: Cholesky of the noise covariance matrices, with shape
+    :param process_covariances: Noise covariance matrices, with shape
         ``batch_shape + [num_transitions, state_dim, state_dim]``.
     """
 
