@@ -17,7 +17,11 @@
 
 import tensorflow as tf
 
+from gpflow.base import TensorType
+from gpflow.quadrature import mvnquad
+
 from markovflow.sde import SDE
+from markovflow.state_space_model import StateSpaceModel, state_space_model_from_covariances
 
 
 def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tensor:
@@ -27,12 +31,13 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tens
     ..math:: x(t+1) = x(t) + f(x,t)dt + L(x,t)*sqrt(dt*q)*N(0,I)
 
     :param sde: Object of SDE class
-    :param x0: state at start time, t0, with shape (batch_shape, state_dim)
-    :param time_interval: Time grid for simulation, (N, )
+    :param x0: state at start time, t0, with shape (n_batch, state_dim)
+    :param time_interval: Time grid for simulation, (num_transitions, )
 
-    :return: Simulated SDE values, (batch_shape, N+1, D)
+    :return: Simulated SDE values, (n_batch, num_transitions+1, state_dim)
 
-    Note: evaluation time interval is [t0, tn], x0 value is appended for t0 time. Thus, simulated values are (N+1).
+    Note: evaluation time interval is [t0, tn], x0 value is appended for t0 time.
+    Thus, simulated values are (num_transitions+1).
     """
 
     DTYPE = x0.dtype
@@ -68,3 +73,70 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tens
     sde_values = tf.concat([tf.expand_dims(x0, axis=1), sde_values], axis=1)
 
     return sde_values
+
+
+def E_sde_drift(sde: SDE, q_mean: TensorType, q_covar: TensorType) -> TensorType:
+    """
+    Calculates the Expectation of the SDE's drift under the provided Gaussian over states.
+
+    ..math:: E_q(x(t))[f(x(t))]
+
+    :param sde: SDE to be linearized.
+    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+
+    :return: the expectation value with shape (num_states, state_dim).
+    """
+    fx = lambda x: sde.drift(x=x, t=tf.zeros(x.shape[0], 1))
+    val = mvnquad(fx, q_mean, q_covar, H=10)
+    return val
+
+
+def E_sde_drift_gradient(sde: SDE, q_mean: TensorType, q_covar: TensorType) -> TensorType:
+    """
+     Calculates the Expectation of the gradient of the SDE's drift under the provided Gaussian over states
+
+    ..math:: E_q(.)[f'(x(t))]
+
+    :param sde: SDE to be linearized.
+    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+
+    :return: the expectation value with shape (num_states, state_dim).
+    """
+    val = mvnquad(sde.sde_drift_gradient, q_mean, q_covar, H=10)
+    return val
+
+
+def linearize_sde(sde: SDE, q_mean: TensorType, q_covar: TensorType, initial_mean: TensorType,
+                  initial_chol_covariance: TensorType, process_chol_covariances: TensorType) -> StateSpaceModel:
+    """
+    Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states
+
+    ..math:: q(\cdot) \sim N(q_{mean}, q_{covar})
+
+    ..math:: A_{i}^{*} = E_{q(.)}[d f(x)/ dx]
+    ..math:: b_{i}^{*} = E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]
+
+    :param sde: SDE to be linearized.
+    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+    :param linearize_points: points used for the piecewise linearization ``[num_states,]``.
+    :param initial_mean: The initial mean, with shape ``[state_dim]``.
+    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[state_dim, state_dim]``.
+    :param process_chol_covariances: Cholesky of the noise covariance matrices, with shape
+        ``[num_states, state_dim, state_dim]``.
+
+    :return: the state-space model of the linearized SDE.
+    """
+
+    E_f = E_sde_drift(sde, q_mean, q_covar)
+    E_x = q_mean
+
+    A = E_sde_drift_gradient(sde, q_mean, q_covar)
+    b = E_f - A * E_x
+    A = tf.expand_dims(A, axis=-1)
+
+    return state_space_model_from_covariances(initial_mean=initial_mean, initial_covariance=initial_chol_covariance,
+                                              state_transitions=A, state_offsets=b,
+                                              process_covariances=process_chol_covariances)

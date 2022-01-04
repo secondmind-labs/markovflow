@@ -20,8 +20,7 @@ import tensorflow as tf
 import numpy as np
 import gpflow
 
-from markovflow.sde.linearize_sde import LinearizeSDE
-from markovflow.sde.sde_utils import euler_maruyama
+from markovflow.sde.sde_utils import euler_maruyama, linearize_sde
 from markovflow.sde import OrnsteinUhlenbeckSDE
 
 tf.random.set_seed(33)
@@ -31,50 +30,69 @@ gpflow.config.set_default_float(DTYPE)
 
 
 @pytest.fixture(name="setup")
-def _setup(state_dim):
+def _setup(state_dim, batch_shape):
     """"""
     t0 = 0.
     t1 = 10.
-    n = 10
-    n_batch = 2
-    dt = float((t1 - t0) / n)
-    x0 = tf.random.normal((n_batch, state_dim), dtype=DTYPE)
+    n_transitions = 10
+    n_batch = batch_shape.dims[0].value if batch_shape.ndims > 0 else 1
+    x0_shape = (n_batch, state_dim)
+
+    dt = float((t1 - t0) / n_transitions)
+    x0 = tf.random.normal(x0_shape, dtype=DTYPE)
 
     decay = tf.random.normal((1, 1), dtype=DTYPE)
     q = tf.eye(state_dim, dtype=DTYPE)
     ou_sde = OrnsteinUhlenbeckSDE(decay, q)
 
-    linearize_points = tf.cast(tf.linspace(t0 + dt, t1, n), dtype=DTYPE)
+    linearize_points = tf.cast(tf.linspace(t0 + dt, t1, n_transitions), dtype=DTYPE)
 
     return state_dim, decay, ou_sde, x0, dt, linearize_points
 
 
-def test_ou_update_params_non_sparse(setup):
+def test_ou_update_params_non_sparse():
     """
     Test for checking the update parameter of LinearizedSDE class for Ornstein-Uhlenbeck SDE for non-sparse case i.e.
     inference grid is same as linearization grid.
     """
 
-    dim, decay, ou_sde, x0, dt, linearize_points = setup
+    # dim, decay, ou_sde, x0, dt, linearize_points = setup
+    t0 = 0.
+    t1 = 10.
+    n_transitions = 10
+    state_dim = 1
+    n_batch = 1
+    x0_shape = (n_batch, state_dim)
+
+    dt = float((t1 - t0) / n_transitions)
+    x0 = tf.random.normal(x0_shape, dtype=DTYPE)
+
+    decay = tf.random.normal((1, 1), dtype=DTYPE)
+    q = tf.eye(state_dim, dtype=DTYPE)
+    ou_sde = OrnsteinUhlenbeckSDE(decay, q)
+
+    linearize_points = tf.cast(tf.linspace(t0 + dt, t1, n_transitions), dtype=DTYPE)
 
     inference_grid = tf.identity(linearize_points)
 
-    linearize_sde = LinearizeSDE(ou_sde, linearize_points, dim=dim)
-
     q_mean = euler_maruyama(ou_sde, x0, inference_grid)
+    # remove batch
+    q_mean = tf.squeeze(q_mean, axis=0)
     q_mean = tf.convert_to_tensor(q_mean, dtype=DTYPE)
-    q_covar = 1e-2 * tf.repeat(tf.expand_dims(tf.eye(dim, dtype=DTYPE), axis=0), q_mean.shape[0], axis=0)
+    q_covar = 1e-2 * tf.repeat(tf.expand_dims(tf.eye(state_dim, dtype=DTYPE), axis=0), n_transitions + 1, axis=0)
 
-    linearize_sde.update_linearization_parameters(q_mean, q_covar, inference_grid)
+    x0_covar_chol = tf.linalg.cholesky(q_covar[0])
+    noise_covar = tf.repeat(tf.expand_dims(tf.eye(x0.shape[-1]), axis=0), inference_grid.shape[0] + 1, axis=0)
+    linearized_ssm = linearize_sde(ou_sde, q_mean, q_covar, x0, x0_covar_chol, noise_covar)
 
     expected_A = -decay * tf.ones((linearize_points.shape[0]+1, 1, 1), dtype=DTYPE)
     expected_b = tf.zeros((linearize_points.shape[0]+1, 1), dtype=DTYPE)
 
-    for i in range(dim):
-        linearize_sde_A_i = tf.reshape(tf.reduce_sum(linearize_sde.A, axis=-1)[:, i], (-1, 1, 1))
+    for i in range(state_dim):
+        linearize_sde_A_i = tf.reshape(tf.reduce_sum(linearized_ssm.state_transitions, axis=-1)[:, i], (-1, 1, 1))
         np.testing.assert_allclose(linearize_sde_A_i, expected_A, atol=1e-4)
 
-    linearize_sde_b = tf.reshape(tf.reduce_sum(linearize_sde.b, axis=-1), (-1, 1))
+    linearize_sde_b = tf.reshape(tf.reduce_sum(linearized_ssm.state_offsets, axis=-1), (-1, 1))
     np.testing.assert_allclose(linearize_sde_b, expected_b, atol=1e-4)
 
 
