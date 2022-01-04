@@ -21,7 +21,7 @@ from gpflow.base import TensorType
 from gpflow.quadrature import mvnquad
 
 from markovflow.sde import SDE
-from markovflow.state_space_model import StateSpaceModel, state_space_model_from_covariances
+from markovflow.state_space_model import StateSpaceModel
 
 
 def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tensor:
@@ -82,13 +82,20 @@ def E_sde_drift(sde: SDE, q_mean: TensorType, q_covar: TensorType) -> TensorType
     ..math:: E_q(x(t))[f(x(t))]
 
     :param sde: SDE to be linearized.
-    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
-    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+    :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
 
-    :return: the expectation value with shape (num_states, state_dim).
+    :return: the expectation value with shape (n_batch, num_states, state_dim).
     """
     fx = lambda x: sde.drift(x=x, t=tf.zeros(x.shape[0], 1))
+
+    n_batch, n_states, state_dim = q_mean.shape
+    q_mean = tf.reshape(q_mean, (-1, state_dim))
+    q_covar = tf.reshape(q_covar, (-1, state_dim, state_dim))
+
     val = mvnquad(fx, q_mean, q_covar, H=10)
+
+    val = tf.reshape(val, (n_batch, n_states, state_dim))
     return val
 
 
@@ -99,12 +106,17 @@ def E_sde_drift_gradient(sde: SDE, q_mean: TensorType, q_covar: TensorType) -> T
     ..math:: E_q(.)[f'(x(t))]
 
     :param sde: SDE to be linearized.
-    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
-    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+    :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
 
-    :return: the expectation value with shape (num_states, state_dim).
+    :return: the expectation value with shape (n_batch, num_states, state_dim).
     """
+    n_batch, n_states, state_dim = q_mean.shape
+    q_mean = tf.reshape(q_mean, (-1, state_dim))
+    q_covar = tf.reshape(q_covar, (-1, state_dim, state_dim))
     val = mvnquad(sde.sde_drift_gradient, q_mean, q_covar, H=10)
+
+    val = tf.reshape(val, (n_batch, n_states, state_dim))
     return val
 
 
@@ -119,13 +131,13 @@ def linearize_sde(sde: SDE, q_mean: TensorType, q_covar: TensorType, initial_mea
     ..math:: b_{i}^{*} = E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]
 
     :param sde: SDE to be linearized.
-    :param q_mean: mean of Gaussian over states with shape (num_states, state_dim).
-    :param q_covar: covariance of Gaussian over states with shape (num_states, state_dim, state_dim).
+    :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
     :param linearize_points: points used for the piecewise linearization ``[num_states,]``.
-    :param initial_mean: The initial mean, with shape ``[state_dim]``.
-    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[state_dim, state_dim]``.
+    :param initial_mean: The initial mean, with shape ``[n_batch, state_dim]``.
+    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[n_batch, state_dim, state_dim]``.
     :param process_chol_covariances: Cholesky of the noise covariance matrices, with shape
-        ``[num_states, state_dim, state_dim]``.
+        ``[n_batch, num_states, state_dim, state_dim]``.
 
     :return: the state-space model of the linearized SDE.
     """
@@ -135,8 +147,8 @@ def linearize_sde(sde: SDE, q_mean: TensorType, q_covar: TensorType, initial_mea
 
     A = E_sde_drift_gradient(sde, q_mean, q_covar)
     b = E_f - A * E_x
-    A = tf.expand_dims(A, axis=-1)
+    A = tf.linalg.diag(A)
 
-    return state_space_model_from_covariances(initial_mean=initial_mean, initial_covariance=initial_chol_covariance,
-                                              state_transitions=A, state_offsets=b,
-                                              process_covariances=process_chol_covariances)
+    return StateSpaceModel(initial_mean=initial_mean, chol_initial_covariance=initial_chol_covariance,
+                           state_transitions=A, state_offsets=b,
+                           chol_process_covariances=process_chol_covariances)
