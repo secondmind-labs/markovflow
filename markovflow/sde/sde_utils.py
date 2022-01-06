@@ -120,7 +120,7 @@ def E_sde_drift_gradient(sde: SDE, q_mean: TensorType, q_covar: TensorType) -> T
     return val
 
 
-def linearize_sde(sde: SDE, q_mean: TensorType, q_covar: TensorType, initial_mean: TensorType,
+def linearize_sde(sde: SDE, time_interval: TensorType, q_mean: TensorType, q_covar: TensorType, initial_mean: TensorType,
                   initial_chol_covariance: TensorType, process_chol_covariances: TensorType) -> StateSpaceModel:
     """
     Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states
