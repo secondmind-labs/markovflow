@@ -51,7 +51,7 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
         x, t = current_val
         _, t_nxt = nxt_val
         dt = t_nxt[0] - t[0]  # As time grid is homogeneous
-        diffusion_term = l(x, t) * tf.math.sqrt(dt)
+        diffusion_term = tf.cast(l(x, t) * tf.math.sqrt(dt), dtype=DTYPE)
         x_nxt = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
         return x_nxt, t_nxt
 

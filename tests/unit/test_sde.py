@@ -66,14 +66,14 @@ def test_linearize_sde_ou_statedim_1(setup):
     q_mean = q_mean[:, :-1, :]  # [n_batch, n_transitions, state_dim]
 
     q_covar = tf.zeros((q_mean.shape + state_dim), dtype=DTYPE)
-    covar_diag = 1e-4 * tf.ones(q_mean.shape)
+    covar_diag = 1e-4 * tf.ones_like(q_mean)
     q_covar = tf.linalg.set_diag(q_covar, covar_diag)  # [n_batch, n_transitions, state_dim, state_dim]
 
     x0_covar_chol = tf.linalg.cholesky(q_covar[:, 0, :, :])  # [n_batch, state_dim, state_dim]
     noise_covar = 1e-2 * tf.ones_like(q_covar)  # [n_batch, n_transitions, state_dim, state_dim]
 
     # Adding t0 to time_grid
-    time_grid = tf.concat([tf.zeros(1,), time_grid], axis=0)
+    time_grid = tf.concat([tf.zeros((1,), dtype=DTYPE), time_grid], axis=0)
 
     linearized_ssm = linearize_sde(ou_sde, time_grid, q_mean, q_covar, x0, x0_covar_chol, noise_covar)
 
