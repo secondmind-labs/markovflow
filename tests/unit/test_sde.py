@@ -33,7 +33,7 @@ gpflow.config.set_default_float(DTYPE)
 def _setup(state_dim, batch_shape):
     """"""
     t0 = 0.
-    t1 = 10.
+    t1 = 1.
     n_transitions = 10
     n_batch = batch_shape.dims[0].value if batch_shape.ndims > 0 else 1
     x0_shape = (n_batch, state_dim)
