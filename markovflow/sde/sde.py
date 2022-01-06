@@ -40,7 +40,7 @@ class SDE(ABC):
 
         :raises NotImplementedError: Must be implemented in derived classes.
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
