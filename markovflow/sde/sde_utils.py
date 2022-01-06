@@ -125,6 +125,7 @@ def linearize_sde(sde: SDE, q_mean: TensorType, q_covar: TensorType, initial_mea
     """
     Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states
 
+Note: this currently only works for sde with a state dimension of 1.
     ..math:: q(\cdot) \sim N(q_{mean}, q_{covar})
 
     ..math:: A_{i}^{*} = E_{q(.)}[d f(x)/ dx]
