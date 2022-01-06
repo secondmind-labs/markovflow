@@ -45,7 +45,6 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tens
     state_dim = x0.shape[-1]
     n_batch = x0.shape[0]
 
-    dt = tf.convert_to_tensor([[time_interval[1] - time_interval[0]]], dtype=DTYPE)
     f = sde.drift
     l = sde.diffusion
 
