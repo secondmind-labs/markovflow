@@ -143,6 +143,7 @@ Note: this currently only works for sde with a state dimension of 1.
     :return: the state-space model of the linearized SDE.
     """
 
+assert sde.state_dim == 1
     E_f = E_sde_drift(sde, q_mean, q_covar)
     E_x = q_mean
 
