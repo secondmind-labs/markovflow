@@ -132,6 +132,7 @@ Note: this currently only works for sde with a state dimension of 1.
     ..math:: b_{i}^{*} = E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]
 
     :param sde: SDE to be linearized.
+    :param time_interval: Time grid for simulation, (num_transitions, )
     :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
     :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
     :param linearize_points: points used for the piecewise linearization ``[num_states,]``.
