@@ -153,5 +153,5 @@ assert sde.state_dim == 1
     A = tf.linalg.diag(A)
     dt = time_interval[1:] - time_interval[:-1]
     return StateSpaceModel(initial_mean=initial_mean, chol_initial_covariance=initial_chol_covariance,
-                           state_transitions=A, state_offsets=b,
-                           chol_process_covariances=process_chol_covariances)
+                           state_transitions=A * dt, state_offsets=b * dt,
+                           chol_process_covariances=process_chol_covariances * tf.sqrt(dt))
