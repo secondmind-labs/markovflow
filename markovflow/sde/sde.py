@@ -28,6 +28,9 @@ class SDE(ABC):
 
     """
 
+def __init__(self, state_dim=1)
+     self.state_dim = state_dim
+
     @abstractmethod
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
