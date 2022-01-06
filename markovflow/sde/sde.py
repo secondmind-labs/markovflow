@@ -54,7 +54,7 @@ class SDE(ABC):
 
         :raises NotImplementedError: Must be implemented in derived classes.
         """
-        pass
+        raise NotImplementedError
 
     def sde_drift_gradient(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
         """
