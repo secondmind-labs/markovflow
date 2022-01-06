@@ -52,6 +52,7 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_interval: tf.Tensor) -> tf.Tens
     def _step(current_val, nxt_val):
         x, t = current_val
         _, t_nxt = nxt_val
+        dt = t_nxt - t
         diffusion_term = l(x, t) * tf.math.sqrt(dt)
         x_nxt = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
         return x_nxt, t_nxt
