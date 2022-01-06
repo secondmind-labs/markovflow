@@ -17,6 +17,7 @@
 from abc import ABC, abstractmethod
 
 import tensorflow as tf
+from gpflow.quadrature import mvnquad
 
 
 class SDE(ABC):
@@ -28,8 +29,8 @@ class SDE(ABC):
 
     """
 
-def __init__(self, state_dim=1)
-     self.state_dim = state_dim
+    def __init__(self, state_dim=1):
+        self.state_dim = state_dim
 
     @abstractmethod
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
@@ -76,6 +77,47 @@ def __init__(self, state_dim=1)
             dfx = tape.gradient(drift_val, x)
         return dfx
 
+    def E_sde_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+        Calculates the Expectation of the drift under the provided Gaussian over states.
+
+        ..math:: E_q(x(t))[f(x(t))]
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        fx = lambda x: self.drift(x=x, t=tf.zeros(x.shape[0], 1))
+
+        n_batch, n_states, state_dim = q_mean.shape
+        q_mean = tf.reshape(q_mean, (-1, state_dim))
+        q_covar = tf.reshape(q_covar, (-1, state_dim, state_dim))
+
+        val = mvnquad(fx, q_mean, q_covar, H=10)
+
+        val = tf.reshape(val, (n_batch, n_states, state_dim))
+        return val
+
+    def E_sde_drift_gradient(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+         Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
+
+        ..math:: E_q(.)[f'(x(t))]
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        n_batch, n_states, state_dim = q_mean.shape
+        q_mean = tf.reshape(q_mean, (-1, state_dim))
+        q_covar = tf.reshape(q_covar, (-1, state_dim, state_dim))
+        val = mvnquad(self.sde_drift_gradient, q_mean, q_covar, H=10)
+
+        val = tf.reshape(val, (n_batch, n_states, state_dim))
+        return val
+
 
 class OrnsteinUhlenbeckSDE(SDE):
     """
@@ -83,6 +125,7 @@ class OrnsteinUhlenbeckSDE(SDE):
 
     ..math:: dx(t) = -λ x(t) dt + dB(t), the spectral density of the Brownian motion is specified by q.
     """
+
     def __init__(self, decay: tf.Tensor, q: tf.Tensor = tf.ones((1, 1))):
         """
         Initialize the Ornstein-Uhlenbeck SDE.
@@ -90,10 +133,9 @@ class OrnsteinUhlenbeckSDE(SDE):
         :param decay: λ, a tensor with shape ``(1, 1)``.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
         """
-        super(OrnsteinUhlenbeckSDE, self).__init__()
+        super(OrnsteinUhlenbeckSDE, self).__init__(state_dim=q.shape[0])
         self.decay = decay
-        self.q = tf.cast(q, dtype=decay.dtype)
-        self.state_dim = q.shape[0]
+        self.q = q
 
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
@@ -130,15 +172,15 @@ class DoubleWellSDE(SDE):
 
     where f(x(t)) = 4 x(t) (1 - x(t)^2) and the spectral density of the Brownian motion is specified by q.
     """
+
     def __init__(self, q: tf.Tensor = tf.ones((1, 1))):
         """
         Initialize the Double-Well SDE.
 
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
         """
-        super(DoubleWellSDE, self).__init__()
+        super(DoubleWellSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.state_dim = q.shape[0]
 
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
@@ -151,7 +193,7 @@ class DoubleWellSDE(SDE):
         :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        return 4. * x * (1. - tf.square(x))
+        return 4.0 * x * (1.0 - tf.square(x))
 
     def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
@@ -164,5 +206,4 @@ class DoubleWellSDE(SDE):
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        self.q = tf.cast(self.q, dtype=x.dtype)
         return tf.linalg.cholesky(self.q)

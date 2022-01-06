@@ -45,33 +45,41 @@ def _setup(state_dim, batch_shape):
     q = tf.eye(state_dim, dtype=DTYPE)
     ou_sde = OrnsteinUhlenbeckSDE(decay, q)
 
-    linearize_points = tf.cast(tf.linspace(t0 + dt, t1, n_transitions), dtype=DTYPE)
+    time_grid = tf.cast(tf.linspace(t0 + dt, t1, n_transitions), dtype=DTYPE)
 
-    return state_dim, decay, ou_sde, x0, dt, linearize_points
+    return state_dim, decay, ou_sde, x0, dt, time_grid
 
 
-def test_linearize_sde_ou(setup):
+def test_linearize_sde_ou_statedim_1(setup):
     """
-    Test for checking the linearize sde method for Ornstein-Uhlenbeck SDE.
+    Test for checking the linearize sde method for Ornstein-Uhlenbeck SDE with state_dim=1.
     """
 
-    state_dim, decay, ou_sde, x0, dt, linearize_points = setup
+    state_dim, decay, ou_sde, x0, dt, time_grid = setup
 
-    q_mean = euler_maruyama(ou_sde, x0, linearize_points)
-    q_mean = tf.convert_to_tensor(q_mean, dtype=DTYPE)  # [n_batch, n_transitions+1, state_dim]
+    # As currently only 1 state dim is supported
+    if state_dim != 1:
+        return True
+
+    q_mean = euler_maruyama(ou_sde, x0, time_grid)
+    q_mean = tf.convert_to_tensor(q_mean, dtype=DTYPE)
+    q_mean = q_mean[:, :-1, :]  # [n_batch, n_transitions, state_dim]
 
     q_covar = tf.zeros((q_mean.shape + state_dim), dtype=DTYPE)
     covar_diag = 1e-4 * tf.ones(q_mean.shape)
-    q_covar = tf.linalg.set_diag(q_covar, covar_diag)  # [n_batch, n_transitions+1, state_dim, state_dim]
+    q_covar = tf.linalg.set_diag(q_covar, covar_diag)  # [n_batch, n_transitions, state_dim, state_dim]
 
     x0_covar_chol = tf.linalg.cholesky(q_covar[:, 0, :, :])  # [n_batch, state_dim, state_dim]
-    noise_covar = 1e-2 * tf.ones_like(q_covar)  # [n_batch, n_transitions+1, state_dim, state_dim]
+    noise_covar = 1e-2 * tf.ones_like(q_covar)  # [n_batch, n_transitions, state_dim, state_dim]
 
-    linearized_ssm = linearize_sde(ou_sde, q_mean, q_covar, x0, x0_covar_chol, noise_covar)
+    # Adding t0 to time_grid
+    time_grid = tf.concat([tf.zeros(1,), time_grid], axis=0)
 
-    expected_A = tf.zeros_like(q_covar)
-    expected_b = tf.zeros_like(q_mean)   # [n_batch, n_transitions+1, state_dim]
-    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b)  # [n_batch, n_transitions+1, state_dim, state_dim]
+    linearized_ssm = linearize_sde(ou_sde, time_grid, q_mean, q_covar, x0, x0_covar_chol, noise_covar)
+
+    expected_A = tf.zeros_like(q_covar)  # [n_batch, n_transitions, state_dim, state_dim]
+    expected_b = tf.zeros_like(q_mean) * dt  # [n_batch, n_transitions, state_dim]
+    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b) * dt
 
     np.testing.assert_allclose(linearized_ssm.state_transitions, expected_A, atol=1e-3)
     np.testing.assert_allclose(linearized_ssm.state_offsets, expected_b, atol=1e-3)
@@ -98,15 +106,14 @@ def test_euler_maruyama_value(setup):
     n_transitions = t.shape[0]
     n_batch = x0.shape[0]
 
-    # make diffusion zero, decay as -1 and simulate
+    # make diffusion zero and simulate
     ou_sde.q = 1e-20 * ou_sde.q
-    ou_sde.decay = -1 * tf.ones_like(ou_sde.decay)
     simulated_values = euler_maruyama(ou_sde, x0, t)
 
-    expected_values = tf.zeros((n_transitions, n_batch, state_dim))
+    expected_values = tf.zeros((n_transitions, n_batch, state_dim), dtype=DTYPE)
     expected_values = tf.concat([tf.expand_dims(x0, axis=0), expected_values], axis=0)
 
-    expected_values = tf.scan(lambda a, x: 2*a, expected_values)
+    expected_values = tf.scan(lambda a, x: a + (-decay*a*dt), expected_values)
     expected_values = tf.transpose(expected_values, [1, 0, 2])
 
-    np.testing.assert_allclose(simulated_values, expected_values)
+    np.testing.assert_allclose(simulated_values, expected_values, atol=1e-6)
