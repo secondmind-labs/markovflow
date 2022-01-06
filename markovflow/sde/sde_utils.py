@@ -106,10 +106,10 @@ def linearize_sde(
     """
 
     assert sde.state_dim == 1
-    E_f = sde.E_sde_drift(q_mean, q_covar)
+    E_f = sde.E_drift(q_mean, q_covar)
     E_x = q_mean
 
-    A = sde.E_sde_drift_gradient(q_mean, q_covar)
+    A = sde.E_gradient_drift(q_mean, q_covar)
     b = E_f - A * E_x
     A = tf.linalg.diag(A)
 

@@ -77,7 +77,7 @@ class SDE(ABC):
             dfx = tape.gradient(drift_val, x)
         return dfx
 
-    def E_sde_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+    def E_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
         """
         Calculates the Expectation of the drift under the provided Gaussian over states.
 
@@ -99,7 +99,7 @@ class SDE(ABC):
         val = tf.reshape(val, (n_batch, n_states, state_dim))
         return val
 
-    def E_sde_drift_gradient(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+    def E_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
         """
          Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
 
