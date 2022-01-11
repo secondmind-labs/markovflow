@@ -30,38 +30,38 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
     ..math:: x(t+1) = x(t) + f(x,t)dt + L(x,t)*sqrt(dt*q)*N(0,I)
 
     :param sde: Object of SDE class
-    :param x0: state at start time, t0, with shape (n_batch, state_dim)
+    :param x0: state at start time, t0, with shape (num_batch, state_dim)
     :param time_grid: A homogeneous time grid for simulation, (num_transitions, )
 
-    :return: Simulated SDE values, (n_batch, num_transitions+1, state_dim)
+    :return: Simulated SDE values, (num_batch, num_transitions+1, state_dim)
 
     Note: evaluation time grid is [t0, tn], x0 value is appended for t0 time.
     Thus, simulated values are (num_transitions+1).
     """
 
     DTYPE = x0.dtype
-    num_data = time_grid.shape[0]
+    num_time_points = time_grid.shape[0]
     state_dim = x0.shape[-1]
-    n_batch = x0.shape[0]
+    num_batch = x0.shape[0]
 
     f = sde.drift
     l = sde.diffusion
 
-    def _step(current_val, nxt_val):
-        x, t = current_val
-        _, t_nxt = nxt_val
-        dt = t_nxt[0] - t[0]  # As time grid is homogeneous
+    def _step(current_state_time, next_state_time):
+        x, t = current_state_time
+        _, t_next = next_state_time
+        dt = t_next[0] - t[0]  # As time grid is homogeneous
         diffusion_term = tf.cast(l(x, t) * tf.math.sqrt(dt), dtype=DTYPE)
-        x_nxt = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
-        return x_nxt, t_nxt
+        x_next = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
+        return x_next, t_next
 
     # [num_data, batch_shape, state_dim] for tf.scan
-    sde_values = tf.zeros((num_data, n_batch, state_dim), dtype=DTYPE)
+    sde_values = tf.zeros((num_time_points, num_batch, state_dim), dtype=DTYPE)
 
     # Adding time for batches for tf.scan
-    t0 = tf.zeros((n_batch, 1), dtype=DTYPE)
+    t0 = tf.zeros((num_batch, 1), dtype=DTYPE)
     time_grid = tf.reshape(time_grid, (-1, 1, 1))
-    time_grid = tf.repeat(time_grid, n_batch, axis=1)
+    time_grid = tf.repeat(time_grid, num_batch, axis=1)
 
     sde_values, _ = tf.scan(_step, (sde_values, time_grid), (x0, t0))
 
@@ -69,7 +69,11 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
     sde_values = tf.transpose(sde_values, [1, 0, 2])
 
     # Appending the initial value
-    sde_values = tf.concat([tf.expand_dims(x0, axis=1), sde_values], axis=1)
+    sde_values = tf.concat([tf.expand_dims(x0, axis=1), sde_values[..., :-1, :]], axis=1)
+
+    shape_constraints = [(sde_values, [num_batch, num_time_points, state_dim]),
+                         (x0, [num_batch, state_dim])]
+    tf.debugging.assert_shapes(shape_constraints)
 
     return sde_values
 
@@ -95,21 +99,21 @@ def linearize_sde(
 
     :param sde: SDE to be linearized.
     :param transition_times: Transition_times, (num_transitions, )
-    :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
-    :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
-    :param initial_mean: The initial mean, with shape ``[n_batch, state_dim]``.
-    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[n_batch, state_dim, state_dim]``.
+    :param q_mean: mean of Gaussian over states with shape (num_batch, num_states, state_dim).
+    :param q_covar: covariance of Gaussian over states with shape (num_batch, num_states, state_dim, state_dim).
+    :param initial_mean: The initial mean, with shape ``[num_batch, state_dim]``.
+    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[num_batch, state_dim, state_dim]``.
     :param process_chol_covariances: Cholesky of the noise covariance matrices, with shape
-        ``[n_batch, num_states, state_dim, state_dim]``.
+        ``[num_batch, num_states, state_dim, state_dim]``.
 
     :return: the state-space model of the linearized SDE.
     """
 
     assert sde.state_dim == 1
-    E_f = sde.E_drift(q_mean, q_covar)
+    E_f = sde.expected_drift(q_mean, q_covar)
     E_x = q_mean
 
-    A = sde.E_gradient_drift(q_mean, q_covar)
+    A = sde.expected_gradient_drift(q_mean, q_covar)
     b = E_f - A * E_x
     A = tf.linalg.diag(A)
 

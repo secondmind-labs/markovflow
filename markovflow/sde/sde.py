@@ -30,7 +30,17 @@ class SDE(ABC):
     """
 
     def __init__(self, state_dim=1):
-        self.state_dim = state_dim
+        """
+        :param state_dim: The output dimension of the kernel.
+        """
+        self._state_dim = state_dim
+
+    @property
+    def state_dim(self) -> int:
+        """
+        Return the state dimension of the sde.
+        """
+        return self._state_dim
 
     @abstractmethod
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
@@ -60,7 +70,7 @@ class SDE(ABC):
         """
         raise NotImplementedError
 
-    def sde_drift_gradient(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
+    def gradient_drift(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
         """
         Calculates the gradient of the drift wrt the states x(t).
 
@@ -77,7 +87,7 @@ class SDE(ABC):
             dfx = tape.gradient(drift_val, x)
         return dfx
 
-    def E_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+    def expected_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
         """
         Calculates the Expectation of the drift under the provided Gaussian over states.
 
@@ -99,7 +109,7 @@ class SDE(ABC):
         val = tf.reshape(val, (n_batch, n_states, state_dim))
         return val
 
-    def E_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+    def expected_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
         """
          Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
 
@@ -113,7 +123,7 @@ class SDE(ABC):
         n_batch, n_states, state_dim = q_mean.shape
         q_mean = tf.reshape(q_mean, (-1, state_dim))
         q_covar = tf.reshape(q_covar, (-1, state_dim, state_dim))
-        val = mvnquad(self.sde_drift_gradient, q_mean, q_covar, H=10)
+        val = mvnquad(self.gradient_drift, q_mean, q_covar, H=10)
 
         val = tf.reshape(val, (n_batch, n_states, state_dim))
         return val
