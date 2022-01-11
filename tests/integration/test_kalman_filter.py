@@ -31,16 +31,16 @@ from tests.tools.numpy_kalman_filter import NumpyKalmanFilter
 @pytest.fixture(name="kalman_setup")
 def _setup(batch_shape):
     """Create the `NumpyKalmanFilter` and `KalmanFilter` and generate a trajectory for tests."""
-    num_transitions = 7
-    state_dim = 3
-    output_dim = 2
-    transition_matrix = np.random.normal(size=(state_dim, state_dim))
+    num_transitions = 1 #7
+    state_dim = 1
+    output_dim = 1 #2
+    transition_matrix = np.random.uniform(low=-1., high=1., size=(state_dim, state_dim))
     chol_transition_noise = generate_random_lower_triangular_matrix(state_dim)
     observation_matrix = np.random.normal(size=(output_dim, state_dim))
-    observation_noise = generate_random_pos_def_matrix(output_dim)
+    observation_noise = generate_random_pos_def_matrix(output_dim) #* 0 + 1e20
     chol_observation_noise = np.linalg.cholesky(observation_noise)
     initial_state_prior_mean = np.random.normal(size=state_dim)
-    state_offsets = np.random.normal(size=state_dim)
+    state_offsets = np.random.normal(size=state_dim) * 0
     chol_initial_state_prior_cov = generate_random_lower_triangular_matrix(state_dim)
 
     # create the numpy Kalman Filter and generate some trajectories
@@ -60,7 +60,7 @@ def _setup(batch_shape):
     )
 
     y_train = np_kalman_filter.generate_trajectories(batch_shape)
-
+    y_train = y_train * 0
     # reshape the matrices into the form expected by KalmanFilter
     transition_matrix_tf = tf.constant(
         np.broadcast_to(transition_matrix, batch_shape + (num_transitions, state_dim, state_dim))
@@ -137,3 +137,33 @@ def test_log_likelihood(with_tf_random_seed, kalman_setup):
     ll_tf = tf_kalman_filter.log_likelihood()
 
     np.testing.assert_allclose(np.sum(ll_np), ll_tf)
+
+
+def test_kalman_forward_filtering(with_tf_random_seed, kalman_setup):
+    """Verify that the filtered means and covariances match those of the hand-crafted Kalman Filter."""
+    np_kalman_filter, y_train, tf_kalman_filter = kalman_setup
+
+    # run the forward pass
+    _, filter_mus_np, filter_ps_np, pred_mus_np, pred_ps_np = np_kalman_filter.forward_filter(y_train)
+
+    # CURRENTLY COMPUTES THE PREDICTIONS
+    filter_mus_tf, filter_ps_tf, pred_mus_tf, pred_ps_tf = tf_kalman_filter.forward_filter()
+
+    np.testing.assert_allclose(filter_mus_np[..., :, :], filter_mus_tf[..., :, :])
+    # np.testing.assert_allclose(pred_mus_np[..., :, :], pred_mus_tf[..., :, :])
+    np.testing.assert_allclose(filter_ps_np[:, :, :], filter_ps_tf[..., :, :, :])  # numpy ps no batch
+    # np.testing.assert_allclose(pred_ps_np[:, :, :], pred_ps_tf[..., :, :, :])  # numpy ps no batch
+
+
+def test_kalman_backward_filtering(with_tf_random_seed, kalman_setup):
+    """Verify that the filtered means and covariances match those of the hand-crafted Kalman Filter."""
+    _, y_train, tf_kalman_filter = kalman_setup
+
+    posterior_means, posterior_covs = tf_kalman_filter.posterior_state_space_model().marginals
+
+    ffilter_mus_tf, ffilter_ps_tf, fpred_mus_tf, fpred_ps_tf = tf_kalman_filter.forward_filter()
+    bfilter_mus_tf, bfilter_ps_tf, bpred_mus_tf, bpred_ps_tf = tf_kalman_filter.backward_filter()
+
+
+    np.testing.assert_allclose(posterior_means[..., -1, :], ffilter_mus_tf[..., -1, :])
+    np.testing.assert_allclose(posterior_means[..., 0, :], bfilter_mus_tf[..., 0, :])
