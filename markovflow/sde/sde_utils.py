@@ -71,8 +71,10 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
     # Appending the initial value
     sde_values = tf.concat([tf.expand_dims(x0, axis=1), sde_values[..., :-1, :]], axis=1)
 
-    shape_constraints = [(sde_values, [num_batch, num_time_points, state_dim]),
-                         (x0, [num_batch, state_dim])]
+    shape_constraints = [
+        (sde_values, [num_batch, num_time_points, state_dim]),
+        (x0, [num_batch, state_dim]),
+    ]
     tf.debugging.assert_shapes(shape_constraints)
 
     return sde_values
