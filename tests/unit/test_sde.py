@@ -25,8 +25,7 @@ from markovflow.sde import OrnsteinUhlenbeckSDE
 
 tf.random.set_seed(33)
 
-DTYPE = tf.float32
-gpflow.config.set_default_float(DTYPE)
+DTYPE = gpflow.config.default_float()
 
 
 @pytest.fixture(
