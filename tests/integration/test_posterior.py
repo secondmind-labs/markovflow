@@ -117,7 +117,7 @@ def test_posterior_predict_f_with_gpflow(batch_shape, with_tf_random_seed):
     )
 
 
-@pytest.mark.skip(reason='too slow and not crucial')
+@pytest.mark.skip(reason="too slow and not crucial")
 def test_mu_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     """
     Tests that using `sample_f` the expectation of samples from the posterior is equal to the
@@ -137,7 +137,7 @@ def test_mu_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     np.testing.assert_allclose(mu, samples.numpy().mean(0), atol=1e-1)
 
 
-@pytest.mark.skip(reason='too slow and not crucial')
+@pytest.mark.skip(reason="too slow and not crucial")
 def test_var_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     """
     Tests that using `sample_f` the expected variance of samples from the posterior is equal to
