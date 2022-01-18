@@ -231,3 +231,26 @@ def test_ssm_log_pdf_evaluation(batch_shape):
 
     # compare log densities
     np.testing.assert_allclose(tf_log_pdf_dense, tf_log_pdf_ssm, rtol=1e-4)
+
+
+@pytest.mark.parametrize("batch_shape", [()])# '[(3,), (2, 1)])
+def test_reverse_time_ssm_marginals(batch_shape):
+    """
+    Test that the time reverted state space model has the same marginal statistics
+    (mean, covariance) as the original state space model """
+    state_dim = 2
+    # keep trajectories short, computing the covariance from the precision may be inaccurate.
+    transitions = 5
+
+    # create state space model
+    ssm, _ = StateSpaceModelBuilder(batch_shape, state_dim, transitions).build()
+
+    # time revert the state space model
+    ssm_rev = ssm.reverse_time_ssm()
+
+    means, covs = ssm.marginals
+    means_rev, covs_rev = ssm_rev.marginals
+
+    # compare marginals
+    np.testing.assert_allclose(means, tf.reverse(means_rev, axis=[-2]), rtol=1e-4)
+    np.testing.assert_allclose(covs, tf.reverse(covs_rev, axis=[-3]), rtol=1e-4)

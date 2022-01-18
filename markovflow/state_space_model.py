@@ -608,6 +608,65 @@ class StateSpaceModel(GaussMarkovDistribution):
 
         return 0.5 * (cst + log_det + mahalanobis)
 
+    def reverse_time_ssm(self) -> "StateSpaceModel":
+        """
+        Forward
+            .. math:: xₖ₊₁ = Aₖ xₖ + bₖ + qₖ
+        Reversed
+            p(x1, x2) = p(x2|x1)p(x1) = p(x1|x2)p(x2)
+            p(x1| x2) = p(x1, x2)/p(x2) = p(x2|x1)p(x1)/p(x2)
+
+            = exp -1/2 [ (x2- A x1 - b)ᵀQ⁻¹(x2- A x1 - b)
+                        + (x1 - m1)ᵀS1⁻¹(x1- m1) ]
+            = exp -1/2 [ (x2 -b)ᵀQ⁻¹(x2-b) + x1ᵀAᵀQ⁻¹Ax1 - 2 x1ᵀAᵀQ⁻¹(x2-b)
+                        + (x1 - m1)ᵀS1⁻¹(x1- m1) ]
+            = exp -1/2 [ x1ᵀAᵀQ⁻¹Ax1 - 2 x1ᵀAᵀQ⁻¹(x2-b)
+                        + x1ᵀS1⁻¹x1  - 2 x1ᵀS1⁻¹m1 ]
+            = exp -1/2 [ x1ᵀAᵀ Q⁻¹A x1 - 2 x1ᵀAᵀQ⁻¹x2 +  2 x1ᵀAᵀQ⁻¹b
+                        + x1ᵀS1⁻¹x1  - 2 x1ᵀS1⁻¹m1 ]
+            = exp -1/2 [ x1ᵀ(Aᵀ Q⁻¹A + S1⁻¹) x1 + 2 x1ᵀ(AᵀQ⁻¹b-S1⁻¹m1) - 2 x1ᵀAᵀQ⁻¹x2 ]
+
+            = exp -1/2 [ (x1- An x2 - bn)ᵀQn⁻¹(x1- An x2 - bn)
+            = exp -1/2 [ x1ᵀQn⁻¹x1  + (An x2 + bn)ᵀQn⁻¹(An x2 + bn) -2 x1ᵀQn⁻¹(An x2 + bn)
+
+            Qn⁻¹ = (Aᵀ Q⁻¹A + S1⁻¹)
+            Qn = S1 - S1 Aᵀ (Q + A S1 Aᵀ)⁻¹ A S1
+
+            Qn⁻¹An = AᵀQ⁻¹ -> An = Qn AᵀQ⁻¹
+
+            -Qn⁻¹bn = AᵀQ⁻¹b-S1⁻¹m1
+                -> bn = - Qn(AᵀQ⁻¹b-S1⁻¹m1)
+                   = -Qn AᵀQ⁻¹ b + Qn S1⁻¹m1 = - An b + Qn S1⁻¹m1
+
+
+            .. math:: xₖ = Aₖ⁻¹ xₖ₊₁ - Aₖ⁻¹ bₖ - Aₖ⁻¹ qₖ
+            Q_rev = Aₖ⁻¹ Lₖ Lₖᵀ Aₖ⁻ᵀ = (Aₖ⁻¹ Lₖ)(Aₖ⁻¹ Lₖ)ᵀ
+        """
+        means, covs = self.marginal_means, self.marginal_covariances
+        A_s = self.state_transitions
+        b_s = self.state_offsets
+        chol_Q_s = self.cholesky_process_covariances
+        Q_s = tf.matmul(chol_Q_s, chol_Q_s, transpose_b=True)
+        K = Q_s + tf.matmul(A_s, tf.matmul(covs[..., :-1, :, :], A_s, transpose_b=True))
+        chol_K = tf.linalg.cholesky(K)
+        tmp = tf.linalg.triangular_solve(chol_K, tf.matmul(A_s, covs[..., :-1, :, :]))
+        Q_s_rev = covs[..., :-1, :, :] - tf.matmul(tmp, tmp, transpose_a=True)
+        A_s_rev = tf.matmul(Q_s_rev, tf.linalg.cholesky_solve(chol_Q_s, A_s), transpose_b=True)
+        tmp2 = tf.linalg.cholesky_solve(
+            tf.linalg.cholesky(covs[..., :-1, :, :]), means[..., :-1, :, None]
+        )
+        b_s_rev = -(tf.matmul(A_s_rev, b_s[..., None]) - tf.matmul(Q_s_rev, tmp2))[..., 0]
+
+        chol_Q_s_rev = tf.linalg.cholesky(Q_s_rev)
+
+        return StateSpaceModel(
+            initial_mean=means[..., -1, :],
+            chol_initial_covariance=tf.linalg.cholesky(covs[..., -1, :, :]),
+            state_transitions=tf.reverse(A_s_rev, axis=[-3]),
+            state_offsets=tf.reverse(b_s_rev, axis=[-2]),
+            chol_process_covariances=tf.reverse(chol_Q_s_rev, axis=[-3]),
+        )
+
 
 @tf_scope_fn_decorator
 def state_space_model_from_covariances(

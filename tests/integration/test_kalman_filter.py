@@ -40,7 +40,7 @@ def _setup(batch_shape):
     observation_noise = generate_random_pos_def_matrix(output_dim) #* 0 + 1e20
     chol_observation_noise = np.linalg.cholesky(observation_noise)
     initial_state_prior_mean = np.random.normal(size=state_dim)
-    state_offsets = np.random.normal(size=state_dim) * 0
+    state_offsets = np.random.normal(size=state_dim)
     chol_initial_state_prior_cov = generate_random_lower_triangular_matrix(state_dim)
 
     # create the numpy Kalman Filter and generate some trajectories
@@ -163,7 +163,6 @@ def test_kalman_backward_filtering(with_tf_random_seed, kalman_setup):
 
     ffilter_mus_tf, ffilter_ps_tf, fpred_mus_tf, fpred_ps_tf = tf_kalman_filter.forward_filter()
     bfilter_mus_tf, bfilter_ps_tf, bpred_mus_tf, bpred_ps_tf = tf_kalman_filter.backward_filter()
-
 
     np.testing.assert_allclose(posterior_means[..., -1, :], ffilter_mus_tf[..., -1, :])
     np.testing.assert_allclose(posterior_means[..., 0, :], bfilter_mus_tf[..., 0, :])
