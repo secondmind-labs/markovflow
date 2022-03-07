@@ -31,9 +31,9 @@ from tests.tools.numpy_kalman_filter import NumpyKalmanFilter
 @pytest.fixture(name="kalman_setup")
 def _setup(batch_shape):
     """Create the `NumpyKalmanFilter` and `KalmanFilter` and generate a trajectory for tests."""
-    num_transitions = 1 #7
-    state_dim = 1
-    output_dim = 1 #2
+    num_transitions = 7
+    state_dim = 2
+    output_dim = 2
     transition_matrix = np.random.uniform(low=-1., high=1., size=(state_dim, state_dim))
     chol_transition_noise = generate_random_lower_triangular_matrix(state_dim)
     observation_matrix = np.random.normal(size=(output_dim, state_dim))
