@@ -271,14 +271,67 @@ class BaseKalmanFilter(tf.Module, ABC):
         # (GᵀΣ⁻¹) y
         return tf.einsum("...ij,...i->...j", back_projection, observations)
 
-    def forward_filter_scan(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # def forward_filter_scan(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    #     """
+    #     Perform the forward filter. i.e. return the mean and variance for
+    #         p(xₜ | y₁ ... yₜ₋₁), this is called 'pred' and
+    #         p(xₜ | y₁ ... yₜ) this is called 'filter'
+    #     also return log likelihoods i.e. log p(yₜ | y₁ ... yₜ₋₁)
+    #
+    #     :param observations: batch_shape + [num_timesteps, output_dim]
+    #     :return: log_liks: batch_shape + [num_timesteps]
+    #              filter_mus: batch_shape + [num_timesteps, state_dim]
+    #              filter_covs: batch_shape + [num_timesteps, state_dim, state_dim]
+    #              pred_mus: batch_shape + [num_timesteps, state_dim]
+    #              pred_covs: batch_shape + [num_timesteps, state_dim, state_dim]
+    #     """
+    #     # [..., state_dim, state_dim]
+    #     P_0 = tf.matmul(self.prior_ssm._chol_P_0, self.prior_ssm._chol_P_0, transpose_b=True)
+    #     # [..., state_dim]
+    #     mu_0 = self.prior_ssm._mu_0
+    #     # [..., num_transitions, state_dim, state_dim]
+    #     Q_s = tf.matmul(self.prior_ssm._chol_Q_s, self.prior_ssm._chol_Q_s, transpose_b=True)
+    #     A_s = self.prior_ssm.state_transitions
+    #     b_s = self.prior_ssm.state_offsets
+    #     H_s = self.emission.emission_matrix
+    #     R = tf.linalg.cholesky_solve(
+    #         tf.linalg.cholesky(self._r_inv),
+    #         tf.eye(self.emission.output_dim, dtype=default_float())
+    #     )
+    #     y_s = self.observations
+    #     indices = tf.range(self.prior_ssm.num_transitions)
+    #
+    #     def body(carry, counter):
+    #         filter_mean, filter_cov, pred_mean, pred_cov = carry
+    #
+    #         A_k = A_s[..., counter, :, :]  # [... state_dim, state_dim]
+    #         b_k = b_s[..., counter, :]  # [...  1, state_dim]
+    #         Q_k = Q_s[..., counter, :, :]  # [... state_dim, state_dim]
+    #         H_k = H_s[..., counter, :, :]
+    #         y_k = y_s[..., counter, :]
+    #
+    #         # correct
+    #         S = H_k @ tf.matmul(pred_cov, H_k, transpose_b=True) + R
+    #         chol = tf.linalg.cholesky(S)
+    #         Kt = tf.linalg.cholesky_solve(chol, H_k @ pred_cov)
+    #         filter_mean = pred_mean + tf.linalg.matvec(Kt, y_k - tf.linalg.matvec(H_k, pred_mean), transpose_a=True)
+    #         filter_cov = pred_cov - tf.matmul(Kt, S, transpose_a=True) @ Kt
+    #
+    #         # propagate
+    #         pred_mean = tf.linalg.matvec(A_k, filter_mean) + b_k
+    #         pred_cov = A_k @ tf.matmul(filter_cov, A_k, transpose_b=True) + Q_k
+    #
+    #         return filter_mean, filter_cov, pred_mean, pred_cov
+    #
+    #     return tf.scan(body, indices, (mu_0, P_0, mu_0, P_0))
+
+    def forward_filter(self) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         """
-        Perform the forward filter. i.e. return the mean and variance for
+        Perform Kalman forward filtering. i.e. return the mean and covariance for
             p(xₜ | y₁ ... yₜ₋₁), this is called 'pred' and
             p(xₜ | y₁ ... yₜ) this is called 'filter'
         also return log likelihoods i.e. log p(yₜ | y₁ ... yₜ₋₁)
 
-        :param observations: batch_shape + [num_timesteps, output_dim]
         :return: log_liks: batch_shape + [num_timesteps]
                  filter_mus: batch_shape + [num_timesteps, state_dim]
                  filter_covs: batch_shape + [num_timesteps, state_dim, state_dim]
@@ -286,77 +339,13 @@ class BaseKalmanFilter(tf.Module, ABC):
                  pred_covs: batch_shape + [num_timesteps, state_dim, state_dim]
         """
         # [..., state_dim, state_dim]
-        P_0 = tf.matmul(self.prior_ssm._chol_P_0, self.prior_ssm._chol_P_0, transpose_b=True)
+        P_0 = tf.matmul(self.prior_ssm.cholesky_initial_covariance,
+                        self.prior_ssm.cholesky_initial_covariance, transpose_b=True)
         # [..., state_dim]
-        mu_0 = self.prior_ssm._mu_0
+        mu_0 = self.prior_ssm.initial_mean
         # [..., num_transitions, state_dim, state_dim]
-        Q_s = tf.matmul(self.prior_ssm._chol_Q_s, self.prior_ssm._chol_Q_s, transpose_b=True)
-        A_s = self.prior_ssm.state_transitions
-        b_s = self.prior_ssm.state_offsets
-        H_s = self.emission.emission_matrix
-        R = tf.linalg.cholesky_solve(
-            tf.linalg.cholesky(self._r_inv),
-            tf.eye(self.emission.output_dim, dtype=default_float())
-        )
-        y_s = self.observations
-        indices = tf.range(self.prior_ssm.num_transitions)
-
-        def body(carry, counter):
-            filter_mean, filter_cov, pred_mean, pred_cov = carry
-
-            A_k = A_s[..., counter, :, :]  # [... state_dim, state_dim]
-            b_k = b_s[..., counter, :]  # [...  1, state_dim]
-            Q_k = Q_s[..., counter, :, :]  # [... state_dim, state_dim]
-            H_k = H_s[..., counter, :, :]
-            y_k = y_s[..., counter, :]
-
-            # correct
-            S = H_k @ tf.matmul(pred_cov, H_k, transpose_b=True) + R
-            chol = tf.linalg.cholesky(S)
-            Kt = tf.linalg.cholesky_solve(chol, H_k @ pred_cov)
-            filter_mean = pred_mean + tf.linalg.matvec(Kt, y_k - tf.linalg.matvec(H_k, pred_mean), transpose_a=True)
-            filter_cov = pred_cov - tf.matmul(Kt, S, transpose_a=True) @ Kt
-
-            # propagate
-            pred_mean = tf.linalg.matvec(A_k, filter_mean) + b_k
-            pred_cov = A_k @ tf.matmul(filter_cov, A_k, transpose_b=True) + Q_k
-
-            return filter_mean, filter_cov, pred_mean, pred_cov
-
-        return tf.scan(body, indices, (mu_0, P_0, mu_0, P_0))
-        #
-        # def body(carry, counter):
-        #     filter_mean, filter_cov = carry
-        #     A_k = A_s[..., counter, :, :]  # [... state_dim, state_dim]
-        #     b_k = b_s[..., counter, :]  # [...  1, state_dim]
-        #     Q_k = Q_s[..., counter, :, :]  # [... state_dim, state_dim]
-        #     H_k = H_s[..., counter, :, :]
-        #     y_k = y_s[..., counter, :]
-        #
-        #     # correct
-        #     S = H_k @ tf.matmul(filter_cov, H_k, transpose_b=True) + R
-        #     chol = tf.linalg.cholesky(S)
-        #     Kt = tf.linalg.cholesky_solve(chol, H_k @ filter_cov)
-        #     filter_mean = filter_mean + tf.linalg.matvec(Kt, y_k - tf.linalg.matvec(H_k, filter_mean), transpose_a=True)
-        #     filter_cov = filter_cov - tf.matmul(Kt, S, transpose_a=True) @ Kt
-        #
-        #     # propagate
-        #     filter_mean = tf.linalg.matvec(A_k, filter_mean) + b_k
-        #     filter_cov = A_k @ tf.matmul(filter_cov, A_k, transpose_b=True) + Q_k
-        #
-        #     return filter_mean, filter_cov
-        #
-        # return tf.scan(body, indices, (mu_0, P_0))
-
-    def forward_filter(self) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-        """
-        """
-        # [..., state_dim, state_dim]
-        P_0 = tf.matmul(self.prior_ssm._chol_P_0, self.prior_ssm._chol_P_0, transpose_b=True)
-        # [..., state_dim]
-        mu_0 = self.prior_ssm._mu_0
-        # [..., num_transitions, state_dim, state_dim]
-        Q_s = tf.matmul(self.prior_ssm._chol_Q_s, self.prior_ssm._chol_Q_s, transpose_b=True)
+        Q_s = tf.matmul(self.prior_ssm.cholesky_process_covariances,
+                        self.prior_ssm.cholesky_process_covariances, transpose_b=True)
         A_s = self.prior_ssm.state_transitions
         b_s = self.prior_ssm.state_offsets
         H_s = self.emission.emission_matrix
@@ -367,8 +356,7 @@ class BaseKalmanFilter(tf.Module, ABC):
             tf.eye(self.emission.output_dim, dtype=default_float())
         )
 
-
-        # first correction step
+        # first correction step:  p(x₁ | y₁)
         H_0 = H_s[..., 0, :, :]
         y_0 = y_s[..., 0, :]
         S = H_0 @ tf.matmul(P_0, H_0, transpose_b=True) + R
@@ -377,14 +365,27 @@ class BaseKalmanFilter(tf.Module, ABC):
         mu_1 = mu_0 + tf.linalg.matvec(Kt, y_0 - tf.linalg.matvec(H_0, mu_0), transpose_a=True)
         P_1 = P_0 - tf.matmul(Kt, S, transpose_a=True) @ Kt
 
-        def step(filter_mus, filter_covs, pred_mus, pred_covs, counter)\
-                -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
-            """
-            Step the mean and the variance forward one timestep.
-            These are the standard equations for linear transformations of a Gaussian
+        tmp = tf.linalg.triangular_solve(chol, (y_0 - tf.linalg.matvec(H_0, mu_0))[:, None])
+        log_lik = -0.5 * (
+                tf.reduce_sum(tf.square(tmp))
+                + np.log(2.0 * np.pi) * self.emission.output_dim
+                + tf.reduce_sum(tf.math.log(tf.square(tf.linalg.diag_part(chol))))
+        )
 
-            μₖ₊₁ = Aₖμₖ + bₖ
-            Sₖ₊₁ = AₖSₖAₖᵀ + Qₖ
+        def step(log_liks, filter_mus, filter_covs, pred_mus, pred_covs, counter)\
+                -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+            """
+            Kalman forward filter step as a sequence of:
+            1) prediction step p(xₖ₊₁|y₁...ₖ) given p(xₖ|y₁...ₖ)
+            Noting p(xₖ|y₁...ₖ) = N(μ₍ₖ,ₖ₎,S₍ₖ,ₖ₎) and p(xₖ₊₁|y₁...ₖ) = N(μ₍ₖ₊₁,ₖ₎,S₍ₖ₊₁,ₖ₎)
+            μ₍ₖ₊₁,ₖ₎ = Aₖμ₍ₖ,ₖ₎ + bₖ
+            S₍ₖ₊₁,ₖ₎ = AₖS₍ₖ,ₖ₎Aₖᵀ + Qₖ
+            2) correction step p(xₖ₊₁|y₁...ₖ₊₁) given p(xₖ₊₁|y₁...ₖ)
+            Noting p(xₖ₊₁|y₁...ₖ₊₁) = N(μ₍ₖ₊₁,ₖ₊₁₎,S₍ₖ₊₁,ₖ₊₁₎)
+            Σₖ = H S₍ₖ₊₁,ₖ₎ Hᵀ + R
+            Kₖ =  Σₖ⁻¹ H Sₖ
+            μ₍ₖ₊₁,ₖ₊₁₎ = μ₍ₖ₊₁,ₖ₎ + Kₖᵀ(yₖ - Hₖμ₍ₖ₊₁,ₖ₎)
+            S₍ₖ₊₁,ₖ₊₁₎ = S₍ₖ₊₁,ₖ₎ - Kₖᵀ Σₖ Kₖ
             """
             A_k = A_s[..., counter, :, :]  # [... state_dim, state_dim]
             b_k = b_s[..., counter, :]  # [...  1, state_dim]
@@ -393,15 +394,6 @@ class BaseKalmanFilter(tf.Module, ABC):
             y_k = y_s[..., counter + 1, :]
             filter_cov = filter_covs[..., -1, :, :]
             filter_mean = filter_mus[..., -1, :]
-            pred_cov = pred_covs[..., -1, :, :]
-            pred_mean = pred_mus[..., -1, :]
-
-            # # Aₖμₖ + bₖ[... 1, state_dim]
-            # mu_t = tf.matmul(mus[..., -1:, :], A_k, transpose_b=True) + b_k
-            #
-            # # [... state_dim, state_dim]
-            # # AₖSₖAₖᵀ + Qₖ
-            # cov_t = tf.matmul((A_k @ covs[..., -1, :, :]), A_k, transpose_b=True) + Q_k
 
             # propagate
             pred_mean = tf.linalg.matvec(A_k, filter_mean) + b_k
@@ -414,9 +406,22 @@ class BaseKalmanFilter(tf.Module, ABC):
             filter_mean = pred_mean + tf.linalg.matvec(Kt, y_k - tf.linalg.matvec(H_k, pred_mean), transpose_a=True)
             filter_cov = pred_cov - tf.matmul(Kt, S, transpose_a=True) @ Kt
 
+            # log_lik = -0.5 * (
+            #     np.einsum("...j,jk,...k->...", v_k, inv_obs_p, v_k)
+            #     + np.log(2.0 * np.pi) * self.output_dim
+            #     - np.linalg.slogdet(inv_obs_p)[1]
+            # )
+
+            tmp = tf.linalg.triangular_solve(chol, (y_k - tf.linalg.matvec(H_k, pred_mean))[:, None])
+            log_lik = -0.5 * (
+                tf.reduce_sum(tf.square(tmp))
+                + np.log(2.0 * np.pi) * self.emission.output_dim
+                + tf.reduce_sum(tf.math.log(tf.square(tf.linalg.diag_part(chol))))
+            )
 
             # stick the new mean and covariance to their accumulators and increment the counter
-            return (tf.concat([filter_mus, filter_mean[..., None, :]], axis=-2),
+            return (tf.concat([log_liks, log_lik[..., None]], axis=-1),
+                    tf.concat([filter_mus, filter_mean[..., None, :]], axis=-2),
                     tf.concat([filter_covs, filter_cov[..., None, :, :]], axis=-3),
                     tf.concat([pred_mus, pred_mean[..., None, :]], axis=-2),
                     tf.concat([pred_covs, pred_cov[..., None, :, :]], axis=-3),
@@ -424,23 +429,25 @@ class BaseKalmanFilter(tf.Module, ABC):
 
         # set up the loop variables and shape invariants
         # [... 1, state_dim] and [... 1, state_dim, state_dim]
-
-
-
-        loop_vars = (mu_1[..., None, :], P_1[..., None, :, :],
+        loop_vars = (log_lik[None],
+                     mu_1[..., None, :], P_1[..., None, :, :],
                      mu_0[..., None, :], P_0[..., None, :, :],
                      tf.constant(0, tf.int32))
 
         batch_shape = self.prior_ssm.batch_shape
         state_dim = self.prior_ssm.state_dim
         num_transitions = self.prior_ssm.num_transitions
-        shape_invars = (tf.TensorShape(batch_shape + (None, state_dim)),
+        shape_invars = (tf.TensorShape(batch_shape + (None)),
+                        tf.TensorShape(batch_shape + (None, state_dim)),
                         tf.TensorShape(batch_shape + (None, state_dim, state_dim)),
                         tf.TensorShape(batch_shape + (None, state_dim)),
                         tf.TensorShape(batch_shape + (None, state_dim, state_dim)),
                         tf.TensorShape([]))
 
-        filter_mus, filter_covs, pred_mus, pred_covs, _ = tf.while_loop(cond=lambda _, __, ___, ____, counter: counter < num_transitions,
+        def cond(_, __, ___, ____, _____, counter):
+            return counter < num_transitions
+
+        log_liks, filter_mus, filter_covs, pred_mus, pred_covs, _ = tf.while_loop(cond=cond,
                                      body=step,
                                      loop_vars=loop_vars,
                                      shape_invariants=shape_invars)
@@ -450,11 +457,20 @@ class BaseKalmanFilter(tf.Module, ABC):
         tf.ensure_shape(filter_mus, mus_shape)
         tf.ensure_shape(filter_covs, mus_shape + (state_dim,))
 
-        return filter_mus, filter_covs, pred_mus, pred_covs
-
+        return log_liks, filter_mus, filter_covs, pred_mus, pred_covs
 
     def backward_filter(self) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
         """
+        Perform Kalman backward filtering. i.e. return the mean and covariance for
+            p(xₜ | yₜ₋₁ ... yₙ), this is called 'pred' and
+            p(xₜ | yₜ ... yₙ) this is called 'filter'
+        also return log likelihoods i.e. log p(yₜ | y₁ ... yₜ₋₁)
+
+        :return: log_liks: batch_shape + [num_timesteps]
+                 filter_mus: batch_shape + [num_timesteps, state_dim]
+                 filter_covs: batch_shape + [num_timesteps, state_dim, state_dim]
+                 pred_mus: batch_shape + [num_timesteps, state_dim]
+                 pred_covs: batch_shape + [num_timesteps, state_dim, state_dim]
         """
         ssm_rev = self.prior_ssm.reverse_time_ssm()
 

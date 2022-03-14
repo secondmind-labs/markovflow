@@ -144,10 +144,12 @@ def test_kalman_forward_filtering(with_tf_random_seed, kalman_setup):
     np_kalman_filter, y_train, tf_kalman_filter = kalman_setup
 
     # run the forward pass
-    _, filter_mus_np, filter_ps_np, pred_mus_np, pred_ps_np = np_kalman_filter.forward_filter(y_train)
+    log_liks_np, filter_mus_np, filter_ps_np, pred_mus_np, pred_ps_np = np_kalman_filter.forward_filter(y_train)
 
     # CURRENTLY COMPUTES THE PREDICTIONS
-    filter_mus_tf, filter_ps_tf, pred_mus_tf, pred_ps_tf = tf_kalman_filter.forward_filter()
+    log_liks_tf, filter_mus_tf, filter_ps_tf, pred_mus_tf, pred_ps_tf = tf_kalman_filter.forward_filter()
+
+    np.testing.assert_allclose(log_liks_np, log_liks_tf)
 
     np.testing.assert_allclose(filter_mus_np[..., :, :], filter_mus_tf[..., :, :])
     # np.testing.assert_allclose(pred_mus_np[..., :, :], pred_mus_tf[..., :, :])
