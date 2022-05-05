@@ -37,8 +37,7 @@ def with_tf_random_seed():
 
 
 @pytest.fixture(
-    name="batch_shape", params=[tf.TensorShape([])],
-#    name="batch_shape", params=[tf.TensorShape([3, ]), tf.TensorShape([]), tf.TensorShape([2, 1])],
+    name="batch_shape", params=[tf.TensorShape([3,]), tf.TensorShape([]), tf.TensorShape([2, 1])],
 )
 def _batch_shape_fixture(request):
     return request.param
