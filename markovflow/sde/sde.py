@@ -173,6 +173,45 @@ class OrnsteinUhlenbeckSDE(SDE):
         assert x.shape[-1] == self.state_dim
         return tf.linalg.cholesky(self.q)
 
+    def gradient_drift(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
+        """
+        Calculates the gradient of the drift wrt the states x(t).
+
+        ..math:: df(x(t))/dx(t)
+
+        :param x: states with shape (num_states, state_dim).
+        :param t: time of states with shape (num_states, 1), defaults to zero.
+
+        :return: the gradient of the SDE drift with shape (num_states, state_dim).
+        """
+        return -self.decay * tf.ones_like(x)
+
+    def expected_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+        Calculates the Expectation of the drift under the provided Gaussian over states.
+
+        ..math:: E_q(x(t))[f(x(t))]
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        return -self.decay * q_mean
+
+    def expected_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+         Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
+
+        ..math:: E_q(.)[f'(x(t))]
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        return -self.decay * tf.ones_like(q_mean)
+
 
 class DoubleWellSDE(SDE):
     """

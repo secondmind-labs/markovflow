@@ -54,6 +54,7 @@ from gpflow.likelihoods import Likelihood
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
+from markovflow.sde.quadrature import gaussian_quadrature
 
 
 class VariationalMarkovGP:
@@ -79,14 +80,16 @@ class VariationalMarkovGP:
         self.dt = float(self.grid[1] - self.grid[0])
         self.observations_time_points = self._time_points
 
-        self.A = 1e-1 * tf.ones((self.N, self.state_dim, self.state_dim), dtype=self.DTYPE)  # [N, D, D]
+        self.A = tf.ones((self.N, self.state_dim, self.state_dim), dtype=self.DTYPE)  # [N, D, D]
         self.b = tf.zeros((self.N, self.state_dim), dtype=self.DTYPE)  # [N, D]
 
         self.initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
-        self.initial_cov = 1e-6 * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
+        self.initial_cov = tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
         self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
         self.psi_lagrange = tf.zeros_like(self.b)   # [N, D]
+
+        self.lr = 0.5
 
     @property
     def forward_pass(self) -> (tf.Tensor, tf.Tensor):
@@ -108,19 +111,6 @@ class VariationalMarkovGP:
                               )
 
         return ssm.marginal_means[:-1], ssm.marginal_covariances[:-1]
-        # m = [self.initial_mean.numpy().item()]
-        # S = [self.initial_cov.numpy().item()]
-        #
-        # A = self.A.numpy().reshape(-1)
-        # b = self.b.numpy().reshape(-1)
-        # # Forward Euler to solver ODEs
-        # for tt in range(self.N-1):
-        #     m.append(m[tt] - self.dt * (m[tt] * A[tt] - b[tt]))
-        #     S.append(S[tt] - self.dt * (2 * A[tt] * S[tt] - self.prior_sde.q.numpy().item()))
-        #
-        # m = tf.convert_to_tensor(np.array(m).reshape((-1, 1)))
-        # S = tf.convert_to_tensor(np.array(S).reshape((-1, 1, 1)))
-        # return m, S
 
     def E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -147,17 +137,38 @@ class VariationalMarkovGP:
             return tf.reshape(val, (-1, self.state_dim))
 
         e_sde = mvnquad(func, m, S, H=quadrature_pnts)
-        return 0.5*e_sde
+        return 0.5 * e_sde  # * self.dt
 
     def grad_E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
         Gradient of E_sde wrt m and S.
         """
-        with tf.GradientTape() as g:
-            g.watch([m, S])
-            E_sde = tf.reduce_sum(self.E_sde(m, S))
+        # FIXME: Currently hardcoded for OU
+        A = tf.squeeze(self.A, axis=-1)
+        dEdm = (tf.square(A - self.prior_sde.decay) * m - (A - self.prior_sde.decay) * self.b) / self.prior_sde.q
+        dEdS = 0.5 * (tf.square(A - self.prior_sde.decay)) / self.prior_sde.q
 
-        return g.gradient(E_sde, [m, S])
+        # # TODO: check this
+        # dEdm = dEdm * self.dt
+        # dEdS = dEdS * self.dt
+
+        return dEdm, dEdS
+
+        # return grad(self.E_sde, argnums=(0, 1))(jnp.array(m), jnp.array(S))
+        # with tf.GradientTape() as g:
+        #     g.watch([m, S])
+        #     E_sde = tf.reduce_sum(self.E_sde(m, S))
+        #
+        # return g.gradient(E_sde, [m, S])
+
+    def update_initial_statistics(self, mu0=0., tau=10., lr=0.001):
+        self.initial_mean = self.initial_mean - lr * (self.lambda_lagrange[0] + (1/tau) * (self.initial_mean - mu0))
+        initial_cov = self.initial_cov - lr * (self.psi_lagrange[0] + 0.5 * ((1/tau) - 1/self.initial_cov))
+
+        if initial_cov > 0:
+            self.initial_cov = initial_cov
+        else:
+            print("Not updating initial cov")
 
     def _jump_conditions(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -234,7 +245,7 @@ class VariationalMarkovGP:
 
         return local_obj, grads
 
-    def update_param(self, m: tf.Tensor, S: tf.Tensor, lr=0.5):
+    def update_param(self, m: tf.Tensor, S: tf.Tensor):
         """
         Update the params A(t) and b(t).
 
@@ -250,8 +261,26 @@ class VariationalMarkovGP:
         A_tilde = tf.squeeze(-self.prior_sde.expected_gradient_drift(m[..., None], S), axis=-1) + 2. * var * self.psi_lagrange
         b_tilde = tf.squeeze(self.prior_sde.expected_drift(m[..., None], S), axis=-1) + A_tilde * m - self.lambda_lagrange * var
 
-        self.A = self.A - lr * (self.A - A_tilde[..., None])
-        self.b = self.b - lr * (self.b - b_tilde)
+        self.A = self.A - self.lr * (self.A - A_tilde[..., None])
+        self.b = self.b - self.lr * (self.b - b_tilde)
+
+    def elbo(self) -> float:
+        """ Variational lower bound to the marginal likelihood """
+        m, S = self.forward_pass
+        E_sde = tf.reduce_sum(self.E_sde(m, S))
+        E_sde = E_sde * self.dt
+
+        # E_obs
+        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0]
+        m_obs_t = tf.gather(m, indices, axis=0)
+        S_obs_t = tf.gather(S, indices, axis=0)
+
+        E_obs = self.likelihood.variational_expectations(m_obs_t, tf.squeeze(S_obs_t, axis=-1), self.observations)
+        E_obs = tf.reduce_sum(E_obs)
+
+        E = E_obs - E_sde
+
+        return E.numpy().item()
 
     def run_inference(self):
         """
@@ -260,3 +289,5 @@ class VariationalMarkovGP:
         m, S = self.forward_pass
         self.update_lagrange(m, S)
         self.update_param(m, S)
+
+        self.update_initial_statistics()

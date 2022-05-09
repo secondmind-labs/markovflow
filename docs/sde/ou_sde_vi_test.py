@@ -8,6 +8,7 @@ from markovflow.models.vi_sde import VariationalMarkovGP
 
 def forward_pass(model: VariationalMarkovGP):
     model_m, model_S = model.forward_pass
+
     dt = model.dt
     m = [model.initial_mean.numpy().item()]
     S = [model.initial_cov.numpy().item()]
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     ou_sde = OrnsteinUhlenbeckSDE(decay=f, q=q)
     observation_variance = 0.4
 
-    time_grid = tf.linspace(0, 1, 10)
+    time_grid = tf.linspace(0, 0.1, 10)
     observation_grid = time_grid[5:6]
 
     simulated_values = tf.cast(tf.ones_like(observation_grid)[..., None], dtype=tf.float64)

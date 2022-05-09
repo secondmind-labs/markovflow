@@ -11,6 +11,7 @@ from markovflow.sde.sde import OrnsteinUhlenbeckSDE
 from markovflow.sde.sde_utils import euler_maruyama
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
 from markovflow.kernels.matern import Matern12
+from markovflow.kernels import OrnsteinUhlenbeck
 from markovflow.models.vi_sde import VariationalMarkovGP
 
 tf.random.set_seed(83)
@@ -27,11 +28,11 @@ def plot_model(model, predict_f=False, compare=False):
         label = "GPR"
     else:
         f_mu, f_var = variational_gp.forward_pass
-        f_var = (f_var + noise_stddev**2).numpy()
+        f_var = (tf.reshape(f_var, (-1)) + noise_stddev**2).numpy()
 
         label = "Variational-GP"
 
-    f_mu = f_mu.numpy()
+    f_mu = f_mu.numpy().reshape(-1)
     f_std = np.sqrt(f_var)
 
     plt.plot(observation_grid.numpy().reshape(-1), simulated_values.numpy().reshape(-1), 'kx', ms=8, mew=2)
@@ -60,20 +61,20 @@ def plot_model(model, predict_f=False, compare=False):
 """
 
 decay = .5 * tf.ones((1, 1), dtype=DTYPE)
-q = .5 * tf.ones((1, 1), dtype=DTYPE)
-noise_stddev = 1e-1
+q = .2 * tf.ones((1, 1), dtype=DTYPE)
+noise_stddev = np.sqrt(0.01)
 
 state_dim = 1
 num_batch = 1
 x0_shape = (num_batch, state_dim)
-x0 = 1 + tf.zeros(x0_shape, dtype=DTYPE)
+x0 = 0.5 + tf.zeros(x0_shape, dtype=DTYPE)
 
-t0, t1 = 0.0, 1.0
-num_transitions = 100
+t0, t1 = 0.0, 5.
+num_transitions = 1000
 time_grid = tf.cast(tf.linspace(t0, t1, num_transitions), dtype=DTYPE)
 
 # Observation at every even place
-observation_grid = tf.gather(time_grid, list(np.arange(0, time_grid.shape[0], 5)))
+observation_grid = tf.gather(time_grid, list(np.arange(0, time_grid.shape[0], 100)))
 
 ou_sde = OrnsteinUhlenbeckSDE(decay=decay, q=q)
 latent_states = euler_maruyama(ou_sde, x0, observation_grid)
@@ -86,8 +87,8 @@ plt.scatter(observation_grid, latent_states, label="Latent States (X)", alpha=0.
 plt.vlines(list(time_grid), -2, 2, color="red", alpha=0.2, label="Grid")
 plt.xlabel("Time (t)")
 plt.ylabel("y(t)")
-plt.yticks([-2, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2])
-plt.ylim([-2, 2])
+# plt.yticks([-2, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2])
+# plt.ylim([-2, 2])
 # plt.xticks(list(time_grid))
 plt.xlim([t0, t1])
 plt.title("Observations")
@@ -102,8 +103,8 @@ print(f"Noise std-dev is {noise_stddev}")
 ## Step 2: Prior SDE
 """
 # %%
-# prior_decay = tf.random.normal((1, 1), dtype=DTYPE)
-# prior_sde = OrnsteinUhlenbeckSDE(q=q)
+prior_decay = tf.random.normal((1, 1), dtype=DTYPE)
+prior_sde = OrnsteinUhlenbeckSDE(decay=prior_decay, q=q)
 
 # %% [markdown]
 """
@@ -118,12 +119,27 @@ likelihood = Gaussian(noise_stddev**2)
 """
 # %%
 variational_gp = VariationalMarkovGP(input_data=(observation_grid, tf.constant(tf.squeeze(simulated_values, axis=0))),
-                                     prior_sde=ou_sde, grid=time_grid, likelihood=likelihood)
+                                     prior_sde=prior_sde, grid=time_grid, likelihood=likelihood)
 
-for i in range(10):
+v_gp_elbo = []
+for i in range(20):
     variational_gp.run_inference()
     print(f"Iteration {i+1}")
-    print(f"A.sum = {tf.reduce_sum(variational_gp.A)}")
+    v_gp_elbo.append(variational_gp.elbo())
+    print(f"ELBO = {v_gp_elbo[-1]}")
+
+    if i == 10:
+        variational_gp.lr = 0.1
+    if i == 20:
+        variational_gp.lr = 0.05
+    if i == 50:
+        variational_gp.lr = 0.01
+    if i == 100:
+        variational_gp.lr = 0.001
+    if i == 150:
+        variational_gp.lr = 0.0005
+    if i == 200:
+        variational_gp.lr = 0.0001
 
 plt.plot(variational_gp.lambda_lagrange.numpy().reshape(-1))
 plt.title("Lambda Lagrange")
@@ -133,10 +149,22 @@ plt.plot(variational_gp.psi_lagrange.numpy().reshape(-1))
 plt.title("Psi Lagrange")
 plt.show()
 
+plt.plot(variational_gp.A.numpy().reshape(-1))
+plt.title("A")
+plt.show()
+
+plt.plot(variational_gp.b.numpy().reshape(-1))
+plt.title("b")
+plt.show()
+
+plt.plot(v_gp_elbo)
+plt.plot("ELBO")
+plt.show()
+
 """
 ## Step 6: GPR
 """
-kernel = Matern12(lengthscale=1., variance=1.)
+kernel = OrnsteinUhlenbeck(decay=decay.numpy().item(), diffusion=q.numpy().item())
 
 gpr_model = GaussianProcessRegression(input_data=(tf.constant(observation_grid),
                                            tf.constant(tf.squeeze(simulated_values, axis=0))),
@@ -144,17 +172,17 @@ gpr_model = GaussianProcessRegression(input_data=(tf.constant(observation_grid),
                                       chol_obs_covariance=noise_stddev * tf.eye(state_dim, dtype=DTYPE)
                                     )
 
-iters = 10
-opt = tf.optimizers.Adam()
-
-@tf.function
-def opt_step():
-    opt.minimize(gpr_model.loss, gpr_model.kernel.trainable_variables)
-
-for _ in range(iters):
-    opt_step()
-
-print(gpr_model.kernel.trainable_variables)
+# iters = 50
+# opt = tf.optimizers.Adam()
+#
+# @tf.function
+# def opt_step():
+#     opt.minimize(gpr_model.loss, gpr_model.kernel.trainable_variables)
+#
+# for _ in range(iters):
+#     opt_step()
+#
+# print(gpr_model.kernel.trainable_variables)
 
 # Compare
 plot_model(gpr_model, predict_f=True, compare=True)
