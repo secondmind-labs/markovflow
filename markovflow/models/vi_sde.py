@@ -193,16 +193,11 @@ class VariationalMarkovGP:
 
         d_obs_m, d_obs_S = self._jump_conditions(m, S)
 
-        lambda_lagrange = self.lambda_lagrange.numpy()
-        psi_lagrange = self.psi_lagrange.numpy()
-
-        # Set values at T to zero
-        lambda_lagrange[-1] = 0.
-        psi_lagrange[-1] = 0.
+        lambda_lagrange = np.zeros_like(self.lambda_lagrange)
+        psi_lagrange = np.zeros_like(self.psi_lagrange)
 
         for t in range(self.N-1, 0, -1):
-
-            d_psi = 2 * psi_lagrange[t] * self.A[t] - dEdS[t]
+            d_psi = psi_lagrange[t] * self.A[t] + psi_lagrange[t] * self.A[t] - dEdS[t]
             d_lambda = self.A[t] * lambda_lagrange[t] - dEdm[t]
 
             psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t-1]
