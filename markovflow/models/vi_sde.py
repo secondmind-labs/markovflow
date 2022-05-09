@@ -79,14 +79,14 @@ class VariationalMarkovGP:
         self.dt = float(self.grid[1] - self.grid[0])
         self.observations_time_points = self._time_points
 
-        self.A = tf.ones((self.N+1, self.state_dim, self.state_dim), dtype=self.DTYPE)  # [N + 1, D]
-        self.b = tf.zeros((self.N+1, self.state_dim), dtype=self.DTYPE)  # [N + 1, D]
+        self.A = 1e-1 * tf.ones((self.N, self.state_dim, self.state_dim), dtype=self.DTYPE)  # [N, D, D]
+        self.b = tf.zeros((self.N, self.state_dim), dtype=self.DTYPE)  # [N, D]
 
         self.initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
         self.initial_cov = 1e-6 * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
-        self.lambda_lagrange = tf.zeros_like(self.b)  # [N+1, D]
-        self.psi_lagrange = tf.zeros_like(self.b)   # [N+1, D]
+        self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
+        self.psi_lagrange = tf.zeros_like(self.b)   # [N, D]
 
     @property
     def forward_pass(self) -> (tf.Tensor, tf.Tensor):
@@ -95,11 +95,9 @@ class VariationalMarkovGP:
 
         The returned m and S have initial values appended too.
         """
-        A = self.A[:-1]
-        b = self.b[:-1]
 
-        state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - A * self.dt
-        state_offset = b * self.dt
+        state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - self.A * self.dt
+        state_offset = self.b * self.dt
         q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
         ssm = StateSpaceModel(initial_mean=self.initial_mean,
@@ -109,7 +107,20 @@ class VariationalMarkovGP:
                               chol_process_covariances=tf.linalg.cholesky(q)
                               )
 
-        return ssm.marginal_means, ssm.marginal_covariances
+        return ssm.marginal_means[:-1], ssm.marginal_covariances[:-1]
+        # m = [self.initial_mean.numpy().item()]
+        # S = [self.initial_cov.numpy().item()]
+        #
+        # A = self.A.numpy().reshape(-1)
+        # b = self.b.numpy().reshape(-1)
+        # # Forward Euler to solver ODEs
+        # for tt in range(self.N-1):
+        #     m.append(m[tt] - self.dt * (m[tt] * A[tt] - b[tt]))
+        #     S.append(S[tt] - self.dt * (2 * A[tt] * S[tt] - self.prior_sde.q.numpy().item()))
+        #
+        # m = tf.convert_to_tensor(np.array(m).reshape((-1, 1)))
+        # S = tf.convert_to_tensor(np.array(S).reshape((-1, 1, 1)))
+        # return m, S
 
     def E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -189,13 +200,13 @@ class VariationalMarkovGP:
         lambda_lagrange[-1] = 0.
         psi_lagrange[-1] = 0.
 
-        for t in range(self.N, 1, -1):
+        for t in range(self.N-1, 0, -1):
 
             d_psi = 2 * psi_lagrange[t] * self.A[t] - dEdS[t]
             d_lambda = self.A[t] * lambda_lagrange[t] - dEdm[t]
 
-            psi_lagrange[t - 1] = (psi_lagrange[t] - self.dt * d_psi) + d_obs_S[t-1]
-            lambda_lagrange[t - 1] = (lambda_lagrange[t] - self.dt * d_lambda) + d_obs_m[t-1]
+            psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t-1]
+            lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t-1]
 
         self.psi_lagrange = tf.convert_to_tensor(psi_lagrange)
         self.lambda_lagrange = tf.convert_to_tensor(lambda_lagrange)
@@ -228,7 +239,7 @@ class VariationalMarkovGP:
 
         return local_obj, grads
 
-    def update_param(self, m: tf.Tensor, S: tf.Tensor, lr=0.1):
+    def update_param(self, m: tf.Tensor, S: tf.Tensor, lr=0.5):
         """
         Update the params A(t) and b(t).
 
@@ -239,23 +250,12 @@ class VariationalMarkovGP:
         b(t) = b(t) - lr * (b(t) - \tildeb(t)})
 
         """
-        # FIXME: switch to tf functions once debugging done.
-        b_tilde = np.zeros_like(self.b)
-        A_tilde = np.zeros_like(self.A)
+        var = self.prior_sde.q
 
-        m = m.numpy().reshape((1, -1, 1))
-        S = S.numpy().reshape((1, -1, 1, 1))
+        A_tilde = tf.squeeze(-self.prior_sde.expected_gradient_drift(m[..., None], S), axis=-1) + 2. * var * self.psi_lagrange
+        b_tilde = tf.squeeze(self.prior_sde.expected_drift(m[..., None], S), axis=-1) + A_tilde * m - self.lambda_lagrange * var
 
-        for i in range(self.N):
-            var = self.prior_sde.q
-            m_i = m[:, i, :].reshape((-1, 1, 1))
-            S_i = S[:, i, :, :].reshape((-1, 1, 1, 1))
-            A_tilde[i] = - self.prior_sde.expected_gradient_drift(m_i, S_i) + 2. * var * self.psi_lagrange[i][..., None]
-            b_tilde[i] = self.prior_sde.expected_drift(m_i, S_i) + A_tilde[i] * m_i - self.lambda_lagrange[i] * var
-
-        assert self.A.shape == A_tilde.shape and self.b.shape == b_tilde.shape
-
-        self.A = self.A - lr * (self.A - A_tilde)
+        self.A = self.A - lr * (self.A - A_tilde[..., None])
         self.b = self.b - lr * (self.b - b_tilde)
 
     def run_inference(self):

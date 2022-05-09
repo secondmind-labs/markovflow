@@ -11,7 +11,7 @@ def forward_pass(model: VariationalMarkovGP):
     dt = model.dt
     m = [model.initial_mean.numpy().item()]
     S = [model.initial_cov.numpy().item()]
-    for i in range(model.N):
+    for i in range(model.N-1):
         m.append((m[i] + dt * (-model.A[i] * m[i] + model.b[i])).numpy().item())
         S.append((S[i] + dt * (-model.A[i] * S[i] - S[i] * model.A[i] + model.prior_sde.q)).numpy().item())
 
@@ -63,6 +63,45 @@ def jump_condition(model: VariationalMarkovGP, observation_variance: float, obse
     np.testing.assert_array_equal(tf.reduce_sum(d_obs_m), tf.reduce_sum(expected_d_obs_m))
 
 
+def update_lambda_lagrange(model: VariationalMarkovGP, observations: tf.Tensor, observation_idx: tf.Tensor):
+    m, S = model.forward_pass
+    model.update_lagrange(m, S)
+    model_lambda_lagrange = model.lambda_lagrange
+
+    A = tf.squeeze(model.A, axis=-1)
+    expected_dE_sde_dm = (tf.square(A - model.prior_sde.decay) * m - (A - model.prior_sde.decay) * model.b) / q
+    expected_lambda_lagrange = np.zeros_like(model_lambda_lagrange)
+
+    m_obs = tf.gather(m, observation_idx)
+    expected_d_obs_m = (observations - m_obs) / observation_variance
+
+    for i in range(model.N-1, 0, -1):
+        expected_lambda_lagrange[i-1] = expected_lambda_lagrange[i] + (expected_dE_sde_dm[i] - A[i]*expected_lambda_lagrange[i]) * model.dt
+        if (i-1) == observation_idx.numpy().item():
+            expected_lambda_lagrange[i-1] = expected_lambda_lagrange[observation_idx] - expected_d_obs_m
+
+    np.testing.assert_array_almost_equal(model_lambda_lagrange, expected_lambda_lagrange)
+
+
+def update_psi_lagrange(model: VariationalMarkovGP, observation_idx: tf.Tensor):
+    m, S = model.forward_pass
+    model.update_lagrange(m, S)
+    model_psi_lagrange = model.psi_lagrange
+
+    A = tf.squeeze(model.A, axis=-1)
+    expected_dE_sde_dS = 0.5 * (tf.square(A - model.prior_sde.decay)) / q
+    expected_psi_lagrange = np.zeros_like(model_psi_lagrange)
+
+    expected_d_obs_S = - 0.5 / observation_variance
+
+    for i in range(model.N-1, 0, -1):
+        expected_psi_lagrange[i-1] = expected_psi_lagrange[i] + (expected_dE_sde_dS[i] - 2 * A[i] * expected_psi_lagrange[i]) * model.dt
+        if (i-1) == observation_idx.numpy().item():
+            expected_psi_lagrange[i-1] = expected_psi_lagrange[observation_idx] - expected_d_obs_S
+
+    np.testing.assert_array_almost_equal(model_psi_lagrange, expected_psi_lagrange)
+
+
 if __name__ == '__main__':
 
     f = 2. * tf.ones((1, 1), dtype=tf.float64)
@@ -88,3 +127,7 @@ if __name__ == '__main__':
 
     indices = tf.where(tf.equal(time_grid[..., None], observation_grid))[:, 0]
     jump_condition(variational_gp, observation_variance, simulated_values, indices)
+
+    update_lambda_lagrange(model=variational_gp, observations=simulated_values, observation_idx=indices)
+
+    update_psi_lagrange(model=variational_gp, observation_idx=indices)
