@@ -20,7 +20,7 @@ import tensorflow as tf
 from gpflow.quadrature import mvnquad
 
 
-class SDE(ABC):
+class SDE(tf.Module, ABC):
     """
     Abstract class representing Stochastic Differential Equation.
 
@@ -33,6 +33,7 @@ class SDE(ABC):
         """
         :param state_dim: The output dimension of the kernel.
         """
+        super().__init__()
         self._state_dim = state_dim
 
     @property
@@ -247,6 +248,60 @@ class DoubleWellSDE(SDE):
     def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
         Diffusion of the double-well process
+        ..math:: l(x(t), t) = sqrt(q)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.linalg.cholesky(self.q)
+
+
+class PriorOUSDE(SDE):
+    """
+    Prior SDE best suited for the Double-well SDE represented by
+
+    ..math:: dx(t) = f(x(t)) dt + dB(t),
+
+    where f(x(t)) = a * x(t) and the spectral density of the Brownian motion
+    is specified by q.
+
+    Here, a, is the Parameters to be learnt.
+    """
+    def __init__(self, initial_val: float = -1., q: tf.Tensor = tf.ones((1, 1))):
+        """
+        Initialize the SDE.
+
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(PriorOUSDE, self).__init__(state_dim=q.shape[0])
+        self._initialize_model(initial_val)
+        self.q = q
+
+    def _initialize_model(self, initial_val: float):
+        """
+        Initialize the parameters of the drift function and make them trainable.
+        """
+        self.decay = tf.Variable(initial_val, trainable=True, dtype=tf.float64)
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Drift of the process.
+        ..math:: f(x(t), t) = a * x(t)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        x = self.decay * x
+        return x
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Diffusion of the process.
         ..math:: l(x(t), t) = sqrt(q)
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.

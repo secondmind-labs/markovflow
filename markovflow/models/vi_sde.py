@@ -47,14 +47,14 @@
 """
 
 import tensorflow as tf
-from gpflow.quadrature import mvnquad
 import numpy as np
+from tensorflow_probability import distributions
 
 from gpflow.likelihoods import Likelihood
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
-from markovflow.sde.quadrature import gaussian_quadrature
+from gpflow.quadrature import NDiagGHQuadrature
 
 
 class VariationalMarkovGP:
@@ -62,7 +62,8 @@ class VariationalMarkovGP:
         Variational approximation to a non-linear SDE by a time-varying Gauss-Markov Process of the form
         dx(t) = - A(t) dt + b(t) dW(t)
     """
-    def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood):
+    def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
+                 lr: float = 0.5):
         """
         Initialize the model.
 
@@ -83,13 +84,19 @@ class VariationalMarkovGP:
         self.A = tf.ones((self.N, self.state_dim, self.state_dim), dtype=self.DTYPE)  # [N, D, D]
         self.b = tf.zeros((self.N, self.state_dim), dtype=self.DTYPE)  # [N, D]
 
-        self.initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
-        self.initial_cov = tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
+        # p(x0)
+        self.p_initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
+        self.p_initial_cov = (self.prior_sde.q.numpy()/(2 * self.prior_sde.decay.numpy())) * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
+
+        # q(x0)
+        self.q_initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
+        self.q_initial_cov = tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
         self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
         self.psi_lagrange = tf.zeros_like(self.b)   # [N, D]
 
-        self.lr = 0.5
+        self.lr = lr
+        self.prior_sde_optimizer = tf.optimizers.Adam()
 
     @property
     def forward_pass(self) -> (tf.Tensor, tf.Tensor):
@@ -103,8 +110,8 @@ class VariationalMarkovGP:
         state_offset = self.b * self.dt
         q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
-        ssm = StateSpaceModel(initial_mean=self.initial_mean,
-                              chol_initial_covariance=tf.linalg.cholesky(self.initial_cov),
+        ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
+                              chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
                               state_transitions=state_transition,
                               state_offsets=state_offset,
                               chol_process_covariances=tf.linalg.cholesky(q)
@@ -115,60 +122,56 @@ class VariationalMarkovGP:
     def E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
         E_sde = 0.5 * <(f-f_L)^T \sigma^{-1} (f-f_L)>_{q_t}.
-
         Apply Gaussian quadrature method to approximate the integral.
         """
         assert self.state_dim == 1
-        quadrature_pnts = 10
+        quadrature_pnts = 20
 
         def func(x, t=None):
             # Adding N information
-            x = tf.reshape(x, (-1, quadrature_pnts, self.state_dim))
+            x = tf.transpose(x, perm=[1, 0, 2])
             n_pnts = x.shape[1]
 
             A = tf.repeat(self.A, n_pnts, axis=1)
             b = tf.repeat(self.b, n_pnts, axis=1)
+            b = tf.expand_dims(b, axis=-1)
 
-            tmp = self.prior_sde.drift(x=x, t=t) + ((x * A) - tf.expand_dims(b, axis=-1))
+            tmp = self.prior_sde.drift(x=x, t=t) + ((x * A) - b)
+            tmp = tmp * tmp
 
             sigma = self.prior_sde.q
 
-            val = tf.square(tmp) * (1/sigma)
-            return tf.reshape(val, (-1, self.state_dim))
+            val = tmp * (1 / sigma)
 
-        e_sde = mvnquad(func, m, S, H=quadrature_pnts)
-        return 0.5 * e_sde  # * self.dt
+            return tf.transpose(val, perm=[1, 0, 2])
+
+        diag_quad = NDiagGHQuadrature(self.state_dim, quadrature_pnts)
+        e_sde = diag_quad(func, m, tf.squeeze(S, axis=-1))
+
+        return 0.5 * tf.reduce_sum(e_sde)
 
     def grad_E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
         Gradient of E_sde wrt m and S.
         """
-        # FIXME: Currently hardcoded for OU
-        A = tf.squeeze(self.A, axis=-1)
-        dEdm = (tf.square(A - self.prior_sde.decay) * m - (A - self.prior_sde.decay) * self.b) / self.prior_sde.q
-        dEdS = 0.5 * (tf.square(A - self.prior_sde.decay)) / self.prior_sde.q
+        with tf.GradientTape(persistent=True) as g:
+            g.watch([m, S])
+            E_sde = self.E_sde(m, S)
 
-        # # TODO: check this
-        # dEdm = dEdm * self.dt
-        # dEdS = dEdS * self.dt
+        dE_dm, dE_dS = g.gradient(E_sde, [m, S])
+        dE_dS = tf.squeeze(dE_dS, axis=-1)
 
-        return dEdm, dEdS
+        return dE_dm, dE_dS
 
-        # return grad(self.E_sde, argnums=(0, 1))(jnp.array(m), jnp.array(S))
-        # with tf.GradientTape() as g:
-        #     g.watch([m, S])
-        #     E_sde = tf.reduce_sum(self.E_sde(m, S))
-        #
-        # return g.gradient(E_sde, [m, S])
+    def update_initial_statistics(self, lr=0.1):
+        """
+        Update the initial statistics.
+        """
+        q_initial_mean = self.p_initial_mean - tf.reshape(self.lambda_lagrange[0], self.q_initial_mean.shape) * tf.reshape(self.p_initial_cov, self.q_initial_mean.shape)
+        q_initial_cov = 1/(2 * tf.reshape(self.psi_lagrange[0], self.q_initial_cov.shape) + 1/self.p_initial_cov)
 
-    def update_initial_statistics(self, mu0=0., tau=10., lr=0.001):
-        self.initial_mean = self.initial_mean - lr * (self.lambda_lagrange[0] + (1/tau) * (self.initial_mean - mu0))
-        initial_cov = self.initial_cov - lr * (self.psi_lagrange[0] + 0.5 * ((1/tau) - 1/self.initial_cov))
-
-        if initial_cov > 0:
-            self.initial_cov = initial_cov
-        else:
-            print("Not updating initial cov")
+        self.q_initial_mean = (1-lr) * self.q_initial_mean + lr * q_initial_mean
+        self.q_initial_cov = (1-lr) * self.q_initial_cov + lr * q_initial_cov
 
     def _jump_conditions(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -252,8 +255,8 @@ class VariationalMarkovGP:
         \tilde{A(t)} = - <\frac{df}{dx}>_{qt} + 2 Q \psi(t)
         \tilde{b(t)} = <f(x)>_{qt} + \tilde{A(t)} * m(t) - Q \lambda(t)
 
-        A(t) = A(t) - lr * (A(t) - \tilde{A(t)})
-        b(t) = b(t) - lr * (b(t) - \tildeb(t)})
+        A(t) = (1 - lr) * A(t) + lr * \tilde{A(t)}
+        b(t) = (1 - lr) * b(t) + lr *  \tilde{b(t)}
 
         """
         var = self.prior_sde.q
@@ -261,14 +264,25 @@ class VariationalMarkovGP:
         A_tilde = tf.squeeze(-self.prior_sde.expected_gradient_drift(m[..., None], S), axis=-1) + 2. * var * self.psi_lagrange
         b_tilde = tf.squeeze(self.prior_sde.expected_drift(m[..., None], S), axis=-1) + A_tilde * m - self.lambda_lagrange * var
 
-        self.A = self.A - self.lr * (self.A - A_tilde[..., None])
-        self.b = self.b - self.lr * (self.b - b_tilde)
+        self.A = (1 - self.lr) * self.A + self.lr * A_tilde[..., None]
+        self.b = (1 - self.lr) * self.b + self.lr * b_tilde
+
+    def KL_initial_state(self):
+        """
+        KL[q(x0) || p(x0)]
+        """
+        dist_qx0 = distributions.Normal(self.q_initial_mean, tf.linalg.cholesky(self.q_initial_cov))
+        dist_px0 = distributions.Normal(self.p_initial_mean, tf.linalg.cholesky(self.p_initial_cov))
+        return distributions.kl_divergence(dist_qx0, dist_px0)
 
     def elbo(self) -> float:
         """ Variational lower bound to the marginal likelihood """
         m, S = self.forward_pass
         E_sde = tf.reduce_sum(self.E_sde(m, S))
         E_sde = E_sde * self.dt
+
+        #
+        KL_q0_p0 = self.KL_initial_state()
 
         # E_obs
         indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0]
@@ -278,9 +292,25 @@ class VariationalMarkovGP:
         E_obs = self.likelihood.variational_expectations(m_obs_t, tf.squeeze(S_obs_t, axis=-1), self.observations)
         E_obs = tf.reduce_sum(E_obs)
 
-        E = E_obs - E_sde
+        E = E_obs - E_sde - KL_q0_p0
 
         return E.numpy().item()
+
+    def _update_prior(self, m: tf.Tensor, S: tf.Tensor):
+        """Internal function to calculate the prior SDE."""
+        def func():
+            return self.E_sde(m, S) * self.dt #+ self.KL_initial_state()
+
+        self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
+
+    def update_prior(self):
+        """
+        Function to update the prior SDE.
+        """
+        m, S = self.forward_pass
+        # lr = self.lr_scheduler_prior(itr)
+        # self.prior_sde_optimizer.learning_rate = lr
+        self._update_prior(m, S)
 
     def run_inference(self):
         """
@@ -290,4 +320,3 @@ class VariationalMarkovGP:
         self.update_lagrange(m, S)
         self.update_param(m, S)
 
-        self.update_initial_statistics()

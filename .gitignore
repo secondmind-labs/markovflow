@@ -18,3 +18,6 @@ build/
 
 # Default virtual env location created by poetry
 .venv/
+
+# Experiment specific
+output/

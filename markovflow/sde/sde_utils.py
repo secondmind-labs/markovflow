@@ -120,9 +120,10 @@ def linearize_sde(
     A = tf.linalg.diag(A)
 
     transition_deltas = tf.reshape(transition_times[1:] - transition_times[:-1], (1, -1, 1))
-    state_transitions = A * tf.expand_dims(transition_deltas, -1)
+    state_transitions = A * tf.expand_dims(transition_deltas, -1) + tf.eye(sde.state_dim, dtype=A.dtype)
+
     state_offsets = b * transition_deltas
-    chol_process_covariances = process_chol_covariances * tf.expand_dims(
+    chol_process_covariances = sde.diffusion(q_mean, transition_times[:-1]) * tf.expand_dims(
         tf.sqrt(transition_deltas), axis=-1
     )
 
