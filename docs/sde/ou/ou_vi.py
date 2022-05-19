@@ -1,4 +1,4 @@
-"""SDE CVI"""
+"""OU SDE VI"""
 
 import matplotlib.pyplot as plt
 
@@ -165,12 +165,12 @@ Likelihood
 likelihood = Gaussian(noise_stddev**2)
 
 """
-SDE-SSM
+VGP
 """
-# %%
 variational_gp = VariationalMarkovGP(input_data=(observation_grid, tf.constant(tf.squeeze(simulated_values, axis=0))),
                                      prior_sde=prior_sde, grid=time_grid, likelihood=likelihood,
                                      lr=0.5)
+variational_gp.p_initial_cov = (q.numpy()/(2 * decay.numpy())) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
 
 v_gp_elbo = []
 prior_decay_values = [prior_sde.decay.numpy().item()]
@@ -215,9 +215,10 @@ plot_model(variational_gp)
 """
 Plot drift evolution
 """
-plt.hlines(-1 * decay.numpy().item(), 0, len(prior_decay_values))
-plt.plot(prior_decay_values, label="Learnt decay")
-plt.show()
+if learn_prior_sde:
+    plt.hlines(-1 * decay.numpy().item(), 0, len(prior_decay_values))
+    plt.plot(prior_decay_values, label="Learnt decay")
+    plt.show()
 
 
 """ELBO comparison"""

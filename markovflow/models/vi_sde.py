@@ -76,8 +76,9 @@ class VariationalMarkovGP:
         self.state_dim = self.prior_sde.state_dim
         self.DTYPE = self.observations.dtype
 
-        self.grid = grid
-        self.N = self.grid.shape[0]
+        self.N = grid.shape[0]
+        self.grid = grid[1:]  # TODO: We need to do this here because our grid is [t0, t1] both included. Check this on paper once and we might be able to reduce the parameters.
+
         self.dt = float(self.grid[1] - self.grid[0])
         self.observations_time_points = self._time_points
 
@@ -86,7 +87,7 @@ class VariationalMarkovGP:
 
         # p(x0)
         self.p_initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
-        self.p_initial_cov = (self.prior_sde.q.numpy()/(2 * self.prior_sde.decay.numpy())) * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
+        self.p_initial_cov = self.prior_sde.q.numpy() * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
         # q(x0)
         self.q_initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
@@ -105,9 +106,11 @@ class VariationalMarkovGP:
 
         The returned m and S have initial values appended too.
         """
+        A = self.A[:-1]
+        b = self.b[:-1]
 
-        state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - self.A * self.dt
-        state_offset = self.b * self.dt
+        state_transition = tf.eye(self.state_dim, dtype=A.dtype) - A * self.dt
+        state_offset = b * self.dt
         q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
         ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
@@ -117,7 +120,7 @@ class VariationalMarkovGP:
                               chol_process_covariances=tf.linalg.cholesky(q)
                               )
 
-        return ssm.marginal_means[:-1], ssm.marginal_covariances[:-1]
+        return ssm.marginal_means, ssm.marginal_covariances
 
     def E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -299,7 +302,7 @@ class VariationalMarkovGP:
     def _update_prior(self, m: tf.Tensor, S: tf.Tensor):
         """Internal function to calculate the prior SDE."""
         def func():
-            return self.E_sde(m, S) * self.dt #+ self.KL_initial_state()
+            return self.E_sde(m, S) * self.dt + self.KL_initial_state()
 
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
 

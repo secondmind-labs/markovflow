@@ -55,15 +55,18 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
         x_next = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
         return x_next, t_next
 
-    # [num_data, batch_shape, state_dim] for tf.scan
-    sde_values = tf.zeros((num_time_points, num_batch, state_dim), dtype=DTYPE)
+    # [num_data-1, batch_shape, state_dim] for tf.scan. -1 is for removing the initial state from the count.
+    sde_values = tf.zeros((num_time_points-1, num_batch, state_dim), dtype=DTYPE)
 
     # Adding time for batches for tf.scan
     t0 = tf.zeros((num_batch, 1), dtype=DTYPE)
-    time_grid = tf.reshape(time_grid, (-1, 1, 1))
+    time_grid = tf.reshape(time_grid[1:], (-1, 1, 1))  # [1:] is to remove t0 from the list
     time_grid = tf.repeat(time_grid, num_batch, axis=1)
 
     sde_values, _ = tf.scan(_step, (sde_values, time_grid), (x0, t0))
+
+    # Append the initial state
+    sde_values = tf.concat((tf.reshape(x0, (1, num_batch, state_dim)), sde_values), axis=0)
 
     # [batch_shape, num_data, state_dim]
     sde_values = tf.transpose(sde_values, [1, 0, 2])
@@ -87,7 +90,6 @@ def linearize_sde(
     q_covar: TensorType,
     initial_mean: TensorType,
     initial_chol_covariance: TensorType,
-    process_chol_covariances: TensorType,
 ) -> StateSpaceModel:
     """
     Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states

@@ -72,6 +72,7 @@ class GaussianProcessWithSitesBase(MarkovFlowModel):
         kernel: SDEKernel,
         likelihood: Likelihood,
         mean_function: Optional[MeanFunction] = None,
+        initialize_sites: bool = True
     ) -> None:
         """
         :param input_data: A tuple containing the observed data:
@@ -82,6 +83,7 @@ class GaussianProcessWithSitesBase(MarkovFlowModel):
         :param kernel: A kernel that defines a prior over functions.
         :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.
         :param mean_function: The mean function for the GP. Defaults to no mean function.
+        :param initialize_sites: Initialize the sites. Defaults to True.
         """
         super().__init__(self.__class__.__name__)
         time_points, observations = input_data
@@ -96,11 +98,12 @@ class GaussianProcessWithSitesBase(MarkovFlowModel):
         self._observations = observations
 
         # initialize sites
-        self.sites = UnivariateGaussianSitesNat(
-            nat1=Parameter(tf.zeros_like(observations)),
-            nat2=Parameter(tf.ones_like(observations)[..., None] * -1e-10),
-            log_norm=Parameter(tf.zeros_like(observations)),
-        )
+        if initialize_sites:
+            self.sites = UnivariateGaussianSitesNat(
+                nat1=Parameter(tf.zeros_like(observations)),
+                nat2=Parameter(tf.ones_like(observations)[..., None] * -1e-10),
+                log_norm=Parameter(tf.zeros_like(observations)),
+            )
 
     @property
     def dist_q(self) -> StateSpaceModel:
@@ -301,6 +304,7 @@ class CVIGaussianProcess(GaussianProcessWithSitesBase):
         likelihood: Likelihood,
         mean_function: Optional[MeanFunction] = None,
         learning_rate=0.1,
+        initialize_sites: bool = True
     ) -> None:
         """
         :param input_data: A tuple containing the observed data:
@@ -312,9 +316,11 @@ class CVIGaussianProcess(GaussianProcessWithSitesBase):
         :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.
         :param mean_function: The mean function for the GP. Defaults to no mean function.
         :param learning_rate: The learning rate of the algorithm.
+        :param initialize_sites: Initialize the sites. Defaults to True.
         """
         super().__init__(
-            input_data=input_data, kernel=kernel, likelihood=likelihood, mean_function=mean_function
+            input_data=input_data, kernel=kernel, likelihood=likelihood, mean_function=mean_function,
+            initialize_sites=initialize_sites
         )
         self.learning_rate = learning_rate
 
