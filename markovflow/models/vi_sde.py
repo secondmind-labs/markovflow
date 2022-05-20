@@ -96,8 +96,22 @@ class VariationalMarkovGP:
         self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
         self.psi_lagrange = tf.zeros_like(self.b)   # [N, D]
 
-        self.lr = lr
-        self.prior_sde_optimizer = tf.optimizers.Adam()
+        self.q_lr = lr  # lr for variational parameters A and b
+        self.p_lr = lr  # lr for prior parameters
+        self.x_lr = lr   # lr for initial statistics
+
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.1)  # tf.optimizers.Adam(lr=0.1)
+
+        self.elbo_vals = []
+
+        self.prior_params = {}
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            self.prior_params[i] = [param.numpy().item()]
+
+    def _store_prior_param_vals(self):
+        """Update the list storing the prior sde parameter values"""
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            self.prior_params[i].append(param.numpy().item())
 
     @property
     def forward_pass(self) -> (tf.Tensor, tf.Tensor):
@@ -166,15 +180,26 @@ class VariationalMarkovGP:
 
         return dE_dm, dE_dS
 
-    def update_initial_statistics(self, lr=0.1):
+    def update_initial_statistics(self, convergence_tol=1e-4):
         """
         Update the initial statistics.
         """
         q_initial_mean = self.p_initial_mean - tf.reshape(self.lambda_lagrange[0], self.q_initial_mean.shape) * tf.reshape(self.p_initial_cov, self.q_initial_mean.shape)
         q_initial_cov = 1/(2 * tf.reshape(self.psi_lagrange[0], self.q_initial_cov.shape) + 1/self.p_initial_cov)
 
-        self.q_initial_mean = (1-lr) * self.q_initial_mean + lr * q_initial_mean
-        self.q_initial_cov = (1-lr) * self.q_initial_cov + lr * q_initial_cov
+        # compute criterion for convergence
+        q_mean_diff_sq_norm = tf.reduce_sum(tf.square(self.q_initial_mean- q_initial_mean))
+        q_cov_diff_sq_norm = tf.reduce_sum(tf.square(self.q_initial_cov - q_initial_cov))
+
+        self.q_initial_mean = (1 - self.x_lr) * self.q_initial_mean + self.x_lr * q_initial_mean
+        self.q_initial_cov = (1 - self.x_lr) * self.q_initial_cov + self.x_lr * q_initial_cov
+
+        if (q_mean_diff_sq_norm < convergence_tol) & (q_cov_diff_sq_norm < convergence_tol):
+            has_converged = True
+        else:
+            has_converged = False
+
+        return has_converged
 
     def _jump_conditions(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -251,7 +276,7 @@ class VariationalMarkovGP:
 
         return local_obj, grads
 
-    def update_param(self, m: tf.Tensor, S: tf.Tensor):
+    def update_param(self, m: tf.Tensor, S: tf.Tensor, convergence_tol: float = 1e-4):
         """
         Update the params A(t) and b(t).
 
@@ -267,8 +292,19 @@ class VariationalMarkovGP:
         A_tilde = tf.squeeze(-self.prior_sde.expected_gradient_drift(m[..., None], S), axis=-1) + 2. * var * self.psi_lagrange
         b_tilde = tf.squeeze(self.prior_sde.expected_drift(m[..., None], S), axis=-1) + A_tilde * m - self.lambda_lagrange * var
 
-        self.A = (1 - self.lr) * self.A + self.lr * A_tilde[..., None]
-        self.b = (1 - self.lr) * self.b + self.lr * b_tilde
+        # compute criterion for convergence
+        A_diff_sq_norm = tf.reduce_sum(tf.square(self.A - A_tilde[..., None]))
+        b_diff_sq_norm = tf.reduce_sum(tf.square(self.b - b_tilde))
+
+        self.A = (1 - self.q_lr) * self.A + self.q_lr * A_tilde[..., None]
+        self.b = (1 - self.q_lr) * self.b + self.q_lr * b_tilde
+
+        if (A_diff_sq_norm < convergence_tol) & (b_diff_sq_norm < convergence_tol):
+            has_converged = True
+        else:
+            has_converged = False
+
+        return has_converged
 
     def KL_initial_state(self):
         """
@@ -284,7 +320,6 @@ class VariationalMarkovGP:
         E_sde = tf.reduce_sum(self.E_sde(m, S))
         E_sde = E_sde * self.dt
 
-        #
         KL_q0_p0 = self.KL_initial_state()
 
         # E_obs
@@ -299,27 +334,63 @@ class VariationalMarkovGP:
 
         return E.numpy().item()
 
-    def _update_prior(self, m: tf.Tensor, S: tf.Tensor):
-        """Internal function to calculate the prior SDE."""
-        def func():
-            return self.E_sde(m, S) * self.dt + self.KL_initial_state()
-
-        self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
-
-    def update_prior(self):
+    def update_prior_sde(self, convergence_tol=1e-4):
         """
         Function to update the prior SDE.
         """
         m, S = self.forward_pass
-        # lr = self.lr_scheduler_prior(itr)
-        # self.prior_sde_optimizer.learning_rate = lr
-        self._update_prior(m, S)
+        def func():
+            return self.E_sde(m, S) * self.dt + self.KL_initial_state()
 
-    def run_inference(self):
+        old_val = self.prior_sde.trainable_variables
+        self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
+        new_val = self.prior_sde.trainable_variables
+
+        diff_sq_norm = tf.reduce_sum(tf.square(old_val[0] - new_val[0]))
+        if diff_sq_norm < convergence_tol:
+            has_converged = True
+        else:
+            has_converged = False
+
+        return has_converged
+
+    def run_single_inference(self):
         """
         Run a single loop of inference.
         """
         m, S = self.forward_pass
         self.update_lagrange(m, S)
-        self.update_param(m, S)
+        converged = self.update_param(m, S)
 
+        return converged
+
+    def run_inference_till_convergence(self, update_prior: bool):
+        """
+        Run inference till convergence
+        """
+        while self.q_lr >= 0.001 and self.x_lr >= 0.001:
+            inference_converged = False
+            x0_converged = False
+            while not inference_converged and not x0_converged:
+                inference_converged = self.run_single_inference()
+                x0_converged = self.update_initial_statistics()
+                self.elbo_vals.append(self.elbo())
+
+            if update_prior:
+                prior_converged = False
+                while not prior_converged:
+                    prior_converged = self.update_prior_sde()
+                    self._store_prior_param_vals()
+
+            print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
+            self.q_lr = self.q_lr / 2
+            self.x_lr = self.x_lr / 2
+            self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
+    def run(self, update_prior: bool = False) -> [list, dict]:
+        """
+        Run inference and (if required) update prior till convergence.
+        """
+        self.run_inference_till_convergence(update_prior)
+
+        return self.elbo_vals, self.prior_params

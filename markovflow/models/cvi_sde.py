@@ -30,7 +30,6 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSites
-from markovflow.kernels import OrnsteinUhlenbeck
 
 
 class SDESSM(CVIGaussianProcess):
@@ -78,11 +77,20 @@ class SDESSM(CVIGaussianProcess):
         self.state_dim = 1
 
         self._intialize_mean_statistic()
-        self.lr_scheduler = tf.keras.optimizers.schedules.ExponentialDecay(0.1, 2, decay_rate=0.8, staircase=True)
-        self.itr = 0
-        self.prior_sde_optimizer = tf.optimizers.Adam()
-
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-10
+
+        self.sites_lr = learning_rate
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=learning_rate)
+        self.elbo_vals = []
+
+        self.prior_params = {}
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            self.prior_params[i] = [param.numpy().item()]
+
+    def _store_prior_param_vals(self):
+        """Update the list storing the prior sde parameter values"""
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            self.prior_params[i].append(param.numpy().item())
 
     def _intialize_mean_statistic(self):
         """Simulate initial mean from the prior SDE."""
@@ -183,7 +191,7 @@ class SDESSM(CVIGaussianProcess):
             sites=self.sites,
         )
 
-    def update_sites(self) -> None:
+    def update_sites(self, convergence_tol=1e-4) -> bool:
         """
         Perform one joint update of the Gaussian sites. That is:
 
@@ -200,9 +208,16 @@ class SDESSM(CVIGaussianProcess):
         _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
 
         # update
-        lr = self.learning_rate
-        new_nat1 = (1 - lr) * self.data_sites.nat1 + lr * grads[0]
-        new_nat2 = (1 - lr) * self.data_sites.nat2 + lr * grads[1][..., None]
+        new_nat1 = (1 - self.sites_lr) * self.data_sites.nat1 + self.sites_lr * grads[0]
+        new_nat2 = (1 - self.sites_lr) * self.data_sites.nat2 + self.sites_lr * grads[1][..., None]
+
+        nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_nat1))
+        nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_nat2))
+
+        if (nat1_sq_norm < convergence_tol) & (nat2_sq_norm < convergence_tol):
+            has_converged = True
+        else:
+            has_converged = False
 
         self.data_sites.nat2.assign(new_nat2)
         self.data_sites.nat1.assign(new_nat1)
@@ -212,6 +227,8 @@ class SDESSM(CVIGaussianProcess):
 
         self.fx_mus = fx_mus
         self.fx_covs = fx_covs
+
+        return has_converged
 
     def kl(self) -> tf.Tensor:
         r"""
@@ -271,7 +288,7 @@ class SDESSM(CVIGaussianProcess):
         p_log_det_precision = dist_p.log_det_precision()
 
         q_log_det_precision = tf.stop_gradient(q_log_det_precision)
-        p_log_det_precision = tf.stop_gradient(p_log_det_precision)
+        # p_log_det_precision = tf.stop_gradient(p_log_det_precision)
 
         k_l = 0.5 * (
                 trace + mahalanobis - dim - p_log_det_precision + q_log_det_precision
@@ -281,17 +298,23 @@ class SDESSM(CVIGaussianProcess):
 
         return k_l
 
-    def update_prior_sde(self):
+    def update_prior_sde(self, convergence_tol=1e-4):
 
-        # def loss():
-        #     return self.kl() #+ self.loss_lin()
         def loss():
-            return -1. * self.posterior_kalman.log_likelihood() #+ self.loss_lin()
+            return self.kl() + self.loss_lin()
+            # return -1. * self.posterior_kalman.log_likelihood() #+ self.loss_lin()
 
-        lr = self.lr_scheduler(self.itr)
-        self.prior_sde_optimizer.learning_rate = lr
+        old_val = self.prior_sde.trainable_variables
         self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
-        self.itr += 1
+        new_val = self.prior_sde.trainable_variables
+
+        diff_sq_norm = tf.reduce_sum(tf.square(old_val[0] - new_val[0]))
+        if diff_sq_norm < convergence_tol:
+            has_converged = True
+        else:
+            has_converged = False
+
+        return has_converged
 
     def loss_lin(self):
         def E_sde(m: tf.Tensor, S: tf.Tensor):
@@ -339,7 +362,7 @@ class SDESSM(CVIGaussianProcess):
         # removing batch
         m = tf.squeeze(m, axis=0)[:-1]
         S = tf.squeeze(S, axis=0)[:-1]
-        return E_sde(m, S) * (self.grid[1] - self.grid[0]) # Riemann sum
+        return E_sde(m, S) * (self.grid[1] - self.grid[0])  # Riemann sum
 
     def classic_elbo(self) -> tf.Tensor:
         """
@@ -370,3 +393,26 @@ class SDESSM(CVIGaussianProcess):
 
         # print(f"kl_fx = {kl_fx}; ve_fx = {ve_fx}; lin_loss = {lin_loss}")
         return ve_fx - kl_fx - lin_loss
+
+    def run(self, update_prior: bool = False) -> [list, dict]:
+        """
+        Run inference and (if required) update prior till convergence.
+        """
+        while self.sites_lr > 0.001:
+            sites_converged = False
+            while not sites_converged:
+                sites_converged = self.update_sites()
+                self.elbo_vals.append(self.classic_elbo().numpy().item())
+
+            if update_prior:
+                prior_converged = False
+                while not prior_converged:
+                    prior_converged = self.update_prior_sde()
+                    self._store_prior_param_vals()
+
+            print(f"SSM: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
+            self.sites_lr = self.sites_lr / 2
+            self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
+        return self.elbo_vals, self.prior_params
+
