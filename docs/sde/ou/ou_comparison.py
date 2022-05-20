@@ -9,7 +9,8 @@ from markovflow.sde.sde import OrnsteinUhlenbeckSDE, PriorOUSDE
 from markovflow.kernels import OrnsteinUhlenbeck
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
-from ou_utils import generate_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior
+from ou_utils import generate_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
+    get_cvi_gpr, predict_cvi_gpr
 
 tf.random.set_seed(83)
 np.random.seed(83)
@@ -24,9 +25,9 @@ q = 0.5
 noise_var = 0.05
 x0 = 1.
 
-t0, t1 = 0.0, 10.
+t0, t1 = 0.0, 5.
 simulation_dt = 0.01  # Used for Euler-Maruyama
-n_observations = 50
+n_observations = 30
 
 learn_prior_sde = True
 prior_initial_decay_val = tf.random.normal((1, 1), dtype=DTYPE)  # Used when learning prior sde
@@ -59,15 +60,20 @@ input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)
 """
 GPR
 """
+likelihood_gpr = Gaussian(noise_stddev**2)
+
 if learn_prior_sde:
     kernel = OrnsteinUhlenbeck(decay=prior_initial_decay_val.numpy().item(), diffusion=q)
 else:
     kernel = OrnsteinUhlenbeck(decay=decay, diffusion=q)
-gpr_model = get_gpr(input_data, kernel, train=learn_prior_sde, noise_stddev=noise_stddev)
 
+cvi_gpr_model = get_cvi_gpr(input_data, kernel, likelihood_gpr, train=learn_prior_sde)
+
+gpr_model = get_gpr(input_data, kernel, train=learn_prior_sde, noise_stddev=noise_stddev)
 gpr_log_likelihood = gpr_model.log_likelihood().numpy()
 print(f"GPR Likelihood : {gpr_log_likelihood}")
 
+print(f"CVI-GPR ELBO: {cvi_gpr_model.classic_elbo()}")
 """
 SDE-SSM
 """
@@ -90,6 +96,7 @@ ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_gri
 
 # For OU we know this relation for variance
 ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay)) * tf.ones_like(ssm_model.initial_chol_cov))
+ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item()**2 + 0 * ssm_model.fx_covs
 
 ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -124,13 +131,14 @@ if learn_prior_sde:
 Predict Posterior
 """
 plot_observations(observation_grid.numpy(), observation_vals.numpy())
-m_gpr, s_std_gpr = predict_gpr(gpr_model, time_grid.numpy())
+# m_gpr, s_std_gpr = predict_gpr(gpr_model, time_grid.numpy())  # FOR GPR MODEL
+m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, time_grid.numpy(), noise_stddev)
 m_ssm, s_std_ssm = predict_ssm(ssm_model, noise_stddev)
 m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
 """
 Compare Posterior
 """
-plot_posterior(m_gpr, s_std_gpr, time_grid.numpy(), "GPR")
+plot_posterior(m_gpr, s_std_gpr, time_grid.numpy(), "CVI-GPR")
 plot_posterior(m_ssm, s_std_ssm, time_grid.numpy(), "SDE-SSM")
 plot_posterior(m_vgp, s_std_vgp, time_grid.numpy(), "VGP")
 plt.legend()
@@ -144,8 +152,8 @@ if learn_prior_sde:
                label="True Value", color="black", linestyles="dashed")
     plt.plot(v_gp_prior_decay_values, label="VGP", color="green")
     plt.plot(ssm_prior_decay_values, label="SDE-SSM", color="blue")
-    plt.hlines(-1 * gpr_model.kernel.decay, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
-               label="GPR", color="red")
+    plt.hlines(-1 * cvi_gpr_model.kernel.decay, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
+               label="CVI-GPR", color="red")
     plt.title("Prior Learning")
     plt.legend()
     plt.show()
@@ -178,6 +186,7 @@ if not learn_prior_sde:
 
         ssm_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
         ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay_val)) * tf.ones_like(ssm_model.initial_chol_cov))
+        ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
         vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)

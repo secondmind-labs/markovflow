@@ -5,10 +5,12 @@ Script for common utility functions needed for OU process experiment.
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from gpflow.likelihoods import Likelihood
 
 from markovflow.models.vi_sde import VariationalMarkovGP
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
+from markovflow.models.variational_cvi import CVIGaussianProcess
 from markovflow.kernels import SDEKernel
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE
 from markovflow.sde.sde_utils import euler_maruyama
@@ -67,10 +69,10 @@ def predict_vgp(model: VariationalMarkovGP, noise_stddev: np.ndarray) -> (np.nda
     Predict mean and std-dev for VGP model.
     """
     m, S = model.forward_pass
-    S = (tf.reshape(S, (-1)) + noise_stddev ** 2).numpy()
+    S = tf.reshape(S, (-1)).numpy()
 
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S)
+    S_std = np.sqrt(S) + noise_stddev
 
     return m, S_std
 
@@ -81,10 +83,20 @@ def predict_ssm(model: SDESSM, noise_stddev: np.ndarray) -> (np.ndarray, np.ndar
     """
     posterior_ssm = model.posterior_kalman.posterior_state_space_model()
     m, S = posterior_ssm.marginal_means, posterior_ssm.marginal_covariances
-    S = S + noise_stddev ** 2
 
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S)
+    S_std = np.sqrt(S) + noise_stddev
+
+    return m, S_std
+
+
+def predict_cvi_gpr(model: CVIGaussianProcess, time_grid: np.ndarray, noise_stddev: np.ndarray) -> [np.ndarray, np.ndarray]:
+    """
+    Predict mean and std-dev for CVI-GPR model.
+    """
+    m, S = model.predict_f(time_grid)
+    m = m.numpy().reshape(-1)
+    S_std = np.sqrt(S) + noise_stddev
 
     return m, S_std
 
@@ -98,6 +110,29 @@ def predict_gpr(model: GaussianProcessRegression, time_grid: np.ndarray) -> [np.
     S_std = np.sqrt(S)
 
     return m, S_std
+
+
+def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihood: Likelihood,
+                train: bool = False, sites_lr: float = 0.9):
+    cvi_model = CVIGaussianProcess(input_data=input_data, kernel=kernel, likelihood=likelihood,
+                                   learning_rate=sites_lr)
+
+    opt = tf.optimizers.Adam()
+
+    @tf.function
+    def opt_step():
+        opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
+
+    # FIXME: Remove this hard coding nd do on the basis of ELBO values
+    for _ in range(4):
+        for _ in range(2):
+            cvi_model.update_sites()
+
+        if train:
+            for _ in range(10):
+                opt_step()
+
+    return cvi_model
 
 
 def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, noise_stddev: np.ndarray,

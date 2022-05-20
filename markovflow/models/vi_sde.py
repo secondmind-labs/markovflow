@@ -136,7 +136,7 @@ class VariationalMarkovGP:
 
         return ssm.marginal_means, ssm.marginal_covariances
 
-    def E_sde(self, m: tf.Tensor, S: tf.Tensor):
+    def E_sde(self, m: tf.Tensor, S: tf.Tensor, stop_drift_gradient: bool = True):
         """
         E_sde = 0.5 * <(f-f_L)^T \sigma^{-1} (f-f_L)>_{q_t}.
         Apply Gaussian quadrature method to approximate the integral.
@@ -153,10 +153,18 @@ class VariationalMarkovGP:
             b = tf.repeat(self.b, n_pnts, axis=1)
             b = tf.expand_dims(b, axis=-1)
 
-            tmp = self.prior_sde.drift(x=x, t=t) + ((x * A) - b)
+            A = tf.stop_gradient(A)
+            b = tf.stop_gradient(b)
+
+            prior_drift = self.prior_sde.drift(x=x, t=t)
+            if stop_drift_gradient:
+                prior_drift = tf.stop_gradient(prior_drift)
+
+            tmp = prior_drift + ((x * A) - b)
             tmp = tmp * tmp
 
             sigma = self.prior_sde.q
+            sigma = tf.stop_gradient(sigma)
 
             val = tmp * (1 / sigma)
 
@@ -310,7 +318,10 @@ class VariationalMarkovGP:
         """
         KL[q(x0) || p(x0)]
         """
-        dist_qx0 = distributions.Normal(self.q_initial_mean, tf.linalg.cholesky(self.q_initial_cov))
+        q0_mean = tf.stop_gradient(self.q_initial_mean)
+        q0_cov = tf.stop_gradient(self.q_initial_cov)
+
+        dist_qx0 = distributions.Normal(q0_mean, tf.linalg.cholesky(q0_cov))
         dist_px0 = distributions.Normal(self.p_initial_mean, tf.linalg.cholesky(self.p_initial_cov))
         return distributions.kl_divergence(dist_qx0, dist_px0)
 
@@ -339,8 +350,11 @@ class VariationalMarkovGP:
         Function to update the prior SDE.
         """
         m, S = self.forward_pass
+        m = tf.stop_gradient(m)
+        S = tf.stop_gradient(S)
+
         def func():
-            return self.E_sde(m, S) * self.dt + self.KL_initial_state()
+            return self.E_sde(m, S, stop_drift_gradient=False) * self.dt + self.KL_initial_state()
 
         old_val = self.prior_sde.trainable_variables
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
@@ -368,7 +382,7 @@ class VariationalMarkovGP:
         """
         Run inference till convergence
         """
-        while self.q_lr >= 0.001 and self.x_lr >= 0.001:
+        while self.q_lr >= 1e-4 and self.x_lr >= 1e-4:
             inference_converged = False
             x0_converged = False
             while not inference_converged and not x0_converged:

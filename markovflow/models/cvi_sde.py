@@ -77,7 +77,7 @@ class SDESSM(CVIGaussianProcess):
         self.state_dim = 1
 
         self._intialize_mean_statistic()
-        self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-10
+        self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
 
         self.sites_lr = learning_rate
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=learning_rate)
@@ -222,11 +222,7 @@ class SDESSM(CVIGaussianProcess):
         self.data_sites.nat2.assign(new_nat2)
         self.data_sites.nat1.assign(new_nat1)
 
-        dist_q = self.dist_q
-        fx_mus, fx_covs = dist_q.marginal_means, dist_q.marginal_covariances
-
-        self.fx_mus = fx_mus
-        self.fx_covs = fx_covs
+        self.fx_mus, self.fx_covs = self.dist_q.marginals
 
         return has_converged
 
@@ -333,6 +329,10 @@ class SDESSM(CVIGaussianProcess):
                 A = tf.squeeze(self.dist_p.state_transitions, axis=0)
                 b = tf.squeeze(self.dist_p.state_offsets, axis=0)
 
+                # Stopping gradient
+                A = tf.stop_gradient(A)
+                b = tf.stop_gradient(b)
+
                 # convert from A and b to SDE drift and offset
                 A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
                 b = b / (self.grid[1] - self.grid[0])
@@ -345,6 +345,7 @@ class SDESSM(CVIGaussianProcess):
                 tmp = tmp * tmp
 
                 sigma = self.prior_sde.q
+                sigma = tf.stop_gradient(sigma)
 
                 val = tmp * (1 / sigma)
 
@@ -398,7 +399,7 @@ class SDESSM(CVIGaussianProcess):
         """
         Run inference and (if required) update prior till convergence.
         """
-        while self.sites_lr > 0.001:
+        while self.sites_lr > 1e-4:
             sites_converged = False
             while not sites_converged:
                 sites_converged = self.update_sites()
