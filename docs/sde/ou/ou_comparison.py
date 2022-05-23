@@ -29,8 +29,8 @@ noise_var = 0.05
 x0 = 1.
 
 t0, t1 = 0.0, 5.
-simulation_dt = 0.01  # Used for Euler-Maruyama
-n_observations = 10
+simulation_dt = 0.001  # Used for Euler-Maruyama
+n_observations = 50
 
 learn_prior_sde = False
 prior_initial_decay_val = tf.random.normal((1, 1), dtype=DTYPE)  # Used when learning prior sde

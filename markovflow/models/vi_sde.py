@@ -316,12 +316,17 @@ class VariationalMarkovGP:
         """
         Function to update the prior SDE.
         """
-        m, S = self.forward_pass
-        m = tf.stop_gradient(m)
-        S = tf.stop_gradient(S)
-
         def func():
-            return KL_sde(self.prior_sde, self.A, self.b, m, S, self.dt) + self.KL_initial_state()
+            m, S = self.forward_pass
+            # m = tf.stop_gradient(m)
+            # S = tf.stop_gradient(S)
+            # remove the initial state and the final A and b
+            m = m[1:]
+            S = S[1:]
+            A = self.A[:-1]
+            b = self.b[:-1]
+
+            return KL_sde(self.prior_sde, A, b, m, S, self.dt) + self.KL_initial_state()
 
         old_val = self.prior_sde.trainable_variables
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
