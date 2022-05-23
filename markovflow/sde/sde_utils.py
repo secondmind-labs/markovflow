@@ -18,6 +18,7 @@
 import tensorflow as tf
 
 from gpflow.base import TensorType
+from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
@@ -136,3 +137,56 @@ def linearize_sde(
         state_offsets=state_offsets,
         chol_process_covariances=chol_process_covariances,
     )
+
+
+def KL_sde(sde_p: SDE, A_q, b_q, m, S, dt: float, quadrature_pnts: int = 20):
+    """
+    Calculate KL between two SDEs i.e. KL[q(x(.) || p(x(.)))]
+
+    p(x(.)) : d x_t = f(x_t, t) dt   + dB_t  ; Q
+    q(x(.)) : d x_t = f_L(x_t, t) dt + dB_t  ; Q  ; f_L(x_t, t) = - A_t * x_t + b_t.
+
+    KL[q(x(.) || p(x(.)))] = 0.5 * \int <(f-f_L)^T Q^{-1} (f-f_L)>_{q_t} dt
+
+    NOTE:
+        1. Both the SDE have same diffusion i.e. Q.
+        2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = - A_t * x_t + b_t
+        3. Parameter A_t is "WITHOUT" the negative sign.
+
+    Apply Gaussian quadrature method to approximate the Expectation and integral is approximated as Riemann sum.
+
+    """
+    assert sde_p.state_dim == 1
+    assert m.shape[0] == A_q.shape[0] == b_q.shape[0]
+
+    def func(x, t=None, A_q=A_q, b_q=b_q):
+        # Adding N information
+        x = tf.transpose(x, perm=[1, 0, 2])
+        n_pnts = x.shape[1]
+
+        A_q = tf.repeat(A_q, n_pnts, axis=1)
+        b_q = tf.repeat(b_q, n_pnts, axis=1)
+        b_q = tf.expand_dims(b_q, axis=-1)
+
+        A_q = tf.stop_gradient(A_q)
+        b_q = tf.stop_gradient(b_q)
+
+        prior_drift = sde_p.drift(x=x, t=t)
+        # if stop_drift_gradient:
+        #     prior_drift = tf.stop_gradient(prior_drift)
+
+        tmp = prior_drift + ((x * A_q) - b_q)
+        tmp = tmp * tmp
+
+        sigma = sde_p.q
+        sigma = tf.stop_gradient(sigma)
+
+        val = tmp * (1 / sigma)
+
+        return tf.transpose(val, perm=[1, 0, 2])
+
+    diag_quad = NDiagGHQuadrature(sde_p.state_dim, quadrature_pnts)
+    kl_sde = diag_quad(func, m, tf.squeeze(S, axis=-1))
+
+    kl_sde = 0.5 * tf.reduce_sum(kl_sde) * dt
+    return kl_sde

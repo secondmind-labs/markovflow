@@ -20,7 +20,6 @@ import tensorflow as tf
 from gpflow.likelihoods import Likelihood
 from gpflow.base import Parameter
 from gpflow import default_float
-from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
 from markovflow.models.variational_cvi import CVIGaussianProcess
@@ -30,6 +29,7 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSites
+from markovflow.sde.sde_utils import KL_sde
 
 
 class SDESSM(CVIGaussianProcess):
@@ -313,49 +313,9 @@ class SDESSM(CVIGaussianProcess):
         return has_converged
 
     def loss_lin(self):
-        def E_sde(m: tf.Tensor, S: tf.Tensor):
-            """
-            E_sde = 0.5 * <(f-f_L)^T \sigma^{-1} (f-f_L)>_{q_t}.
-
-            Apply Gaussian quadrature method to approximate the integral.
-            """
-            assert self.state_dim == 1
-            quadrature_pnts = 20
-
-            def func(x, t=None):
-                # Adding N information
-                x = tf.transpose(x, perm=[1, 0, 2])
-                n_pnts = x.shape[1]
-                A = tf.squeeze(self.dist_p.state_transitions, axis=0)
-                b = tf.squeeze(self.dist_p.state_offsets, axis=0)
-
-                # Stopping gradient
-                A = tf.stop_gradient(A)
-                b = tf.stop_gradient(b)
-
-                # convert from A and b to SDE drift and offset
-                A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
-                b = b / (self.grid[1] - self.grid[0])
-
-                A = tf.repeat(A, n_pnts, axis=1)
-                b = tf.repeat(b, n_pnts, axis=1)
-                b = tf.expand_dims(b, axis=-1)
-
-                tmp = self.prior_sde.drift(x=x, t=t) - ((x * A) - b)
-                tmp = tmp * tmp
-
-                sigma = self.prior_sde.q
-                sigma = tf.stop_gradient(sigma)
-
-                val = tmp * (1 / sigma)
-
-                return tf.transpose(val, perm=[1, 0, 2])
-
-            diag_quad = NDiagGHQuadrature(self.state_dim, quadrature_pnts)
-            e_sde = diag_quad(func, m, tf.squeeze(S, axis=-1))
-
-            return 0.5 * tf.reduce_sum(e_sde)
-
+        """
+        KL[p || p_{lin}]
+        """
         m, S = self.dist_q.marginals
         S = tf.stop_gradient(S)
         m = tf.stop_gradient(m)
@@ -363,17 +323,20 @@ class SDESSM(CVIGaussianProcess):
         # removing batch
         m = tf.squeeze(m, axis=0)[:-1]
         S = tf.squeeze(S, axis=0)[:-1]
-        return E_sde(m, S) * (self.grid[1] - self.grid[0])  # Riemann sum
+
+        # convert from A and b to SDE Q's drift and offset
+        A = tf.squeeze(self.dist_p.state_transitions, axis=0)
+        b = tf.squeeze(self.dist_p.state_offsets, axis=0)
+        A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
+        b = b / (self.grid[1] - self.grid[0])
+
+        # -1 * A as the function expects A without the negative sign i.e. drift = - A*x + b
+        lin_loss = KL_sde(self.prior_sde, -1 * A, b, m, S, dt=(self.grid[1] - self.grid[0]))
+        return lin_loss
 
     def classic_elbo(self) -> tf.Tensor:
         """
-            Compute the ELBO the classic way. That is:
-
-            .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
-
-            .. note:: This is mostly for testing purposes and should not be used for optimization.
-
-            :return: A scalar tensor representing the ELBO.
+            Compute the ELBO.
         """
         # s ~ q(s) = N(μ, P)
         fx_mus, fx_covs = self.dist_q.marginals
@@ -399,11 +362,14 @@ class SDESSM(CVIGaussianProcess):
         """
         Run inference and (if required) update prior till convergence.
         """
-        while self.sites_lr > 1e-4:
+        self.elbo_vals.append(self.classic_elbo().numpy().item())
+        print(f"SSM: Starting ELBO {self.elbo_vals[-1]};")
+        while self.sites_lr > 1e-2:
             sites_converged = False
             while not sites_converged:
                 sites_converged = self.update_sites()
-                self.elbo_vals.append(self.classic_elbo().numpy().item())
+
+            self.elbo_vals.append(self.classic_elbo().numpy().item())
 
             if update_prior:
                 prior_converged = False

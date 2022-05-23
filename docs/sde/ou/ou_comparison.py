@@ -9,7 +9,10 @@ from markovflow.sde.sde import OrnsteinUhlenbeckSDE, PriorOUSDE
 from markovflow.kernels import OrnsteinUhlenbeck
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
-from ou_utils import generate_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
+
+import sys
+sys.path.append("..")
+from sde_exp_utils import generate_ou_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
     get_cvi_gpr, predict_cvi_gpr
 
 tf.random.set_seed(83)
@@ -27,9 +30,9 @@ x0 = 1.
 
 t0, t1 = 0.0, 5.
 simulation_dt = 0.01  # Used for Euler-Maruyama
-n_observations = 30
+n_observations = 10
 
-learn_prior_sde = True
+learn_prior_sde = False
 prior_initial_decay_val = tf.random.normal((1, 1), dtype=DTYPE)  # Used when learning prior sde
 
 """
@@ -37,11 +40,11 @@ Generate observations for a linear SDE
 """
 noise_stddev = np.sqrt(noise_var)
 
-observation_vals, observation_grid, latent_process, time_grid = generate_data(decay=decay, q=q, x0=x0, t0=t0, t1=t1,
-                                                                              simulation_dt=simulation_dt,
-                                                                              noise_stddev=noise_stddev,
-                                                                              n_observations=n_observations,
-                                                                              dtype=DTYPE)
+observation_vals, observation_grid, latent_process, time_grid = generate_ou_data(decay=decay, q=q, x0=x0, t0=t0, t1=t1,
+                                                                                 simulation_dt=simulation_dt,
+                                                                                 noise_stddev=noise_stddev,
+                                                                                 n_observations=n_observations,
+                                                                                 dtype=DTYPE)
 
 plot_observations(observation_grid.numpy(), observation_vals.numpy())
 plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
@@ -122,6 +125,8 @@ vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
                                 lr=0.1)
 vgp_model.p_initial_cov = (q/(2 * decay)) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
+vgp_model.q_initial_cov = vgp_model.p_initial_cov
+vgp_model.A = decay + 0. * vgp_model.A
 
 v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -138,7 +143,7 @@ m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
 """
 Compare Posterior
 """
-plot_posterior(m_gpr, s_std_gpr, time_grid.numpy(), "CVI-GPR")
+plot_posterior(m_gpr, s_std_gpr, time_grid.numpy(), "GPR")
 plot_posterior(m_ssm, s_std_ssm, time_grid.numpy(), "SDE-SSM")
 plot_posterior(m_vgp, s_std_vgp, time_grid.numpy(), "VGP")
 plt.legend()
@@ -160,11 +165,11 @@ if learn_prior_sde:
 
 
 """ELBO comparison"""
-plt.hlines(gpr_log_likelihood, 0, len(v_gp_elbo)-2, color="black", label="Log Likelihood", alpha=0.2,
+plt.hlines(gpr_log_likelihood, 0, len(v_gp_elbo), color="black", label="Log Likelihood", alpha=0.2,
            linestyles="dashed")
-plt.plot(ssm_elbo, label="SDE-SSM")
-plt.plot(v_gp_elbo[2:], label="VGP")
-plt.title("ELBO")
+plt.plot(ssm_elbo[1:], label="SDE-SSM")
+plt.plot(v_gp_elbo[1:], label="VGP")
+plt.title("ELBO[1:]")
 plt.legend()
 plt.show()
 

@@ -54,7 +54,7 @@ from gpflow.likelihoods import Likelihood
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
-from gpflow.quadrature import NDiagGHQuadrature
+from markovflow.sde.sde_utils import KL_sde
 
 
 class VariationalMarkovGP:
@@ -77,7 +77,7 @@ class VariationalMarkovGP:
         self.DTYPE = self.observations.dtype
 
         self.N = grid.shape[0]
-        self.grid = grid[1:]  # TODO: We need to do this here because our grid is [t0, t1] both included. Check this on paper once and we might be able to reduce the parameters.
+        self.grid = grid
 
         self.dt = float(self.grid[1] - self.grid[0])
         self.observations_time_points = self._time_points
@@ -94,13 +94,13 @@ class VariationalMarkovGP:
         self.q_initial_cov = tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
         self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
-        self.psi_lagrange = tf.zeros_like(self.b)   # [N, D]
+        self.psi_lagrange = tf.ones_like(self.b) * -1e-10   # [N, D]
 
         self.q_lr = lr  # lr for variational parameters A and b
         self.p_lr = lr  # lr for prior parameters
         self.x_lr = lr   # lr for initial statistics
 
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.1)  # tf.optimizers.Adam(lr=0.1)
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)  # tf.optimizers.Adam(lr=0.1)
 
         self.elbo_vals = []
 
@@ -136,57 +136,18 @@ class VariationalMarkovGP:
 
         return ssm.marginal_means, ssm.marginal_covariances
 
-    def E_sde(self, m: tf.Tensor, S: tf.Tensor, stop_drift_gradient: bool = True):
-        """
-        E_sde = 0.5 * <(f-f_L)^T \sigma^{-1} (f-f_L)>_{q_t}.
-        Apply Gaussian quadrature method to approximate the integral.
-        """
-        assert self.state_dim == 1
-        quadrature_pnts = 20
-
-        def func(x, t=None):
-            # Adding N information
-            x = tf.transpose(x, perm=[1, 0, 2])
-            n_pnts = x.shape[1]
-
-            A = tf.repeat(self.A, n_pnts, axis=1)
-            b = tf.repeat(self.b, n_pnts, axis=1)
-            b = tf.expand_dims(b, axis=-1)
-
-            A = tf.stop_gradient(A)
-            b = tf.stop_gradient(b)
-
-            prior_drift = self.prior_sde.drift(x=x, t=t)
-            if stop_drift_gradient:
-                prior_drift = tf.stop_gradient(prior_drift)
-
-            tmp = prior_drift + ((x * A) - b)
-            tmp = tmp * tmp
-
-            sigma = self.prior_sde.q
-            sigma = tf.stop_gradient(sigma)
-
-            val = tmp * (1 / sigma)
-
-            return tf.transpose(val, perm=[1, 0, 2])
-
-        diag_quad = NDiagGHQuadrature(self.state_dim, quadrature_pnts)
-        e_sde = diag_quad(func, m, tf.squeeze(S, axis=-1))
-
-        return 0.5 * tf.reduce_sum(e_sde)
-
     def grad_E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
         Gradient of E_sde wrt m and S.
         """
         with tf.GradientTape(persistent=True) as g:
             g.watch([m, S])
-            E_sde = self.E_sde(m, S)
+            E_sde = KL_sde(self.prior_sde, self.A, self.b, m, S, self.dt)
 
         dE_dm, dE_dS = g.gradient(E_sde, [m, S])
         dE_dS = tf.squeeze(dE_dS, axis=-1)
 
-        return dE_dm, dE_dS
+        return dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
 
     def update_initial_statistics(self, convergence_tol=1e-4):
         """
@@ -318,8 +279,8 @@ class VariationalMarkovGP:
         """
         KL[q(x0) || p(x0)]
         """
-        q0_mean = tf.stop_gradient(self.q_initial_mean)
-        q0_cov = tf.stop_gradient(self.q_initial_cov)
+        q0_mean = self.q_initial_mean  #tf.stop_gradient(self.q_initial_mean)
+        q0_cov = self.q_initial_cov  #tf.stop_gradient(self.q_initial_cov)
 
         dist_qx0 = distributions.Normal(q0_mean, tf.linalg.cholesky(q0_cov))
         dist_px0 = distributions.Normal(self.p_initial_mean, tf.linalg.cholesky(self.p_initial_cov))
@@ -328,8 +289,14 @@ class VariationalMarkovGP:
     def elbo(self) -> float:
         """ Variational lower bound to the marginal likelihood """
         m, S = self.forward_pass
-        E_sde = tf.reduce_sum(self.E_sde(m, S))
-        E_sde = E_sde * self.dt
+
+        # remove the initial state and the final A and b
+        m = m[1:]
+        S = S[1:]
+        A = self.A[:-1]
+        b = self.b[:-1]
+
+        E_sde = KL_sde(self.prior_sde, A, b, m, S, self.dt)
 
         KL_q0_p0 = self.KL_initial_state()
 
@@ -354,7 +321,7 @@ class VariationalMarkovGP:
         S = tf.stop_gradient(S)
 
         def func():
-            return self.E_sde(m, S, stop_drift_gradient=False) * self.dt + self.KL_initial_state()
+            return KL_sde(self.prior_sde, self.A, self.b, m, S, self.dt) + self.KL_initial_state()
 
         old_val = self.prior_sde.trainable_variables
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
@@ -382,13 +349,17 @@ class VariationalMarkovGP:
         """
         Run inference till convergence
         """
+        self.elbo_vals.append(self.elbo())
+        print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
+
         while self.q_lr >= 1e-4 and self.x_lr >= 1e-4:
             inference_converged = False
             x0_converged = False
             while not inference_converged and not x0_converged:
                 inference_converged = self.run_single_inference()
                 x0_converged = self.update_initial_statistics()
-                self.elbo_vals.append(self.elbo())
+
+            self.elbo_vals.append(self.elbo())
 
             if update_prior:
                 prior_converged = False

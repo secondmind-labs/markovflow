@@ -1,5 +1,5 @@
 """
-Script for common utility functions needed for OU process experiment.
+Script for common utility functions needed for SDE experiments.
 """
 
 import matplotlib.pyplot as plt
@@ -7,13 +7,68 @@ import numpy as np
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood
 
+from markovflow.sde.sde import OrnsteinUhlenbeckSDE, DoubleWellSDE
+from markovflow.sde.sde_utils import euler_maruyama
 from markovflow.models.vi_sde import VariationalMarkovGP
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
 from markovflow.models.variational_cvi import CVIGaussianProcess
 from markovflow.kernels import SDEKernel
-from markovflow.sde.sde import OrnsteinUhlenbeckSDE
-from markovflow.sde.sde_utils import euler_maruyama
+
+
+def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, simulation_dt: float,
+                     noise_stddev: np.ndarray, n_observations: int, dtype: tf.DType = tf.float64,
+                     state_dim: int = 1, num_batch: int = 1):
+
+    decay = decay * tf.ones((1, 1), dtype=dtype)
+    q = q * tf.ones((1, 1), dtype=dtype)
+    sde = OrnsteinUhlenbeckSDE(decay=decay, q=q)
+
+    x0_shape = (num_batch, state_dim)
+    x0 = x0 + tf.zeros(x0_shape, dtype=dtype)
+
+    time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
+
+    # Observation at every even place
+    observation_idx = list(tf.cast(np.linspace(2, time_grid.shape[0]-2, n_observations), dtype=tf.int32))
+    observation_grid = tf.gather(time_grid, observation_idx)
+
+    latent_process = euler_maruyama(sde, x0, time_grid)
+
+    # Pick observations from the latent process
+    latent_states = tf.gather(latent_process, observation_idx, axis=1)
+
+    # Adding observation noise
+    simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
+
+    return simulated_values, observation_grid, latent_process, time_grid
+
+
+def generate_dw_data(q: float, x0: float, t0: float, t1: float, simulation_dt: float,
+                     noise_stddev: np.ndarray, n_observations: int, dtype: tf.DType = tf.float64,
+                     state_dim: int = 1, num_batch: int = 1):
+
+    q = q * tf.ones((1, 1), dtype=dtype)
+    sde = DoubleWellSDE(q=q)
+
+    x0_shape = (num_batch, state_dim)
+    x0 = x0 + tf.zeros(x0_shape, dtype=dtype)
+
+    time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
+
+    # Observation at every even place
+    observation_idx = list(tf.cast(np.linspace(2, time_grid.shape[0]-2, n_observations), dtype=tf.int32))
+    observation_grid = tf.gather(time_grid, observation_idx)
+
+    latent_process = euler_maruyama(sde, x0, time_grid)
+
+    # Pick observations from the latent process
+    latent_states = tf.gather(latent_process, observation_idx, axis=1)
+
+    # Adding observation noise
+    simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
+
+    return simulated_values, observation_grid, latent_process, time_grid
 
 
 def plot_posterior(m: np.ndarray, S_std: np.ndarray, time_grid: np.ndarray, model_type):
@@ -136,7 +191,7 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
 
 
 def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, noise_stddev: np.ndarray,
-        iterations: int = 50, state_dim: int = 1) -> GaussianProcessRegression:
+            iterations: int = 50, state_dim: int = 1) -> GaussianProcessRegression:
     """
     Train a GPR model.
     """
@@ -156,31 +211,3 @@ def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, 
             opt_step()
 
     return gpr_model
-
-
-def generate_data(decay: float, q: float, x0: float, t0: float, t1: float, simulation_dt: float, noise_stddev: np.ndarray,
-                  n_observations: int, dtype: tf.DType=tf.float64, state_dim: int = 1, num_batch: int = 1):
-
-    decay = decay * tf.ones((1, 1), dtype=dtype)
-    q = q * tf.ones((1, 1), dtype=dtype)
-    sde = OrnsteinUhlenbeckSDE(decay=decay, q=q)
-
-    x0_shape = (num_batch, state_dim)
-    x0 = x0 + tf.zeros(x0_shape, dtype=dtype)
-
-    time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
-
-    # Observation at every even place
-    observation_idx = list(tf.cast(np.linspace(10, time_grid.shape[0]-2, n_observations), dtype=tf.int32))
-    observation_grid = tf.gather(time_grid, observation_idx)
-
-    latent_process = euler_maruyama(sde, x0, time_grid)
-
-    # Pick observations from the latent process
-    latent_states = tf.gather(latent_process, observation_idx, axis=1)
-
-    # Adding observation noise
-    simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
-
-    return simulated_values, observation_grid, latent_process, time_grid
-
