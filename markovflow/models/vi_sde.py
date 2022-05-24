@@ -344,9 +344,15 @@ class VariationalMarkovGP:
         """
         Run a single loop of inference.
         """
-        m, S = self.forward_pass
-        self.update_lagrange(m, S)
-        converged = self.update_param(m, S)
+        try:
+            m, S = self.forward_pass
+            self.update_lagrange(m, S)
+            converged = self.update_param(m, S)
+        except Exception as ex:
+            print(f"Excpetion while performing inference : {ex}")
+            print("Trying by reducing the LR!")
+            self.q_lr = self.q_lr / 2
+            converged = False
 
         return converged
 
@@ -364,7 +370,8 @@ class VariationalMarkovGP:
                 inference_converged = self.run_single_inference()
                 x0_converged = self.update_initial_statistics()
 
-            self.elbo_vals.append(self.elbo())
+                self.elbo_vals.append(self.elbo())
+                print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
             if update_prior:
                 prior_converged = False

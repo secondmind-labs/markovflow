@@ -15,22 +15,22 @@ sys.path.append("..")
 from sde_exp_utils import generate_ou_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
     get_cvi_gpr, predict_cvi_gpr
 
-tf.random.set_seed(83)
-np.random.seed(83)
+tf.random.set_seed(3)
+np.random.seed(3)
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
 
 """
 Parameters
 """
-decay = 2.  # specify without the negative sign
-q = 0.5
+decay = 2.5  # specify without the negative sign
+q = 1.2
 noise_var = 0.05
-x0 = 1.
+x0 = 5.
 
-t0, t1 = 0.0, 5.
-simulation_dt = 0.001  # Used for Euler-Maruyama
-n_observations = 50
+t0, t1 = 0.0, 10.
+simulation_dt = 0.005  # Used for Euler-Maruyama
+n_observations = 10
 
 learn_prior_sde = False
 prior_initial_decay_val = tf.random.normal((1, 1), dtype=DTYPE)  # Used when learning prior sde
@@ -50,7 +50,7 @@ plot_observations(observation_grid.numpy(), observation_vals.numpy())
 plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
 plt.xlabel("Time (t)")
 plt.ylabel("y(t)")
-plt.ylim([-2, 2])
+plt.ylim([-2, 5])
 plt.xlim([t0, t1])
 plt.title("Observations")
 plt.legend()
@@ -167,9 +167,9 @@ if learn_prior_sde:
 """ELBO comparison"""
 plt.hlines(gpr_log_likelihood, 0, len(v_gp_elbo), color="black", label="Log Likelihood", alpha=0.2,
            linestyles="dashed")
-plt.plot(ssm_elbo[1:], label="SDE-SSM")
-plt.plot(v_gp_elbo[1:], label="VGP")
-plt.title("ELBO[1:]")
+plt.plot(ssm_elbo, label="SDE-SSM")
+plt.plot(v_gp_elbo, label="VGP")
+plt.title("ELBO")
 plt.legend()
 plt.show()
 

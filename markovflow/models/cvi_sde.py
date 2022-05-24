@@ -320,7 +320,7 @@ class SDESSM(CVIGaussianProcess):
         S = tf.stop_gradient(S)
         m = tf.stop_gradient(m)
 
-        # removing batch
+        # removing batch and the last m and S. FIXME: check last point removal
         m = tf.squeeze(m, axis=0)[:-1]
         S = tf.squeeze(S, axis=0)[:-1]
 
@@ -369,7 +369,7 @@ class SDESSM(CVIGaussianProcess):
             while not sites_converged:
                 sites_converged = self.update_sites()
 
-            self.elbo_vals.append(self.classic_elbo().numpy().item())
+                self.elbo_vals.append(self.classic_elbo().numpy().item())
 
             if update_prior:
                 prior_converged = False
