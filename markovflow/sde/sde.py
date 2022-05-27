@@ -312,3 +312,51 @@ class PriorOUSDE(SDE):
         assert x.shape[-1] == self.state_dim
         return tf.linalg.cholesky(self.q)
 
+
+class PriorDoubleWellSDE(SDE):
+    """
+    Prior SDE best suited for the Double-well SDE represented by
+    ..math:: dx(t) = f(x(t)) dt + dB(t),
+    where f(x(t)) = a * x(t) * (c - x(t)^2) and the spectral density of the Brownian motion is specified by q.
+
+    Here, a, c are the Parameters to be learnt.
+    """
+    def __init__(self, q: tf.Tensor = tf.ones((1, 1)), initial_a_val: float = 1., initial_c_val: float = .5):
+        """
+        Initialize the SDE.
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(PriorDoubleWellSDE, self).__init__(state_dim=q.shape[0])
+        self._initialize_model(initial_a_val, initial_c_val)
+        self.q = q
+
+    def _initialize_model(self, initial_a_val: float, initial_c_val: float):
+        """
+        Initialize the parameters of the drift function and make them trainable.
+        """
+        self.a = tf.Variable(initial_a_val, trainable=True, dtype=tf.float64)
+        self.c = tf.Variable(initial_c_val, trainable=True, dtype=tf.float64)
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Drift of the process.
+
+        ..math:: f(x(t), t) = a * x(t) * (c - x(t)^2)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        x = self.a * x * (self.c - tf.square(x))
+        return x
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Diffusion of the process.
+        ..math:: l(x(t), t) = sqrt(q)
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.linalg.cholesky(self.q)

@@ -76,7 +76,7 @@ class SDESSM(CVIGaussianProcess):
         self.output_dim = 1
         self.state_dim = 1
 
-        self._intialize_mean_statistic()
+        self._initialize_mean_statistic()
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
 
         self.sites_lr = learning_rate
@@ -92,7 +92,7 @@ class SDESSM(CVIGaussianProcess):
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i].append(param.numpy().item())
 
-    def _intialize_mean_statistic(self):
+    def _initialize_mean_statistic(self):
         """Simulate initial mean from the prior SDE."""
 
         self.initial_mean = tf.zeros((1, self.state_dim), dtype=self.observations.dtype)
@@ -370,6 +370,7 @@ class SDESSM(CVIGaussianProcess):
                 sites_converged = self.update_sites()
 
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
+                print(f"SSM: ELBO {self.elbo_vals[-1]}!")
 
             if update_prior:
                 prior_converged = False

@@ -30,13 +30,13 @@ x0 = 5.
 
 t0, t1 = 0.0, 10.
 simulation_dt = 0.005  # Used for Euler-Maruyama
-n_observations = 10
+n_observations = 20
 
-learn_prior_sde = False
-prior_initial_decay_val = tf.random.normal((1, 1), dtype=DTYPE)  # Used when learning prior sde
+learn_prior_sde = True
+prior_initial_decay_val = tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
-Generate observations for a linear SDE
+Generate observations
 """
 noise_stddev = np.sqrt(noise_var)
 
@@ -123,7 +123,7 @@ likelihood_vgp = Gaussian(noise_stddev**2)
 
 vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.1)
+                                lr=0.5)
 vgp_model.p_initial_cov = (q/(2 * decay)) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
 vgp_model.q_initial_cov = vgp_model.p_initial_cov
 vgp_model.A = decay + 0. * vgp_model.A

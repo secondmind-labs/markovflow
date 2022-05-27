@@ -30,7 +30,12 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
     time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
 
     # Observation at every even place
-    observation_idx = list(tf.cast(np.linspace(2, time_grid.shape[0]-2, n_observations), dtype=tf.int32))
+
+    # Don't observe on 10% of both the time ends
+    N = time_grid.shape[0]
+    l1 = int(N * 0.1)
+    l2 = int(N * 0.9)
+    observation_idx = list(tf.cast(np.linspace(l1, l2, n_observations), dtype=tf.int32))
     observation_grid = tf.gather(time_grid, observation_idx)
 
     latent_process = euler_maruyama(sde, x0, time_grid)
@@ -68,7 +73,7 @@ def generate_dw_data(q: float, x0: float, t0: float, t1: float, simulation_dt: f
     # Adding observation noise
     simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
 
-    return simulated_values, observation_grid, latent_process, time_grid
+    return simulated_values, observation_grid, latent_process, time_grid, sde
 
 
 def plot_posterior(m: np.ndarray, S_std: np.ndarray, time_grid: np.ndarray, model_type):
