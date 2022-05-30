@@ -1,4 +1,7 @@
 """OU SDE CVI vs SDE VI"""
+import os
+
+import gpflow
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -12,41 +15,37 @@ from markovflow.models.vi_sde import VariationalMarkovGP
 
 import sys
 sys.path.append("..")
-from sde_exp_utils import generate_ou_data, get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
+from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
     get_cvi_gpr, predict_cvi_gpr
 
-tf.random.set_seed(3)
-np.random.seed(3)
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
 
 """
 Parameters
 """
-decay = 2.5  # specify without the negative sign
-q = 1.2
-noise_var = 0.05
-x0 = 5.
-
-t0, t1 = 0.0, 10.
-simulation_dt = 0.005  # Used for Euler-Maruyama
-n_observations = 20
+data_dir = "data/119/"
 
 learn_prior_sde = True
-prior_initial_decay_val = tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
+prior_initial_decay_val = 0.2 + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
-Generate observations
+Get Data
 """
-noise_stddev = np.sqrt(noise_var)
+data_path = os.path.join(data_dir, "data.npz")
+data = np.load(data_path)
+decay = data["decay"]
+q = data["q"]
+noise_stddev = data["noise_stddev"]
+x0 = data["x0"]
+observation_vals = data["observation_vals"]
+observation_grid = data["observation_grid"]
+latent_process = data["latent_process"]
+time_grid = data["time_grid"]
+t0 = time_grid[0]
+t1 = time_grid[-1]
 
-observation_vals, observation_grid, latent_process, time_grid = generate_ou_data(decay=decay, q=q, x0=x0, t0=t0, t1=t1,
-                                                                                 simulation_dt=simulation_dt,
-                                                                                 noise_stddev=noise_stddev,
-                                                                                 n_observations=n_observations,
-                                                                                 dtype=DTYPE)
-
-plot_observations(observation_grid.numpy(), observation_vals.numpy())
+plot_observations(observation_grid, observation_vals)
 plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
 plt.xlabel("Time (t)")
 plt.ylabel("y(t)")
@@ -60,6 +59,15 @@ print(f"True decay value of the OU SDE is {decay}")
 print(f"Noise std-dev is {noise_stddev}")
 
 input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
+
+
+if learn_prior_sde:
+    plot_save_dir = os.path.join(data_dir, "learning")
+else:
+    plot_save_dir = os.path.join(data_dir, "inference")
+
+if not os.path.exists(plot_save_dir):
+    os.makedirs(plot_save_dir)
 """
 GPR
 """
@@ -67,6 +75,7 @@ likelihood_gpr = Gaussian(noise_stddev**2)
 
 if learn_prior_sde:
     kernel = OrnsteinUhlenbeck(decay=prior_initial_decay_val.numpy().item(), diffusion=q)
+    gpflow.set_trainable(kernel.diffusion, False)
 else:
     kernel = OrnsteinUhlenbeck(decay=decay, diffusion=q)
 
@@ -77,6 +86,7 @@ gpr_log_likelihood = gpr_model.log_likelihood().numpy()
 print(f"GPR Likelihood : {gpr_log_likelihood}")
 
 print(f"CVI-GPR ELBO: {cvi_gpr_model.classic_elbo()}")
+
 """
 SDE-SSM
 """
@@ -135,18 +145,21 @@ if learn_prior_sde:
 """
 Predict Posterior
 """
-plot_observations(observation_grid.numpy(), observation_vals.numpy())
+plot_observations(observation_grid, observation_vals)
 # m_gpr, s_std_gpr = predict_gpr(gpr_model, time_grid.numpy())  # FOR GPR MODEL
-m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, time_grid.numpy(), noise_stddev)
+m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, time_grid, noise_stddev)
 m_ssm, s_std_ssm = predict_ssm(ssm_model, noise_stddev)
 m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
 """
 Compare Posterior
 """
-plot_posterior(m_gpr, s_std_gpr, time_grid.numpy(), "GPR")
-plot_posterior(m_ssm, s_std_ssm, time_grid.numpy(), "SDE-SSM")
-plot_posterior(m_vgp, s_std_vgp, time_grid.numpy(), "VGP")
+plot_posterior(m_gpr, s_std_gpr, time_grid, "GPR")
+plot_posterior(m_ssm, s_std_ssm, time_grid, "SDE-SSM")
+plot_posterior(m_vgp, s_std_vgp, time_grid, "VGP")
 plt.legend()
+
+plt.savefig(os.path.join(plot_save_dir, "posterior.svg"))
+
 plt.show()
 
 """
@@ -159,8 +172,10 @@ if learn_prior_sde:
     plt.plot(ssm_prior_decay_values, label="SDE-SSM", color="blue")
     plt.hlines(-1 * cvi_gpr_model.kernel.decay, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
                label="CVI-GPR", color="red")
-    plt.title("Prior Learning")
+    plt.title("Prior Learning (decay)")
     plt.legend()
+    plt.ylabel("decay")
+    plt.savefig(os.path.join(plot_save_dir, "prior_learning_decay.svg"))
     plt.show()
 
 
@@ -171,13 +186,14 @@ plt.plot(ssm_elbo, label="SDE-SSM")
 plt.plot(v_gp_elbo, label="VGP")
 plt.title("ELBO")
 plt.legend()
+plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
 plt.show()
 
 """
 ELBO Bound
 """
 if not learn_prior_sde:
-    decay_value_range = np.linspace(0.01, decay + 0.5, 10)
+    decay_value_range = np.linspace(0.01, decay + 2.5, 10)
     gpr_log_likelihood_vals = []
     ssm_elbo_vals = []
     vgp_elbo_vals = []
@@ -205,4 +221,5 @@ if not learn_prior_sde:
              color="black")
     plt.vlines(decay, np.min(gpr_log_likelihood_vals), np.max(gpr_log_likelihood_vals))
     plt.legend()
+    plt.savefig(os.path.join(plot_save_dir, "elbo_bound.svg"))
     plt.show()

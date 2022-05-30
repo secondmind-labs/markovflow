@@ -17,7 +17,7 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
-from gpflow.likelihoods import Likelihood
+from gpflow.likelihoods import Likelihood, Gaussian
 from gpflow.base import Parameter
 from gpflow import default_float
 
@@ -80,7 +80,7 @@ class SDESSM(CVIGaussianProcess):
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
 
         self.sites_lr = learning_rate
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=learning_rate)
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.1)  # learning_rate)
         self.elbo_vals = []
 
         self.prior_params = {}
@@ -367,7 +367,19 @@ class SDESSM(CVIGaussianProcess):
         while self.sites_lr > 1e-2:
             sites_converged = False
             while not sites_converged:
-                sites_converged = self.update_sites()
+                if isinstance(self.likelihood, Gaussian):
+                    # FIXME: Testing it for Gaussian. Clean later if works and is stable.
+                    print("SSM : As Likelihood is Gaussian, performing a single site update with LR=1.")
+                    orig_lr = self.sites_lr
+                    self.sites_lr = 1.
+                    self.update_sites()
+                    sites_converged = True
+                    if update_prior:
+                        self.sites_lr = orig_lr
+                    else:
+                        self.sites_lr = 1e-3
+                else:
+                    sites_converged = self.update_sites()
 
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
                 print(f"SSM: ELBO {self.elbo_vals[-1]}!")
@@ -377,6 +389,10 @@ class SDESSM(CVIGaussianProcess):
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
+
+                # FIXME: ONLY FOR OU
+                self.initial_chol_cov = tf.linalg.cholesky(
+                    (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
 
             print(f"SSM: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             self.sites_lr = self.sites_lr / 2

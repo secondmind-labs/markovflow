@@ -97,7 +97,7 @@ class VariationalMarkovGP:
         self.psi_lagrange = tf.ones_like(self.b) * -1e-10   # [N, D]
 
         self.q_lr = lr  # lr for variational parameters A and b
-        self.p_lr = lr  # lr for prior parameters
+        self.p_lr = 0.1 #lr  # lr for prior parameters
         self.x_lr = lr   # lr for initial statistics
 
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)  # tf.optimizers.Adam(lr=0.1)
@@ -153,7 +153,9 @@ class VariationalMarkovGP:
         """
         Update the initial statistics.
         """
-        q_initial_mean = self.p_initial_mean - tf.reshape(self.lambda_lagrange[0], self.q_initial_mean.shape) * tf.reshape(self.p_initial_cov, self.q_initial_mean.shape)
+        q_initial_mean = self.p_initial_mean - tf.reshape(self.lambda_lagrange[0],
+                                                          self.q_initial_mean.shape) * tf.reshape(self.p_initial_cov,
+                                                                                                  self.q_initial_mean.shape)
         q_initial_cov = 1/(2 * tf.reshape(self.psi_lagrange[0], self.q_initial_cov.shape) + 1/self.p_initial_cov)
 
         # compute criterion for convergence
@@ -211,8 +213,8 @@ class VariationalMarkovGP:
             d_psi = psi_lagrange[t] * self.A[t] + psi_lagrange[t] * self.A[t] - dEdS[t]
             d_lambda = self.A[t] * lambda_lagrange[t] - dEdm[t]
 
-            psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t-1]
-            lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t-1]
+            psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t]
+            lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t]
 
         self.psi_lagrange = tf.convert_to_tensor(psi_lagrange)
         self.lambda_lagrange = tf.convert_to_tensor(lambda_lagrange)
@@ -256,6 +258,8 @@ class VariationalMarkovGP:
         b(t) = (1 - lr) * b(t) + lr *  \tilde{b(t)}
 
         """
+        assert m.shape[0] == self.A.shape[0]
+
         var = self.prior_sde.q
 
         A_tilde = tf.squeeze(-self.prior_sde.expected_gradient_drift(m[..., None], S), axis=-1) + 2. * var * self.psi_lagrange
@@ -279,8 +283,8 @@ class VariationalMarkovGP:
         """
         KL[q(x0) || p(x0)]
         """
-        q0_mean = self.q_initial_mean  #tf.stop_gradient(self.q_initial_mean)
-        q0_cov = self.q_initial_cov  #tf.stop_gradient(self.q_initial_cov)
+        q0_mean = tf.stop_gradient(self.q_initial_mean)
+        q0_cov = tf.stop_gradient(self.q_initial_cov)
 
         dist_qx0 = distributions.Normal(q0_mean, tf.linalg.cholesky(q0_cov))
         dist_px0 = distributions.Normal(self.p_initial_mean, tf.linalg.cholesky(self.p_initial_cov))
@@ -290,13 +294,8 @@ class VariationalMarkovGP:
         """ Variational lower bound to the marginal likelihood """
         m, S = self.forward_pass
 
-        # remove the initial state and the final A and b
-        m = m[1:]
-        S = S[1:]
-        A = self.A[:-1]
-        b = self.b[:-1]
-
-        E_sde = KL_sde(self.prior_sde, A, b, m, S, self.dt)
+        # remove the final state and the final A and b
+        E_sde = KL_sde(self.prior_sde, self.A[:-1], self.b[:-1], m[:-1], S[:-1], self.dt)
 
         KL_q0_p0 = self.KL_initial_state()
 
@@ -321,8 +320,8 @@ class VariationalMarkovGP:
             # m = tf.stop_gradient(m)
             # S = tf.stop_gradient(S)
             # remove the initial state and the final A and b
-            m = m[1:]
-            S = S[1:]
+            m = m[:-1]
+            S = S[:-1]
             A = self.A[:-1]
             b = self.b[:-1]
 
@@ -349,7 +348,7 @@ class VariationalMarkovGP:
             self.update_lagrange(m, S)
             converged = self.update_param(m, S)
         except Exception as ex:
-            print(f"Excpetion while performing inference : {ex}")
+            print(f"Exception while performing inference : {ex}")
             print("Trying by reducing the LR!")
             self.q_lr = self.q_lr / 2
             converged = False
@@ -363,7 +362,7 @@ class VariationalMarkovGP:
         self.elbo_vals.append(self.elbo())
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
 
-        while self.q_lr >= 1e-4 and self.x_lr >= 1e-4:
+        while self.q_lr >= 1e-2 and self.x_lr >= 1e-2:
             inference_converged = False
             x0_converged = False
             while not inference_converged and not x0_converged:
@@ -378,6 +377,9 @@ class VariationalMarkovGP:
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
+
+                # FIXME: Only for OU
+                self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(self.p_initial_cov)
 
             print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             self.q_lr = self.q_lr / 2

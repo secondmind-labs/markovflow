@@ -33,8 +33,8 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
 
     # Don't observe on 10% of both the time ends
     N = time_grid.shape[0]
-    l1 = int(N * 0.1)
-    l2 = int(N * 0.9)
+    l1 = int(N * 0.05)
+    l2 = int(N * 0.95)
     observation_idx = list(tf.cast(np.linspace(l1, l2, n_observations), dtype=tf.int32))
     observation_grid = tf.gather(time_grid, observation_idx)
 
@@ -184,12 +184,12 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
 
     # FIXME: Remove this hard coding nd do on the basis of ELBO values
-    for _ in range(4):
-        for _ in range(2):
+    for _ in range(20):
+        for _ in range(4):
             cvi_model.update_sites()
 
         if train:
-            for _ in range(10):
+            for _ in range(5):
                 opt_step()
 
     return cvi_model
