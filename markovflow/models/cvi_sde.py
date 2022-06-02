@@ -83,6 +83,9 @@ class SDESSM(CVIGaussianProcess):
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.01)  # learning_rate)
         self.elbo_vals = []
 
+        self.dist_p_ssm = None
+        self._linearize_prior()
+
         self.prior_params = {}
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
@@ -91,6 +94,21 @@ class SDESSM(CVIGaussianProcess):
         """Update the list storing the prior sde parameter values"""
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i].append(param.numpy().item())
+
+    def _linearize_prior(self):
+        """
+            Set the :class:`~markovflow.state_space_model.StateSpaceModel` representation of the prior process.
+
+            Here, we approximate (linearize) the prior SDE based on the grid.
+        """
+        # FIXME: check this. because of timepoints[:-1]?
+        fx_mus = self.fx_mus[:, :-1, :]
+        fx_covs = self.fx_covs[:, :-1, :, :]
+
+        self.dist_p_ssm = linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
+                                        q_covar=fx_covs, initial_mean=self.initial_mean,
+                                        initial_chol_covariance=self.initial_chol_cov,
+                                        )
 
     def _initialize_mean_statistic(self):
         """Simulate initial mean from the prior SDE."""
@@ -137,22 +155,6 @@ class SDESSM(CVIGaussianProcess):
         """
         return self.posterior_kalman.posterior_state_space_model()
 
-    @property
-    def dist_p(self) -> StateSpaceModel:
-        """
-        Return the :class:`~markovflow.state_space_model.StateSpaceModel` representation of the prior process.
-
-        Here, we approximate (linearize) the prior SDE based on the grid.
-        """
-        # FIXME: check this. because of timepoints[:-1]?
-        fx_mus = self.fx_mus[:, :-1, :]
-        fx_covs = self.fx_covs[:, :-1, :, :]
-
-        return linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
-                             q_covar=fx_covs, initial_mean=self.initial_mean,
-                             initial_chol_covariance=self.initial_chol_cov,
-                             )
-
     def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
         """
         Generate the :class:`~markovflow.emission_model.EmissionModel` that maps from the
@@ -186,7 +188,7 @@ class SDESSM(CVIGaussianProcess):
     def posterior_kalman(self) -> KalmanFilterWithSites:
         """Build the Kalman filter object from the prior state space models and the sites."""
         return KalmanFilterWithSites(
-            state_space_model=self.dist_p,
+            state_space_model=self.dist_p_ssm,
             emission_model=self.generate_emission_model(tf.reshape(self.time_points, (-1))),
             sites=self.sites,
         )
@@ -222,13 +224,13 @@ class SDESSM(CVIGaussianProcess):
         self.data_sites.nat2.assign(new_nat2)
         self.data_sites.nat1.assign(new_nat1)
 
-        # Done this way as dist_q -> dist_p -> fx_mus, fx_covs
+        # Done this way as dist_q -> dist_p_ssm -> fx_mus, fx_covs
         dist_q = self.dist_q
         self.fx_mus, self.fx_covs = dist_q.marginals
 
         return has_converged
 
-    def kl(self) -> tf.Tensor:
+    def kl(self, dist_p: StateSpaceModel) -> tf.Tensor:
         r"""
         KL between dist_q and dist_p modified for stopping gradient.
 
@@ -244,7 +246,6 @@ class SDESSM(CVIGaussianProcess):
         """
 
         dist_q = self.dist_q
-        dist_p = self.dist_p
 
         batch_shape = dist_q.batch_shape
 
@@ -298,8 +299,18 @@ class SDESSM(CVIGaussianProcess):
 
     def update_prior_sde(self, convergence_tol=1e-4):
 
+        # @property
+        def dist_p() -> StateSpaceModel:
+            fx_mus = self.fx_mus[:, :-1, :]
+            fx_covs = self.fx_covs[:, :-1, :, :]
+
+            return linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
+                                 q_covar=fx_covs, initial_mean=self.initial_mean,
+                                 initial_chol_covariance=self.initial_chol_cov,
+                                 )
+
         def loss():
-            return self.kl() + self.loss_lin()
+            return self.kl(dist_p=dist_p()) + self.loss_lin(dist_p=dist_p())
             # return -1. * self.posterior_kalman.log_likelihood() #+ self.loss_lin()
 
         old_val = self.prior_sde.trainable_variables
@@ -314,10 +325,14 @@ class SDESSM(CVIGaussianProcess):
 
         return has_converged
 
-    def loss_lin(self):
+    def loss_lin(self, dist_p: StateSpaceModel = None):
         """
         KL[p || p_{lin}]
         """
+
+        if dist_p is None:
+            dist_p = self.dist_p_ssm
+
         m, S = self.dist_q.marginals
         S = tf.stop_gradient(S)
         m = tf.stop_gradient(m)
@@ -327,8 +342,8 @@ class SDESSM(CVIGaussianProcess):
         S = tf.squeeze(S, axis=0)[:-1]
 
         # convert from A and b to SDE Q's drift and offset
-        A = tf.squeeze(self.dist_p.state_transitions, axis=0)
-        b = tf.squeeze(self.dist_p.state_offsets, axis=0)
+        A = tf.squeeze(dist_p.state_transitions, axis=0)
+        b = tf.squeeze(dist_p.state_offsets, axis=0)
         A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
         b = b / (self.grid[1] - self.grid[0])
 
@@ -356,7 +371,7 @@ class SDESSM(CVIGaussianProcess):
             )
         )
         # KL[q(sₓ) || p(sₓ)]
-        kl_fx = tf.reduce_sum(self.dist_q.kl_divergence(self.dist_p))
+        kl_fx = tf.reduce_sum(self.dist_q.kl_divergence(self.dist_p_ssm))
 
         lin_loss = self.loss_lin()
 
@@ -369,7 +384,7 @@ class SDESSM(CVIGaussianProcess):
         """
         self.elbo_vals.append(self.classic_elbo().numpy().item())
         print(f"SSM: Starting ELBO {self.elbo_vals[-1]};")
-        while self.sites_lr > 1e-2:
+        for _ in range(4):
             sites_converged = False
             while not sites_converged:
                 if isinstance(self.likelihood, Gaussian):
@@ -390,9 +405,12 @@ class SDESSM(CVIGaussianProcess):
                 print(f"SSM: ELBO {self.elbo_vals[-1]}!")
 
             if update_prior:
-                prior_converged = False
-                while not prior_converged:
-                    prior_converged = self.update_prior_sde()
+                for _ in range(4):
+                    self.update_prior_sde()
+
+                    # Linearize the prior
+                    self._linearize_prior()
+
                     self._store_prior_param_vals()
                     print(f"Updated decay value : {self.prior_params[0][-1]}")
 
@@ -400,8 +418,10 @@ class SDESSM(CVIGaussianProcess):
                 if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
                     self.initial_chol_cov = tf.linalg.cholesky(
                         (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
+            else:
+                # only linearize the prior
+                self._linearize_prior()
 
-            # self._linearize_prior()
             print(f"SSM: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             self.sites_lr = self.sites_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2

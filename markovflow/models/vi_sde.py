@@ -370,22 +370,15 @@ class VariationalMarkovGP:
         # while self.q_lr >= 1e-2: and self.x_lr >= 1e-2:
             inference_converged = False
             x0_converged = False
-            # i = 0  # Maximum iterations
             while not inference_converged and not x0_converged:
                 inference_converged = self.run_single_inference()
                 x0_converged = self.update_initial_statistics()
-                # i = i + 1
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
-                # if self.elbo_vals[-2] > self.elbo_vals[-1]:
-                #     inference_converged = True
-                #     x0_converged = True
-
             if update_prior:
-                prior_converged = False
-                while not prior_converged:
-                    prior_converged = self.update_prior_sde()
+                for _ in range(4):
+                    self.update_prior_sde()
                     self._store_prior_param_vals()
                     print(f"Updated decay parameter : {self.prior_params[0][-1]}")
 

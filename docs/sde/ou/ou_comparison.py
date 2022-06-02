@@ -27,7 +27,7 @@ Parameters
 data_dir = "data/368"
 
 learn_prior_sde = True
-prior_initial_decay_val = .8 + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
+prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
 Get Data
@@ -111,8 +111,7 @@ ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_gri
 # For OU we know this relation for variance
 ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay)) * tf.ones_like(ssm_model.initial_chol_cov))
 ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item()**2 + 0 * ssm_model.fx_covs
-# ssm_model.fx_mus = tf.constant(latent_process)
-# ssm_model._linearize_prior()  # to linearize the prior and start from the same ELBO as VGP
+ssm_model._linearize_prior()  # to linearize the prior and start from the same ELBO as VGP
 
 ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -136,7 +135,7 @@ likelihood_vgp = Gaussian(noise_stddev**2)
 
 vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.01)
+                                lr=0.1)
 vgp_model.p_initial_cov = (q/(2 * decay)) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
 vgp_model.q_initial_cov = vgp_model.p_initial_cov
 vgp_model.A = decay + 0. * vgp_model.A
@@ -216,7 +215,7 @@ if not learn_prior_sde:
         ssm_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
         ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay_val)) * tf.ones_like(ssm_model.initial_chol_cov))
         ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
-        # ssm_model._linearize_prior()  # To linearize the new prior
+        ssm_model._linearize_prior()  # To linearize the new prior
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
         vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
