@@ -24,7 +24,7 @@ from gpflow import default_float
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
 from markovflow.models.variational_cvi import CVIGaussianProcess
 from markovflow.mean_function import MeanFunction
-from markovflow.sde.sde import SDE
+from markovflow.sde.sde import SDE, OrnsteinUhlenbeckSDE
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
@@ -80,7 +80,7 @@ class SDESSM(CVIGaussianProcess):
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
 
         self.sites_lr = learning_rate
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.1)  # learning_rate)
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.01)  # learning_rate)
         self.elbo_vals = []
 
         self.prior_params = {}
@@ -151,7 +151,7 @@ class SDESSM(CVIGaussianProcess):
         return linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
                              q_covar=fx_covs, initial_mean=self.initial_mean,
                              initial_chol_covariance=self.initial_chol_cov,
-                            )
+                             )
 
     def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
         """
@@ -222,7 +222,9 @@ class SDESSM(CVIGaussianProcess):
         self.data_sites.nat2.assign(new_nat2)
         self.data_sites.nat1.assign(new_nat1)
 
-        self.fx_mus, self.fx_covs = self.dist_q.marginals
+        # Done this way as dist_q -> dist_p -> fx_mus, fx_covs
+        dist_q = self.dist_q
+        self.fx_mus, self.fx_covs = dist_q.marginals
 
         return has_converged
 
@@ -330,6 +332,9 @@ class SDESSM(CVIGaussianProcess):
         A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
         b = b / (self.grid[1] - self.grid[0])
 
+        A = tf.stop_gradient(A)
+        b = tf.stop_gradient(b)
+
         # -1 * A as the function expects A without the negative sign i.e. drift = - A*x + b
         lin_loss = KL_sde(self.prior_sde, -1 * A, b, m, S, dt=(self.grid[1] - self.grid[0]))
         return lin_loss
@@ -355,7 +360,7 @@ class SDESSM(CVIGaussianProcess):
 
         lin_loss = self.loss_lin()
 
-        # print(f"kl_fx = {kl_fx}; ve_fx = {ve_fx}; lin_loss = {lin_loss}")
+        print(f"kl_fx = {kl_fx}; ve_fx = {ve_fx}; lin_loss = {lin_loss}")
         return ve_fx - kl_fx - lin_loss
 
     def run(self, update_prior: bool = False) -> [list, dict]:
@@ -389,11 +394,14 @@ class SDESSM(CVIGaussianProcess):
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
+                    print(f"Updated decay value : {self.prior_params[0][-1]}")
 
                 # FIXME: ONLY FOR OU
-                self.initial_chol_cov = tf.linalg.cholesky(
-                    (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
+                if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
+                    self.initial_chol_cov = tf.linalg.cholesky(
+                        (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
 
+            # self._linearize_prior()
             print(f"SSM: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             self.sites_lr = self.sites_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2

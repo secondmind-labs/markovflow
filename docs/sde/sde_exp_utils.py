@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood
+from gpflow.utilities.bijectors import positive
 
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE, DoubleWellSDE
 from markovflow.sde.sde_utils import euler_maruyama
@@ -177,22 +178,31 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
     cvi_model = CVIGaussianProcess(input_data=input_data, kernel=kernel, likelihood=likelihood,
                                    learning_rate=sites_lr)
 
-    opt = tf.optimizers.Adam()
+    opt = tf.optimizers.Adam(lr=0.1)
+
+    prior_params = {}
+    for i, param in enumerate(kernel.trainable_variables):
+        prior_params[i] = [positive().forward(param).numpy().item()]
 
     @tf.function
     def opt_step():
         opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
 
-    # FIXME: Remove this hard coding nd do on the basis of ELBO values
-    for _ in range(20):
-        for _ in range(4):
+    elbo_vals = [cvi_model.classic_elbo()]
+    while len(elbo_vals) < 10 or elbo_vals[-2] - elbo_vals[-1] > 1e-2:
+        for _ in range(2):
             cvi_model.update_sites()
 
         if train:
             for _ in range(5):
                 opt_step()
 
-    return cvi_model
+            for i, param in enumerate(kernel.trainable_variables):
+                prior_params[i].append(positive().forward(param).numpy().item())
+
+        elbo_vals.append(cvi_model.classic_elbo())
+
+    return cvi_model, prior_params
 
 
 def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, noise_stddev: np.ndarray,

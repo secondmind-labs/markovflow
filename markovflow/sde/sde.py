@@ -258,6 +258,33 @@ class DoubleWellSDE(SDE):
         assert x.shape[-1] == self.state_dim
         return tf.linalg.cholesky(self.q)
 
+    def gradient_drift(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
+        """
+        Calculates the gradient of the drift wrt the states x(t).
+
+        ..math:: df(x(t))/dx(t)
+
+        :param x: states with shape (num_states, state_dim).
+        :param t: time of states with shape (num_states, 1), defaults to zero.
+
+        :return: the gradient of the SDE drift with shape (num_states, state_dim).
+        """
+        return 4. * (1 - 3 * tf.square(x))
+
+    def expected_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+         Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
+
+        ..math:: E_q(.)[f'(x(t))]
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        q_covar = tf.reshape(q_covar, q_mean.shape)  # Currently we support only 1D.
+        return 4. * (1 - 3 * (tf.square(q_mean) + q_covar))
+
 
 class PriorOUSDE(SDE):
     """

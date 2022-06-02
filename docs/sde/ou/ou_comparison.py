@@ -24,10 +24,10 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/119/"
+data_dir = "data/368"
 
 learn_prior_sde = True
-prior_initial_decay_val = 0.2 + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
+prior_initial_decay_val = .8 + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
 Get Data
@@ -49,7 +49,6 @@ plot_observations(observation_grid, observation_vals)
 plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
 plt.xlabel("Time (t)")
 plt.ylabel("y(t)")
-plt.ylim([-2, 5])
 plt.xlim([t0, t1])
 plt.title("Observations")
 plt.legend()
@@ -79,7 +78,9 @@ if learn_prior_sde:
 else:
     kernel = OrnsteinUhlenbeck(decay=decay, diffusion=q)
 
-cvi_gpr_model = get_cvi_gpr(input_data, kernel, likelihood_gpr, train=learn_prior_sde)
+cvi_gpr_model, cvi_params = get_cvi_gpr(input_data, kernel, likelihood_gpr, train=learn_prior_sde)
+if learn_prior_sde:
+    cvi_prior_decay_values = -1 * np.array(cvi_params[0])
 
 gpr_model = get_gpr(input_data, kernel, train=learn_prior_sde, noise_stddev=noise_stddev)
 gpr_log_likelihood = gpr_model.log_likelihood().numpy()
@@ -94,7 +95,7 @@ SDE-SSM
 if learn_prior_sde:
     prior_decay = prior_initial_decay_val
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_ssm = PriorOUSDE(initial_val=prior_decay, q=true_q)
+    prior_sde_ssm = PriorOUSDE(initial_val=-1*prior_decay, q=true_q)  # As prior OU SDE doesn't have a negative sign inside it.
 else:
     true_decay = decay * tf.ones((1, 1), dtype=DTYPE)
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
@@ -110,6 +111,8 @@ ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_gri
 # For OU we know this relation for variance
 ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay)) * tf.ones_like(ssm_model.initial_chol_cov))
 ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item()**2 + 0 * ssm_model.fx_covs
+# ssm_model.fx_mus = tf.constant(latent_process)
+# ssm_model._linearize_prior()  # to linearize the prior and start from the same ELBO as VGP
 
 ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -122,7 +125,7 @@ VGP
 if learn_prior_sde:
     prior_decay = prior_initial_decay_val
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = PriorOUSDE(initial_val=prior_decay, q=true_q)
+    prior_sde_vgp = PriorOUSDE(initial_val=-1*prior_decay, q=true_q) # As prior OU SDE doesn't have a negative sign inside it.
 else:
     true_decay = decay * tf.ones((1, 1), dtype=DTYPE)
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
@@ -133,7 +136,7 @@ likelihood_vgp = Gaussian(noise_stddev**2)
 
 vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.5)
+                                lr=0.01)
 vgp_model.p_initial_cov = (q/(2 * decay)) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
 vgp_model.q_initial_cov = vgp_model.p_initial_cov
 vgp_model.A = decay + 0. * vgp_model.A
@@ -170,14 +173,19 @@ if learn_prior_sde:
                label="True Value", color="black", linestyles="dashed")
     plt.plot(v_gp_prior_decay_values, label="VGP", color="green")
     plt.plot(ssm_prior_decay_values, label="SDE-SSM", color="blue")
-    plt.hlines(-1 * cvi_gpr_model.kernel.decay, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
-               label="CVI-GPR", color="red")
+    plt.plot(cvi_prior_decay_values, label="CVI-GPR", color="red")
+    # plt.hlines(-1 * cvi_gpr_model.kernel.decay.numpy().item(), 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
+    #            label="CVI-GPR", color="red")
     plt.title("Prior Learning (decay)")
     plt.legend()
     plt.ylabel("decay")
     plt.savefig(os.path.join(plot_save_dir, "prior_learning_decay.svg"))
     plt.show()
 
+    print("Q values: ")
+    print(f"GPR : {kernel.diffusion.numpy().item()}")
+    print(f"SDE-SSM : {prior_sde_ssm.q.numpy().item()}")
+    print(f"VGP : {prior_sde_vgp.q.numpy().item()}")
 
 """ELBO comparison"""
 plt.hlines(gpr_log_likelihood, 0, len(v_gp_elbo), color="black", label="Log Likelihood", alpha=0.2,
@@ -208,6 +216,7 @@ if not learn_prior_sde:
         ssm_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
         ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay_val)) * tf.ones_like(ssm_model.initial_chol_cov))
         ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
+        # ssm_model._linearize_prior()  # To linearize the new prior
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
         vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
