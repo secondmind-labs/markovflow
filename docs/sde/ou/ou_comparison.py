@@ -16,7 +16,7 @@ from markovflow.models.vi_sde import VariationalMarkovGP
 import sys
 sys.path.append("..")
 from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
-    get_cvi_gpr, predict_cvi_gpr
+    get_cvi_gpr, predict_cvi_gpr, get_cvi_gpr_taylor, predict_cvi_gpr_taylor
 
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
@@ -24,9 +24,9 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/368"
+data_dir = "data/786"
 
-learn_prior_sde = True
+learn_prior_sde = False
 prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
@@ -59,6 +59,9 @@ print(f"Noise std-dev is {noise_stddev}")
 
 input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
 
+# changing dt
+dt = 0.001
+time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
 
 if learn_prior_sde:
     plot_save_dir = os.path.join(data_dir, "learning")
@@ -68,7 +71,7 @@ else:
 if not os.path.exists(plot_save_dir):
     os.makedirs(plot_save_dir)
 """
-GPR
+GPR - Taylor
 """
 likelihood_gpr = Gaussian(noise_stddev**2)
 
@@ -78,15 +81,12 @@ if learn_prior_sde:
 else:
     kernel = OrnsteinUhlenbeck(decay=decay, diffusion=q)
 
-cvi_gpr_model, cvi_params = get_cvi_gpr(input_data, kernel, likelihood_gpr, train=learn_prior_sde)
+cvi_gpr_taylor_model, cvi_taylor_params, cvi_taylor_elbo_vals = get_cvi_gpr_taylor(input_data, kernel, time_grid, likelihood_gpr,
+                                                             train=learn_prior_sde, sites_lr=1.)
 if learn_prior_sde:
-    cvi_prior_decay_values = -1 * np.array(cvi_params[0])
+    cvi_prior_decay_values = -1 * np.array(cvi_taylor_params[0])
 
-gpr_model = get_gpr(input_data, kernel, train=learn_prior_sde, noise_stddev=noise_stddev)
-gpr_log_likelihood = gpr_model.log_likelihood().numpy()
-print(f"GPR Likelihood : {gpr_log_likelihood}")
-
-print(f"CVI-GPR ELBO: {cvi_gpr_model.classic_elbo()}")
+print(f"CVI-GPR (Taylor) ELBO: {cvi_gpr_taylor_model.classic_elbo()}")
 
 """
 SDE-SSM
@@ -106,12 +106,11 @@ likelihood_ssm = Gaussian(noise_stddev**2)
 
 # model
 ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_grid, likelihood=likelihood_ssm,
-                   learning_rate=0.9)
-
-# For OU we know this relation for variance
-ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay)) * tf.ones_like(ssm_model.initial_chol_cov))
+                   learning_rate=0.9, prior_params_lr=0.01)
+ssm_model.initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), ssm_model.initial_mean.shape)
+ssm_model.initial_chol_cov = tf.reshape(tf.linalg.cholesky(kernel.initial_covariance(time_grid[..., 0:1])), ssm_model.initial_chol_cov.shape)
 ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item()**2 + 0 * ssm_model.fx_covs
-ssm_model._linearize_prior()  # to linearize the prior and start from the same ELBO as VGP
+ssm_model._linearize_prior()
 
 ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -124,7 +123,7 @@ VGP
 if learn_prior_sde:
     prior_decay = prior_initial_decay_val
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = PriorOUSDE(initial_val=-1*prior_decay, q=true_q) # As prior OU SDE doesn't have a negative sign inside it.
+    prior_sde_vgp = PriorOUSDE(initial_val=-1*prior_decay, q=true_q)  # As prior OU SDE doesn't have a negative sign inside it.
 else:
     true_decay = decay * tf.ones((1, 1), dtype=DTYPE)
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
@@ -135,9 +134,13 @@ likelihood_vgp = Gaussian(noise_stddev**2)
 
 vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.1)
-vgp_model.p_initial_cov = (q/(2 * decay)) * tf.ones((1, 1), dtype=DTYPE)  # For OU we know this relation for variance
-vgp_model.q_initial_cov = vgp_model.p_initial_cov
+                                lr=0.01, prior_params_lr=0.01)
+
+vgp_model.p_initial_cov = tf.reshape(kernel.initial_covariance(time_grid[..., 0:1]), vgp_model.p_initial_cov.shape)
+vgp_model.q_initial_cov = tf.reshape(ssm_model.fx_covs[:, 0], shape=vgp_model.q_initial_cov.shape) #tf.identity(vgp_model.p_initial_cov)
+vgp_model.p_initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), vgp_model.p_initial_mean.shape)
+vgp_model.q_initial_mean = tf.reshape(ssm_model.fx_mus[:, 0], shape=vgp_model.q_initial_mean.shape) #tf.identity(vgp_model.p_initial_mean)
+
 vgp_model.A = decay + 0. * vgp_model.A
 
 v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=learn_prior_sde)
@@ -148,8 +151,7 @@ if learn_prior_sde:
 Predict Posterior
 """
 plot_observations(observation_grid, observation_vals)
-# m_gpr, s_std_gpr = predict_gpr(gpr_model, time_grid.numpy())  # FOR GPR MODEL
-m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, time_grid, noise_stddev)
+m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_taylor_model, noise_stddev)
 m_ssm, s_std_ssm = predict_ssm(ssm_model, noise_stddev)
 m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
 """
@@ -173,8 +175,6 @@ if learn_prior_sde:
     plt.plot(v_gp_prior_decay_values, label="VGP", color="green")
     plt.plot(ssm_prior_decay_values, label="SDE-SSM", color="blue")
     plt.plot(cvi_prior_decay_values, label="CVI-GPR", color="red")
-    # plt.hlines(-1 * cvi_gpr_model.kernel.decay.numpy().item(), 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
-    #            label="CVI-GPR", color="red")
     plt.title("Prior Learning (decay)")
     plt.legend()
     plt.ylabel("decay")
@@ -187,8 +187,7 @@ if learn_prior_sde:
     print(f"VGP : {prior_sde_vgp.q.numpy().item()}")
 
 """ELBO comparison"""
-plt.hlines(gpr_log_likelihood, 0, len(v_gp_elbo), color="black", label="Log Likelihood", alpha=0.2,
-           linestyles="dashed")
+plt.plot(cvi_taylor_elbo_vals, color="black", label="CVI-GPR (Taylor)")
 plt.plot(ssm_elbo, label="SDE-SSM")
 plt.plot(v_gp_elbo, label="VGP")
 plt.title("ELBO")
@@ -196,38 +195,39 @@ plt.legend()
 plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
 plt.show()
 
+
+"""SDE-SSM and VGP should give same posterior"""
+np.testing.assert_array_almost_equal(m_vgp, m_ssm, decimal=2)
+np.testing.assert_array_almost_equal(s_std_vgp, s_std_ssm.reshape(-1), decimal=2)
+
 """
 ELBO Bound
 """
 if not learn_prior_sde:
     decay_value_range = np.linspace(0.01, decay + 2.5, 10)
-    gpr_log_likelihood_vals = []
+    gpr_taylor_elbo_vals = []
     ssm_elbo_vals = []
     vgp_elbo_vals = []
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
 
     for decay_val in decay_value_range:
         kernel = OrnsteinUhlenbeck(decay=decay_val, diffusion=q)
-        gpr_model = get_gpr(input_data, kernel, train=False, noise_stddev=noise_stddev)
-        gpr_log_likelihood = gpr_model.log_likelihood().numpy()
-        gpr_log_likelihood_vals.append(gpr_log_likelihood)
+        cvi_gpr_taylor_model.orig_kernel = kernel
+        gpr_taylor_elbo_vals.append(cvi_gpr_taylor_model.classic_elbo().numpy().item())
 
         ssm_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
-        ssm_model.initial_chol_cov = tf.linalg.cholesky((q/(2 * decay_val)) * tf.ones_like(ssm_model.initial_chol_cov))
-        ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
         ssm_model._linearize_prior()  # To linearize the new prior
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
         vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
-        vgp_model.p_initial_cov = (q / (2 * decay_val)) * tf.ones((1, 1), dtype=DTYPE)
         vgp_elbo_vals.append(vgp_model.elbo())
 
     plt.subplots(1, 1, figsize=(5, 5))
     plt.plot(decay_value_range, ssm_elbo_vals, label="SDE-SSM")
     plt.plot(decay_value_range, vgp_elbo_vals, label="VGP")
-    plt.plot(decay_value_range, gpr_log_likelihood_vals, label="Log-likelihood", alpha=0.2, linestyle="dashed",
+    plt.plot(decay_value_range, gpr_taylor_elbo_vals, label="CVI-GPR (Taylor) ELBO", alpha=0.2, linestyle="dashed",
              color="black")
-    plt.vlines(decay, np.min(gpr_log_likelihood_vals), np.max(gpr_log_likelihood_vals))
+    plt.vlines(decay, np.min(gpr_taylor_elbo_vals), np.max(gpr_taylor_elbo_vals))
     plt.legend()
     plt.savefig(os.path.join(plot_save_dir, "elbo_bound.svg"))
     plt.show()

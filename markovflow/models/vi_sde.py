@@ -63,7 +63,7 @@ class VariationalMarkovGP:
         dx(t) = - A(t) dt + b(t) dW(t)
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
-                 lr: float = 0.5):
+                 lr: float = 0.5, prior_params_lr: float = 0.01):
         """
         Initialize the model.
 
@@ -76,7 +76,7 @@ class VariationalMarkovGP:
         self.state_dim = self.prior_sde.state_dim
         self.DTYPE = self.observations.dtype
 
-        self.N = grid.shape[0] - 1  # As number of transitions are one than number of states.
+        self.N = grid.shape[0]
         self.grid = grid
 
         self.dt = float(self.grid[1] - self.grid[0])
@@ -90,14 +90,14 @@ class VariationalMarkovGP:
         self.p_initial_cov = self.prior_sde.q.numpy() * tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
 
         # q(x0)
-        self.q_initial_mean = tf.zeros(self.state_dim, dtype=self.DTYPE)
-        self.q_initial_cov = tf.ones((self.state_dim, self.state_dim), dtype=self.DTYPE)
+        self.q_initial_mean = tf.identity(self.p_initial_mean)
+        self.q_initial_cov = tf.identity(self.p_initial_cov)
 
         self.lambda_lagrange = tf.zeros_like(self.b)  # [N, D]
         self.psi_lagrange = tf.ones_like(self.b) * -1e-10   # [N, D]
 
         self.q_lr = lr  # lr for variational parameters A and b
-        self.p_lr = 0.01  # lr  # lr for prior parameters
+        self.p_lr = prior_params_lr  # lr for prior parameters
         self.x_lr = lr   # lr for initial statistics
 
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)  # tf.optimizers.Adam(lr=0.1)
@@ -120,18 +120,39 @@ class VariationalMarkovGP:
 
         The returned m and S have initial values appended too.
         """
-        state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - self.A * self.dt
-        state_offset = self.b * self.dt
-        q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
-        ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
-                              chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
-                              state_transitions=state_transition,
-                              state_offsets=state_offset,
-                              chol_process_covariances=tf.linalg.cholesky(q)
-                              )
+        # A = self.A[:-1]
+        # b = self.b[:-1]
 
-        return ssm.marginal_means, ssm.marginal_covariances
+        m = np.zeros_like(self.b)
+        S = np.zeros_like(self.A)
+
+        m[0] = self.q_initial_mean
+        S[0] = self.q_initial_cov
+
+        for i, t in enumerate(self.grid[1:]):
+            dmdt = -self.A[i] * m[i] + self.b[i]
+            dSdt = -self.A[i] * S[i] - S[i] * self.A[i] + self.prior_sde.q
+            m[i+1] = m[i] + self.dt * dmdt
+            S[i+1] = S[i] + self.dt * dSdt
+
+        m = tf.convert_to_tensor(m)
+        S = tf.convert_to_tensor(S)
+        return m, S
+
+        # state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - A * self.dt
+        # state_offset = b * self.dt
+        #
+        # q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
+        #
+        # ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
+        #                       chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
+        #                       state_transitions=state_transition,
+        #                       state_offsets=state_offset,
+        #                       chol_process_covariances=tf.linalg.cholesky(q)
+        #                       )
+        #
+        # return ssm.marginal_means, ssm.marginal_covariances
 
     def grad_E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -181,8 +202,9 @@ class VariationalMarkovGP:
 
         # Put grads in a bigger grid back
         indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
-        d_obs_m = tf.scatter_nd(indices, grads[0], (self.lambda_lagrange.shape[0] + 1, 1))  # FIXME: better way of shape +1
-        d_obs_S = tf.scatter_nd(indices, grads[1], (self.psi_lagrange.shape[0] + 1, 1))  # FIXME: better way of shape +1
+
+        d_obs_m = tf.scatter_nd(indices, grads[0], self.lambda_lagrange.shape)
+        d_obs_S = tf.scatter_nd(indices, grads[1], self.psi_lagrange.shape)
 
         return d_obs_m, d_obs_S
 
@@ -199,25 +221,25 @@ class VariationalMarkovGP:
             lambda(t) = lambda(t) + dE_{obs}/dm(t)
 
         """
-        dEdm, dEdS = self.grad_E_sde(m[:-1], S[:-1])
+        dEdm, dEdS = self.grad_E_sde(m, S)
 
         d_obs_m, d_obs_S = self._jump_conditions(m, S)
 
         lambda_lagrange = np.zeros_like(self.lambda_lagrange)
         psi_lagrange = np.zeros_like(self.psi_lagrange)
 
-        # Create one extra but remove later
+        # Create one extra but remove later: FIXME: check why this required.
         lambda_lagrange = np.concatenate((lambda_lagrange, np.zeros((1, lambda_lagrange.shape[1]),
                                                                     dtype=lambda_lagrange.dtype)), axis=0)
         psi_lagrange = np.concatenate((psi_lagrange, np.zeros((1, psi_lagrange.shape[1]), dtype=psi_lagrange.dtype)),
                                       axis=0)
 
-        for t in range(self.N, 0, -1):
-            d_psi = psi_lagrange[t] * self.A[t-1] + psi_lagrange[t] * self.A[t-1] - dEdS[t-1]
-            d_lambda = self.A[t-1] * lambda_lagrange[t] - dEdm[t-1]
+        for t in range(self.N-1, 0, -1):
+            d_psi = psi_lagrange[t] * self.A[t] + psi_lagrange[t] * self.A[t] - dEdS[t]
+            d_lambda = self.A[t] * lambda_lagrange[t] - dEdm[t]
 
-            psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t]
-            lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t]
+            psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t-1]
+            lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t-1]
 
         self.psi_lagrange = tf.convert_to_tensor(psi_lagrange[:-1])
         self.lambda_lagrange = tf.convert_to_tensor(lambda_lagrange[:-1])
@@ -298,7 +320,7 @@ class VariationalMarkovGP:
         m, S = self.forward_pass
 
         # remove the final state and the final A and b
-        E_sde = KL_sde(self.prior_sde, self.A, self.b, m[:-1], S[:-1], self.dt)
+        E_sde = KL_sde(self.prior_sde, self.A[:-1], self.b[:-1], m[:-1], S[:-1], self.dt)
 
         KL_q0_p0 = self.KL_initial_state()
 
@@ -347,15 +369,9 @@ class VariationalMarkovGP:
         """
         Run a single loop of inference.
         """
-        try:
-            m, S = self.forward_pass
-            self.update_lagrange(m, S)
-            converged = self.update_param(m[:-1], S[:-1])
-        except Exception as ex:
-            print(f"Exception while performing inference : {ex}")
-            print("Trying by reducing the LR!")
-            self.q_lr = self.q_lr / 2
-            converged = False
+        m, S = self.forward_pass
+        self.update_lagrange(m, S)
+        converged = self.update_param(m, S)
 
         return converged
 
@@ -366,23 +382,28 @@ class VariationalMarkovGP:
         self.elbo_vals.append(self.elbo())
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
 
-        for _ in range(4):
-        # while self.q_lr >= 1e-2: and self.x_lr >= 1e-2:
+        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             inference_converged = False
             x0_converged = False
-            while not inference_converged and not x0_converged:
+            itr = 0  # Minimum iterations
+            while itr < 5 or not inference_converged and not x0_converged:
                 inference_converged = self.run_single_inference()
-                x0_converged = self.update_initial_statistics()
+                for _ in range(1):
+                    x0_converged = self.update_initial_statistics()
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                itr += 1
+                if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
+                    inference_converged = True
+                    x0_converged = True
 
             if update_prior:
-                for _ in range(4):
+                for _ in range(5):
                     self.update_prior_sde()
                     self._store_prior_param_vals()
                     print(f"Updated decay parameter : {self.prior_params[0][-1]}")
 
-                # FIXME: Only for OU
+                # FIXME: Only for OU: Steady state covariance
                 if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
                     self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(self.p_initial_cov)
 

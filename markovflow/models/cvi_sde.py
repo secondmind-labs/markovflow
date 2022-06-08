@@ -43,7 +43,8 @@ class SDESSM(CVIGaussianProcess):
             input_data: Tuple[tf.Tensor, tf.Tensor],
             likelihood: Likelihood,
             mean_function: Optional[MeanFunction] = None,
-            learning_rate=0.1
+            learning_rate=0.1,
+            prior_params_lr: float = 0.01
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
@@ -80,7 +81,7 @@ class SDESSM(CVIGaussianProcess):
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
 
         self.sites_lr = learning_rate
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=0.01)  # learning_rate)
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_params_lr)
         self.elbo_vals = []
 
         self.dist_p_ssm = None
@@ -384,7 +385,8 @@ class SDESSM(CVIGaussianProcess):
         """
         self.elbo_vals.append(self.classic_elbo().numpy().item())
         print(f"SSM: Starting ELBO {self.elbo_vals[-1]};")
-        for _ in range(4):
+
+        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
             while not sites_converged:
                 if isinstance(self.likelihood, Gaussian):
@@ -407,17 +409,14 @@ class SDESSM(CVIGaussianProcess):
             if update_prior:
                 for _ in range(4):
                     self.update_prior_sde()
-
                     # Linearize the prior
                     self._linearize_prior()
-
                     self._store_prior_param_vals()
-                    print(f"Updated decay value : {self.prior_params[0][-1]}")
 
-                # FIXME: ONLY FOR OU
-                if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
-                    self.initial_chol_cov = tf.linalg.cholesky(
-                        (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
+                    # FIXME: ONLY FOR OU: Steady state covariance
+                    if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
+                        self.initial_chol_cov = tf.linalg.cholesky(
+                            (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
             else:
                 # only linearize the prior
                 self._linearize_prior()

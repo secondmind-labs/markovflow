@@ -13,7 +13,7 @@ from markovflow.sde.sde_utils import euler_maruyama
 from markovflow.models.vi_sde import VariationalMarkovGP
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
-from markovflow.models.variational_cvi import CVIGaussianProcess
+from markovflow.models.variational_cvi import CVIGaussianProcess, CVIGaussianProcessTaylorKernel
 from markovflow.kernels import SDEKernel
 
 
@@ -162,6 +162,17 @@ def predict_cvi_gpr(model: CVIGaussianProcess, time_grid: np.ndarray, noise_stdd
     return m, S_std
 
 
+def predict_cvi_gpr_taylor(model: CVIGaussianProcessTaylorKernel, noise_stddev: np.ndarray) -> [np.ndarray, np.ndarray]:
+    """
+    Predict mean and std-dev for CVI-GPR model.
+    """
+    m, S = model.dist_q.marginals
+    m = m.numpy().reshape(-1)
+    S_std = np.sqrt(S) + noise_stddev
+
+    return m, S_std
+
+
 def predict_gpr(model: GaussianProcessRegression, time_grid: np.ndarray) -> [np.ndarray, np.ndarray]:
     """
     Predict mean and std-dev for GPR model.
@@ -203,6 +214,27 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         elbo_vals.append(cvi_model.classic_elbo())
 
     return cvi_model, prior_params
+
+
+def get_cvi_gpr_taylor(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, time_grid: tf.Tensor,
+                       likelihood: Likelihood, train: bool = False, sites_lr: float = 0.9):
+    cvi_model = CVIGaussianProcessTaylorKernel(input_data=input_data, kernel=kernel, likelihood=likelihood,
+                                               learning_rate=sites_lr, time_grid=time_grid)
+
+    if train:
+        raise Exception("Currently training isn't supported!")
+
+    prior_params = {}
+    for i, param in enumerate(kernel.trainable_variables):
+        prior_params[i] = [positive().forward(param).numpy().item()]
+
+    elbo_vals = [cvi_model.classic_elbo()]
+    while len(elbo_vals) < 5 or elbo_vals[-2] - elbo_vals[-1] > 1e-2:
+        for _ in range(1):
+            cvi_model.update_sites()
+            elbo_vals.append(cvi_model.classic_elbo())
+
+    return cvi_model, prior_params, elbo_vals
 
 
 def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, noise_stddev: np.ndarray,
