@@ -348,8 +348,8 @@ class VariationalMarkovGP:
             m = tf.stop_gradient(m[:-1])
             S = tf.stop_gradient(S[:-1])
 
-            A = self.A
-            b = self.b
+            A = self.A[:-1]
+            b = self.b[:-1]
 
             return KL_sde(self.prior_sde, A, b, m, S, self.dt)  #+ self.KL_initial_state()
 
@@ -383,10 +383,10 @@ class VariationalMarkovGP:
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
 
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
-            inference_converged = False
-            x0_converged = False
+            # inference_converged = False
+            # x0_converged = False
             itr = 0  # Minimum iterations
-            while itr < 5 or not inference_converged and not x0_converged:
+            while itr < 5 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4: #not inference_converged and not x0_converged:
                 inference_converged = self.run_single_inference()
                 for _ in range(1):
                     x0_converged = self.update_initial_statistics()
@@ -394,12 +394,14 @@ class VariationalMarkovGP:
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
                 itr += 1
                 if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
-                    inference_converged = True
-                    x0_converged = True
+                    break
+                    # inference_converged = True
+                    # x0_converged = True
 
             if update_prior:
-                for _ in range(5):
-                    self.update_prior_sde()
+                prior_converged = False
+                while not prior_converged:
+                    prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
                     print(f"Updated decay parameter : {self.prior_params[0][-1]}")
 
@@ -407,9 +409,11 @@ class VariationalMarkovGP:
                 if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
                     self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(self.p_initial_cov)
 
+                self.elbo_vals.append(self.elbo())
+
             print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
-            self.q_lr = self.q_lr / 2
-            self.x_lr = self.x_lr / 2
+            # self.q_lr = self.q_lr / 2
+            # self.x_lr = self.x_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
 
     def run(self, update_prior: bool = False) -> [list, dict]:

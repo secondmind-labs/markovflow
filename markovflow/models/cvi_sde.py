@@ -407,8 +407,9 @@ class SDESSM(CVIGaussianProcess):
                 print(f"SSM: ELBO {self.elbo_vals[-1]}!")
 
             if update_prior:
-                for _ in range(4):
-                    self.update_prior_sde()
+                prior_converged = False
+                while not prior_converged:
+                    prior_converged = self.update_prior_sde()
                     # Linearize the prior
                     self._linearize_prior()
                     self._store_prior_param_vals()

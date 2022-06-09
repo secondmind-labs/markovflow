@@ -24,9 +24,9 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/786"
+data_dir = "data/98"
 
-learn_prior_sde = False
+learn_prior_sde = True
 prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
@@ -83,8 +83,7 @@ else:
 
 cvi_gpr_taylor_model, cvi_taylor_params, cvi_taylor_elbo_vals = get_cvi_gpr_taylor(input_data, kernel, time_grid, likelihood_gpr,
                                                              train=learn_prior_sde, sites_lr=1.)
-if learn_prior_sde:
-    cvi_prior_decay_values = -1 * np.array(cvi_taylor_params[0])
+cvi_prior_decay_values = -1 * np.array(cvi_taylor_params[0])
 
 print(f"CVI-GPR (Taylor) ELBO: {cvi_gpr_taylor_model.classic_elbo()}")
 
@@ -231,3 +230,24 @@ if not learn_prior_sde:
     plt.legend()
     plt.savefig(os.path.join(plot_save_dir, "elbo_bound.svg"))
     plt.show()
+
+
+"Save SDE-SSM data"
+np.savez(os.path.join(plot_save_dir, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
+         nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
+
+np.savez(os.path.join(plot_save_dir, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
+np.savez(os.path.join(plot_save_dir, "ssm_elbo.npz"), elbo=ssm_elbo)
+
+if learn_prior_sde:
+    np.savez(os.path.join(plot_save_dir, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
+
+"Save VGP data"
+np.savez(os.path.join(plot_save_dir, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
+np.savez(os.path.join(plot_save_dir, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
+         lambda_lagrange=vgp_model.lambda_lagrange.numpy())
+
+np.savez(os.path.join(plot_save_dir, "vgp_inference.npz"), m=m_vgp, S=tf.square(s_std_vgp))
+np.savez(os.path.join(plot_save_dir, "vgp_elbo.npz"), elbo=v_gp_elbo)
+if learn_prior_sde:
+    np.savez(os.path.join(plot_save_dir, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)

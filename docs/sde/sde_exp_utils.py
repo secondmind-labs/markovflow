@@ -222,7 +222,8 @@ def get_cvi_gpr_taylor(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, ti
                                                learning_rate=sites_lr, time_grid=time_grid)
 
     if train:
-        raise Exception("Currently training isn't supported!")
+        print("CVI-GPR (Taylor) : Not training!!!")
+        # raise Exception("Currently training isn't supported!")
 
     prior_params = {}
     for i, param in enumerate(kernel.trainable_variables):
