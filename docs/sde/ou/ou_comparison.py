@@ -8,6 +8,12 @@ import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
 
+# FIXME: Remove this later. This is for training on Lab's GPU.
+# Restrict TensorFlow to only use the first GPU
+# gpus = tf.config.list_physical_devices('GPU')
+# if gpus:
+#     tf.config.set_visible_devices(gpus[1], 'GPU')
+
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE, PriorOUSDE
 from markovflow.kernels import OrnsteinUhlenbeck
 from markovflow.models.cvi_sde import SDESSM
@@ -45,6 +51,7 @@ time_grid = data["time_grid"]
 t0 = time_grid[0]
 t1 = time_grid[-1]
 
+plt.clf()
 plot_observations(observation_grid, observation_vals)
 plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
 plt.xlabel("Time (t)")
@@ -149,6 +156,7 @@ if learn_prior_sde:
 """
 Predict Posterior
 """
+plt.clf()
 plot_observations(observation_grid, observation_vals)
 m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_taylor_model, noise_stddev)
 m_ssm, s_std_ssm = predict_ssm(ssm_model, noise_stddev)
@@ -169,6 +177,7 @@ plt.show()
 Plot drift evolution
 """
 if learn_prior_sde:
+    plt.clf()
     plt.hlines(-1 * decay, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
                label="True Value", color="black", linestyles="dashed")
     plt.plot(v_gp_prior_decay_values, label="VGP", color="green")
@@ -186,6 +195,7 @@ if learn_prior_sde:
     print(f"VGP : {prior_sde_vgp.q.numpy().item()}")
 
 """ELBO comparison"""
+plt.clf()
 plt.plot(cvi_taylor_elbo_vals, color="black", label="CVI-GPR (Taylor)")
 plt.plot(ssm_elbo, label="SDE-SSM")
 plt.plot(v_gp_elbo, label="VGP")
@@ -194,10 +204,6 @@ plt.legend()
 plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
 plt.show()
 
-
-"""SDE-SSM and VGP should give same posterior"""
-np.testing.assert_array_almost_equal(m_vgp, m_ssm, decimal=2)
-np.testing.assert_array_almost_equal(s_std_vgp, s_std_ssm.reshape(-1), decimal=2)
 
 """
 ELBO Bound
@@ -221,6 +227,7 @@ if not learn_prior_sde:
         vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
         vgp_elbo_vals.append(vgp_model.elbo())
 
+    plt.clf()
     plt.subplots(1, 1, figsize=(5, 5))
     plt.plot(decay_value_range, ssm_elbo_vals, label="SDE-SSM")
     plt.plot(decay_value_range, vgp_elbo_vals, label="VGP")
@@ -251,3 +258,8 @@ np.savez(os.path.join(plot_save_dir, "vgp_inference.npz"), m=m_vgp, S=tf.square(
 np.savez(os.path.join(plot_save_dir, "vgp_elbo.npz"), elbo=v_gp_elbo)
 if learn_prior_sde:
     np.savez(os.path.join(plot_save_dir, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)
+
+
+"""SDE-SSM and VGP should give same posterior"""
+np.testing.assert_array_almost_equal(m_vgp, m_ssm, decimal=2)
+np.testing.assert_array_almost_equal(s_std_vgp, s_std_ssm.reshape(-1), decimal=2)
