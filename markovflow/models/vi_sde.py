@@ -120,10 +120,6 @@ class VariationalMarkovGP:
 
         The returned m and S have initial values appended too.
         """
-
-        # A = self.A[:-1]
-        # b = self.b[:-1]
-
         m = np.zeros_like(self.b)
         S = np.zeros_like(self.A)
 
@@ -140,6 +136,8 @@ class VariationalMarkovGP:
         S = tf.convert_to_tensor(S)
         return m, S
 
+        # A = self.A[:-1]
+        # b = self.b[:-1]
         # state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - A * self.dt
         # state_offset = b * self.dt
         #
@@ -228,12 +226,6 @@ class VariationalMarkovGP:
         lambda_lagrange = np.zeros_like(self.lambda_lagrange)
         psi_lagrange = np.zeros_like(self.psi_lagrange)
 
-        # Create one extra but remove later: FIXME: check why this required.
-        lambda_lagrange = np.concatenate((lambda_lagrange, np.zeros((1, lambda_lagrange.shape[1]),
-                                                                    dtype=lambda_lagrange.dtype)), axis=0)
-        psi_lagrange = np.concatenate((psi_lagrange, np.zeros((1, psi_lagrange.shape[1]), dtype=psi_lagrange.dtype)),
-                                      axis=0)
-
         for t in range(self.N-1, 0, -1):
             d_psi = psi_lagrange[t] * self.A[t] + psi_lagrange[t] * self.A[t] - dEdS[t]
             d_lambda = self.A[t] * lambda_lagrange[t] - dEdm[t]
@@ -241,8 +233,8 @@ class VariationalMarkovGP:
             psi_lagrange[t - 1] = psi_lagrange[t] - self.dt * d_psi - d_obs_S[t-1]
             lambda_lagrange[t - 1] = lambda_lagrange[t] - self.dt * d_lambda - d_obs_m[t-1]
 
-        self.psi_lagrange = tf.convert_to_tensor(psi_lagrange[:-1])
-        self.lambda_lagrange = tf.convert_to_tensor(lambda_lagrange[:-1])
+        self.psi_lagrange = tf.convert_to_tensor(psi_lagrange)
+        self.lambda_lagrange = tf.convert_to_tensor(lambda_lagrange)
 
     def local_objective(self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor) -> tf.Tensor:
         """
@@ -375,7 +367,7 @@ class VariationalMarkovGP:
 
         return converged
 
-    def run_inference_till_convergence(self, update_prior: bool):
+    def run_inference_till_convergence(self, update_prior: bool, update_initial_statistics: bool = True):
         """
         Run inference till convergence
         """
@@ -388,12 +380,16 @@ class VariationalMarkovGP:
             itr = 0  # Minimum iterations
             while itr < 5 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4: #not inference_converged and not x0_converged:
                 inference_converged = self.run_single_inference()
-                for _ in range(1):
-                    x0_converged = self.update_initial_statistics()
+
+                if update_initial_statistics:
+                    for _ in range(1):
+                        x0_converged = self.update_initial_statistics()
+
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
                 itr += 1
                 if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
+                    print("ELO increased!!! Breaking the loop")
                     break
                     # inference_converged = True
                     # x0_converged = True
@@ -416,10 +412,10 @@ class VariationalMarkovGP:
             # self.x_lr = self.x_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
 
-    def run(self, update_prior: bool = False) -> [list, dict]:
+    def run(self, update_prior: bool = False, update_initial_statistics: bool = True) -> [list, dict]:
         """
         Run inference and (if required) update prior till convergence.
         """
-        self.run_inference_till_convergence(update_prior)
+        self.run_inference_till_convergence(update_prior, update_initial_statistics)
 
         return self.elbo_vals, self.prior_params

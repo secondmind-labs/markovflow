@@ -30,7 +30,7 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/98"
+data_dir = "data/786"
 
 learn_prior_sde = True
 prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
@@ -143,9 +143,9 @@ vgp_model = VariationalMarkovGP(input_data=input_data,
                                 lr=0.01, prior_params_lr=0.01)
 
 vgp_model.p_initial_cov = tf.reshape(kernel.initial_covariance(time_grid[..., 0:1]), vgp_model.p_initial_cov.shape)
-vgp_model.q_initial_cov = tf.reshape(ssm_model.fx_covs[:, 0], shape=vgp_model.q_initial_cov.shape) #tf.identity(vgp_model.p_initial_cov)
+vgp_model.q_initial_cov = tf.identity(vgp_model.p_initial_cov)
 vgp_model.p_initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), vgp_model.p_initial_mean.shape)
-vgp_model.q_initial_mean = tf.reshape(ssm_model.fx_mus[:, 0], shape=vgp_model.q_initial_mean.shape) #tf.identity(vgp_model.p_initial_mean)
+vgp_model.q_initial_mean = tf.identity(vgp_model.p_initial_mean)
 
 vgp_model.A = decay + 0. * vgp_model.A
 
