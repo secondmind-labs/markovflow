@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from docs.sde.sde_exp_utils import generate_dw_data, plot_observations
 
-seed = 63
+seed = 33
 tf.random.set_seed(seed)
 np.random.seed(seed)
 DTYPE = default_float()
@@ -17,13 +17,13 @@ DTYPE = default_float()
 """
 Parameters
 """
-q = 1.4
-noise_var = 0.05
+q = .6
+noise_var = 0.02
 x0 = 1.
 
-t0, t1 = 0., 10.
+t0, t1 = 0., 100.
 simulation_dt = 0.01  # Used for Euler-Maruyama
-n_observations = 100
+n_observations = 500
 
 output_dir = "data/"
 
