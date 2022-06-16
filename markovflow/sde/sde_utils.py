@@ -149,6 +149,7 @@ def KL_sde(sde_p: SDE, A_q, b_q, m, S, dt: float, quadrature_pnts: int = 20):
         1. Both the SDE have same diffusion i.e. Q.
         2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = - A_t * x_t + b_t
         3. Parameter A_t is "WITHOUT" the negative sign.
+        4. A_q, b_q are the DRIFT parameters of the SDE and should not be confused with the state transitions of the SSM model.
 
     Apply Gaussian quadrature method to approximate the Expectation and integral is approximated as Riemann sum.
 

@@ -56,10 +56,6 @@ print(f"Noise std-dev is {noise_stddev}")
 
 input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
 
-# changing dt
-dt = 0.001
-time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
-
 """
 GPR - Taylor
 """

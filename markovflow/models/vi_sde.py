@@ -345,11 +345,12 @@ class VariationalMarkovGP:
 
             return KL_sde(self.prior_sde, A, b, m, S, self.dt)  #+ self.KL_initial_state()
 
-        old_val = self.prior_sde.trainable_variables
+        # FIXME: check all variables and not only the first one
+        old_val = self.prior_sde.trainable_variables[0].numpy().item()
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
-        new_val = self.prior_sde.trainable_variables
+        new_val = self.prior_sde.trainable_variables[0].numpy().item()
 
-        diff_sq_norm = tf.reduce_sum(tf.square(old_val[0] - new_val[0]))
+        diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
         if diff_sq_norm < convergence_tol:
             has_converged = True
         else:

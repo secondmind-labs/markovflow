@@ -133,7 +133,7 @@ Plot drift evolution
 """
 if learn_prior_sde:
 
-    x = np.linspace(-2, 2, 20).reshape((-1, 1))
+    x = np.linspace(-2, 2, 40).reshape((-1, 1))
 
     true_drift = true_dw_sde.drift(x, None)
     sde_ssm_learnt_drift = prior_sde_ssm.drift(x, None)
@@ -142,6 +142,7 @@ if learn_prior_sde:
     plt.subplots(1, 1, figsize=(5, 5))
 
     plt.clf()
+    plt.plot(x, sde_ssm_learnt_drift, label="SDE-SSM", color="blue")
     plt.plot(x, vgp_learnt_drift, label="VGP", color="green")
     plt.plot(x, true_drift, label="True drift", color="black")
     plt.xlim([-2, 2])
@@ -152,7 +153,7 @@ if learn_prior_sde:
     plt.savefig(os.path.join(plot_save_dir, "drift.svg"))
     plt.show()
 
-    # print(f"SSM learnt drift : f(x) = {ssm_prior_a_values[-1]} * x * ({ssm_prior_c_values[-1]} - x^2)")
+    print(f"SSM learnt drift : f(x) = {ssm_prior_a_values[-1]} * x * ({ssm_prior_c_values[-1]} - x^2)")
     print(f"VGP learnt drift : f(x) = {v_gp_prior_a_values[-1]} * x * ({v_gp_prior_c_values[-1]} - x^2)")
 
 
