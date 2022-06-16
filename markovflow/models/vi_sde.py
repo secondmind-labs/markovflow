@@ -49,7 +49,7 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow_probability import distributions
-
+import wandb
 from gpflow.likelihoods import Likelihood
 
 from markovflow.sde import SDE, OrnsteinUhlenbeckSDE
@@ -325,7 +325,10 @@ class VariationalMarkovGP:
         E_obs = tf.reduce_sum(E_obs)
 
         E = E_obs - E_sde - KL_q0_p0
-        print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
+        wandb.log({"VGP-EObs": E_obs})
+        wandb.log({"VGP-ESDE": E_sde})
+        wandb.log({"VGP-KL-X0": KL_q0_p0})
+        # print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
 
         return E.numpy().item()
 
@@ -374,6 +377,7 @@ class VariationalMarkovGP:
         """
         self.elbo_vals.append(self.elbo())
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
+        wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             # inference_converged = False
@@ -388,9 +392,10 @@ class VariationalMarkovGP:
 
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
                 itr += 1
                 if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
-                    print("ELO increased!!! Breaking the loop")
+                    print("ELBO increased!!! Breaking the loop")
                     break
                     # inference_converged = True
                     # x0_converged = True
@@ -400,7 +405,10 @@ class VariationalMarkovGP:
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
-                    print(f"Updated decay parameter : {self.prior_params[0][-1]}")
+
+                    for k in self.prior_params.keys():
+                        v = self.prior_params[k][-1]
+                        wandb.log({"VGP-learning-" + str(k): v})
 
                 # FIXME: Only for OU: Steady state covariance
                 if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
@@ -409,6 +417,7 @@ class VariationalMarkovGP:
                 self.elbo_vals.append(self.elbo())
 
             print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
+            wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
             # self.q_lr = self.q_lr / 2
             # self.x_lr = self.x_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2

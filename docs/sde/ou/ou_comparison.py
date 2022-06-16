@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
+import wandb
 
 # FIXME: Remove this later. This is for training on Lab's GPU.
 # Restrict TensorFlow to only use the first GPU
@@ -30,7 +31,7 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/786"
+data_dir = "data/3"
 
 learn_prior_sde = True
 prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
@@ -67,8 +68,8 @@ print(f"Noise std-dev is {noise_stddev}")
 input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
 
 # changing dt
-dt = 0.001
-time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
+# dt = 0.005
+# time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
 
 if learn_prior_sde:
     plot_save_dir = os.path.join(data_dir, "learning")
@@ -77,6 +78,26 @@ else:
 
 if not os.path.exists(plot_save_dir):
     os.makedirs(plot_save_dir)
+
+"""
+Logging setup configurations
+"""
+
+config = {
+    "seed": data_dir.split("/")[-1],
+    "learning": learn_prior_sde,
+    "t0": t0,
+    "t1": t1,
+    "grid_dt": time_grid[1] - time_grid[0],
+    "decay": decay,
+    "q": q,
+    "noise_stddev": noise_stddev,
+    "n_observations": observation_grid.shape[0]
+}
+
+"""Logging init"""
+wandb.init(project="VI-SDE", entity="vermaprakhar", config=config)
+
 """
 GPR - Taylor
 """
@@ -170,6 +191,7 @@ plot_posterior(m_vgp, s_std_vgp, time_grid, "VGP")
 plt.legend()
 
 plt.savefig(os.path.join(plot_save_dir, "posterior.svg"))
+wandb.log({"posterior": wandb.Image(plt)})
 
 plt.show()
 
@@ -186,6 +208,9 @@ if learn_prior_sde:
     plt.title("Prior Learning (decay)")
     plt.legend()
     plt.ylabel("decay")
+
+    wandb.log({"prior-learning": wandb.Image(plt)})
+
     plt.savefig(os.path.join(plot_save_dir, "prior_learning_decay.svg"))
     plt.show()
 
@@ -202,6 +227,9 @@ plt.plot(v_gp_elbo, label="VGP")
 plt.title("ELBO")
 plt.legend()
 plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
+
+wandb.log({"ELBO-Comparison": wandb.Image(plt)})
+
 plt.show()
 
 
@@ -235,6 +263,7 @@ if not learn_prior_sde:
              color="black")
     plt.vlines(decay, np.min(gpr_taylor_elbo_vals), np.max(gpr_taylor_elbo_vals))
     plt.legend()
+    wandb.log({"elbo_bound": wandb.Image(plt)})
     plt.savefig(os.path.join(plot_save_dir, "elbo_bound.svg"))
     plt.show()
 

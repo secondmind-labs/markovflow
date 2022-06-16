@@ -5,6 +5,7 @@ import os
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
+import wandb
 
 from markovflow.sde.sde import DoubleWellSDE, PriorDoubleWellSDE
 from markovflow.models.cvi_sde import SDESSM
@@ -64,6 +65,20 @@ else:
 
 if not os.path.exists(plot_save_dir):
     os.makedirs(plot_save_dir)
+
+config = {
+    "seed": data_dir.split("/")[-1],
+    "learning": learn_prior_sde,
+    "t0": t0,
+    "t1": t1,
+    "grid_dt": time_grid[1] - time_grid[0],
+    "q": q,
+    "noise_stddev": noise_stddev,
+    "n_observations": observation_grid.shape[0]
+}
+
+"""Logging init"""
+wandb.init(project="VI-SDE", entity="vermaprakhar", config=config)
 
 """
 SDE-SSM
@@ -125,7 +140,7 @@ plot_posterior(m_vgp, s_std_vgp, time_grid, "VGP")
 plt.legend()
 
 plt.savefig(os.path.join(plot_save_dir, "posterior.svg"))
-
+wandb.log({"posterior": wandb.Image(plt)})
 plt.show()
 
 """
@@ -151,6 +166,9 @@ if learn_prior_sde:
     plt.title("Drift")
     plt.legend()
     plt.savefig(os.path.join(plot_save_dir, "drift.svg"))
+
+    wandb.log({"drift": wandb.Image(plt)})
+
     plt.show()
 
     print(f"SSM learnt drift : f(x) = {ssm_prior_a_values[-1]} * x * ({ssm_prior_c_values[-1]} - x^2)")
@@ -164,6 +182,7 @@ plt.plot(v_gp_elbo[2:], label="VGP")
 plt.title("ELBO")
 plt.legend()
 plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
+wandb.log({"ELBO": wandb.Image(plt)})
 plt.show()
 
 
