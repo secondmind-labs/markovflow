@@ -94,6 +94,10 @@ class SDESSM(CVIGaussianProcess):
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
 
+        for k in self.prior_params.keys():
+            v = self.prior_params[k]
+            wandb.log({"SSM-learning-" + str(k): v})
+
     def _store_prior_param_vals(self):
         """Update the list storing the prior sde parameter values"""
         for i, param in enumerate(self.prior_sde.trainable_variables):
