@@ -379,26 +379,21 @@ class VariationalMarkovGP:
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
         wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
-            # inference_converged = False
-            # x0_converged = False
+        for _ in range(5): # FIXME: DO it on the basis of ELBO vals
             itr = 0  # Minimum iterations
-            while itr < 5 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4: #not inference_converged and not x0_converged:
-                inference_converged = self.run_single_inference()
-
+            while itr < 5 or (self.elbo_vals[-1] - self.elbo_vals[-2]) > 1e-4:
+                self.run_single_inference()
                 if update_initial_statistics:
-                    for _ in range(1):
-                        x0_converged = self.update_initial_statistics()
+                    self.update_initial_statistics()
 
                 self.elbo_vals.append(self.elbo())
+
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
                 itr += 1
                 if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
                     print("ELBO increased!!! Breaking the loop")
                     break
-                    # inference_converged = True
-                    # x0_converged = True
 
             if update_prior:
                 prior_converged = False
@@ -418,8 +413,8 @@ class VariationalMarkovGP:
 
             print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
-            # self.q_lr = self.q_lr / 2
-            # self.x_lr = self.x_lr / 2
+            self.q_lr = self.q_lr / 2
+            self.x_lr = self.x_lr / 2
             self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True) -> [list, dict]:
