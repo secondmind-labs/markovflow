@@ -3,9 +3,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import wandb
+
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
+from gpflow.base import Parameter
 
 from markovflow.sde.sde import DoubleWellSDE, PriorDoubleWellSDE
 from markovflow.models.cvi_sde import SDESSM
@@ -18,10 +21,15 @@ from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_o
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
 
+os.environ['WANDB_MODE'] = 'offline'
+"""Logging init"""
+wandb.init(project="VI-SDE", entity="vermaprakhar")
+
 """
 Parameters
 """
 data_dir = "data/91"
+model_used = "learning"  # path to inference or learning model
 
 """
 Generate observations for a linear SDE
@@ -69,13 +77,19 @@ likelihood_ssm = Gaussian(noise_stddev**2)
 ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_grid, likelihood=likelihood_ssm,
                    learning_rate=1.)
 
-ssm_model.update_sites()
+# Load trained model variables
+data_sites = np.load(os.path.join(data_dir, model_used, "ssm_data_sites.npz"))
+ssm_model.data_sites.nat1 = Parameter(data_sites["nat1"])
+ssm_model.data_sites.nat2 = Parameter(data_sites["nat2"])
+ssm_model.data_sites.log_norm = Parameter(data_sites["log_norm"])
+
+print(f"ELBO : {ssm_model.classic_elbo().numpy().item()}")
 
 """ELBO BOUND"""
-n = 10
+n = 100
 
-a_value_range = np.linspace(0.2, 5, n).reshape((-1, 1))
-c_value_range = np.linspace(0.5, 1.5, n).reshape((1, -1))
+a_value_range = np.linspace(0.2, 6, n).reshape((-1, 1))
+c_value_range = np.linspace(0.2, 2., n).reshape((1, -1))
 
 a_value_range = np.repeat(a_value_range, n, axis=1)
 c_value_range = np.repeat(c_value_range, n, axis=0)
@@ -90,7 +104,7 @@ for a, c in zip(a_value_range.reshape(-1), c_value_range.reshape(-1)):
     ssm_model._linearize_prior()  # To linearize the new prior
     ssm_elbo_vals.append(ssm_model.classic_elbo().numpy().item())
 
-ssm_elbo_vals = np.array(ssm_elbo_vals).reshape((n, n))
+ssm_elbo_vals = np.array(ssm_elbo_vals).reshape((n, n)).T
 
 plt.clf()
 plt.subplots(1, 1, figsize=(5, 5))

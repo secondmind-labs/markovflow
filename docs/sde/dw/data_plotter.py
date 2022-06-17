@@ -153,7 +153,7 @@ def plot_elbo_bound_learning(data_dir: str):
     ssm_data = np.load(ssm_path)
     a = ssm_data["a"]
     c = ssm_data["c"]
-    elbo = ssm_data["elbo"]
+    elbo = ssm_data["elbo"].T
 
     ssm_learning_path = os.path.join(data_dir, "ssm_learnt_sde.npz")
     ssm_learning = np.load(ssm_learning_path)
@@ -173,7 +173,7 @@ def plot_elbo_bound_learning(data_dir: str):
     vgp_data = np.load(vgp_path)
     a = vgp_data["a"]
     c = vgp_data["c"]
-    elbo = vgp_data["elbo"]
+    elbo = vgp_data["elbo"].T
     vgp_learning_path = os.path.join(data_dir, "vgp_learnt_sde.npz")
     vgp_learning = np.load(vgp_learning_path)
     vgp_learnt_a = vgp_learning["a"]
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     time_grid = data["time_grid"]
     dt = time_grid[1] - time_grid[0]
 
-    learning_dir = os.path.join(data_dir, "learning_orig_dt")
+    learning_dir = os.path.join(data_dir, "learning")
 
     # plot_elbo_bound_3D(learning_dir)
     plot_elbo_bound_learning(learning_dir)

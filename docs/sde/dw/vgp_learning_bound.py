@@ -6,6 +6,7 @@ import os
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
+import wandb
 
 from markovflow.sde.sde import DoubleWellSDE, PriorDoubleWellSDE
 from markovflow.models.vi_sde import VariationalMarkovGP
@@ -18,10 +19,15 @@ from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_o
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
 
+os.environ['WANDB_MODE'] = 'offline'
+"""Logging init"""
+wandb.init(project="VI-SDE", entity="vermaprakhar")
+
 """
 Parameters
 """
 data_dir = "data/91"
+model_used = "learning"  # path to inference or learning model
 
 """
 Generate observations for a linear SDE
@@ -70,18 +76,22 @@ vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
                                 lr=0.05)
 
-inference_converged = False
-x0_converged = False
-while not inference_converged and not x0_converged:
-    inference_converged = vgp_model.run_single_inference()
-    x0_converged = vgp_model.update_initial_statistics()
-    print(f"ELBO : {vgp_model.elbo()}")
+# Load trained model variables
+A_b_data = np.load(os.path.join(data_dir, model_used, "vgp_A_b.npz"))
+lagrange_data = np.load(os.path.join(data_dir, model_used, "vgp_lagrange.npz"))
+
+vgp_model.A = A_b_data["A"]
+vgp_model.b = A_b_data["b"]
+vgp_model.lambda_lagrange = lagrange_data["lambda_lagrange"]
+vgp_model.psi_lagrange = lagrange_data["psi_lagrange"]
+
+print(f"ELBO : {vgp_model.elbo()}")
 
 """ELBO BOUND"""
-n = 10
+n = 100
 
-a_value_range = np.linspace(0.2, 5, n).reshape((-1, 1))
-c_value_range = np.linspace(0.5, 1.5, n).reshape((1, -1))
+a_value_range = np.linspace(0.2, 6, n).reshape((-1, 1))
+c_value_range = np.linspace(0.2, 2., n).reshape((1, -1))
 
 a_value_range = np.repeat(a_value_range, n, axis=1)
 c_value_range = np.repeat(c_value_range, n, axis=0)
@@ -95,7 +105,7 @@ for a, c in zip(a_value_range.reshape(-1), c_value_range.reshape(-1)):
     vgp_model.prior_sde = PriorDoubleWellSDE(q=true_q, initial_a_val=a, initial_c_val=c)
     elbo_vals.append(vgp_model.elbo())
 
-elbo_vals = np.array(elbo_vals).reshape((n, n))
+elbo_vals = np.array(elbo_vals).reshape((n, n)).T
 
 plt.clf()
 plt.subplots(1, 1, figsize=(5, 5))
