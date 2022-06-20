@@ -28,7 +28,7 @@ wandb.init(project="VI-SDE", entity="vermaprakhar")
 """
 Parameters
 """
-data_dir = "data/91"
+data_dir = "data/82"
 model_used = "learning"  # path to inference or learning model
 
 """
@@ -45,8 +45,6 @@ latent_process = data["latent_process"]
 time_grid = data["time_grid"]
 t0 = time_grid[0]
 t1 = time_grid[-1]
-
-true_dw_sde = DoubleWellSDE(q=q * tf.ones((1, 1), dtype=DTYPE))
 
 plt.clf()
 plot_observations(observation_grid, observation_vals)
@@ -83,10 +81,32 @@ ssm_model.data_sites.nat1 = Parameter(data_sites["nat1"])
 ssm_model.data_sites.nat2 = Parameter(data_sites["nat2"])
 ssm_model.data_sites.log_norm = Parameter(data_sites["log_norm"])
 
-print(f"ELBO : {ssm_model.classic_elbo().numpy().item()}")
+sites = np.load(os.path.join(data_dir, model_used, "ssm_sites.npz"))
+ssm_model.sites_nat1 = sites["nat1"]
+ssm_model.sites_nat2 = sites["nat2"]
+
+q_path = np.load(os.path.join(data_dir, model_used, "ssm_inference.npz"))
+ssm_model.fx_mus = q_path["m"].reshape(ssm_model.fx_mus.shape) * tf.ones_like(ssm_model.fx_mus)
+# cov without the noise variance
+fx_covs = np.square(np.sqrt(q_path["S"]) - noise_stddev)
+ssm_model.fx_covs = fx_covs.reshape(ssm_model.fx_covs.shape) * tf.ones_like(ssm_model.fx_covs)
+
+ssm_learning_path = os.path.join(data_dir, model_used, "ssm_learnt_sde.npz")
+ssm_learning = np.load(ssm_learning_path)
+ssm_model.prior_sde.a = ssm_learning["a"][-1] * tf.ones_like(ssm_model.prior_sde.a)
+ssm_model.prior_sde.c = ssm_learning["c"][-1] * tf.ones_like(ssm_model.prior_sde.c)
+
+ssm_model._linearize_prior()
+loaded_model_elbo = ssm_model.classic_elbo().numpy().item()
+print(f"ELBO (Loaded model): {loaded_model_elbo}")
+
+trained_model_elbo = np.load(os.path.join(data_dir, model_used, "ssm_elbo.npz"))["elbo"][-1]
+print(f"ELBO (Trained model) : {trained_model_elbo}")
+
+np.testing.assert_array_almost_equal(trained_model_elbo, loaded_model_elbo, decimal=3)
 
 """ELBO BOUND"""
-n = 100
+n = 30
 
 a_value_range = np.linspace(0.2, 6, n).reshape((-1, 1))
 c_value_range = np.linspace(0.2, 2., n).reshape((1, -1))

@@ -26,7 +26,7 @@ wandb.init(project="VI-SDE", entity="vermaprakhar")
 """
 Parameters
 """
-data_dir = "data/91"
+data_dir = "data/128"
 model_used = "learning"  # path to inference or learning model
 
 """
@@ -79,16 +79,31 @@ vgp_model = VariationalMarkovGP(input_data=input_data,
 # Load trained model variables
 A_b_data = np.load(os.path.join(data_dir, model_used, "vgp_A_b.npz"))
 lagrange_data = np.load(os.path.join(data_dir, model_used, "vgp_lagrange.npz"))
+sde_params = np.load(os.path.join(data_dir, model_used, "vgp_learnt_sde.npz"))
+vgp_inference = np.load(os.path.join(data_dir, model_used, "vgp_inference.npz"))
 
 vgp_model.A = A_b_data["A"]
 vgp_model.b = A_b_data["b"]
 vgp_model.lambda_lagrange = lagrange_data["lambda_lagrange"]
 vgp_model.psi_lagrange = lagrange_data["psi_lagrange"]
+vgp_model.prior_sde.a = sde_params["a"][-1] * tf.ones_like(vgp_model.prior_sde.a)
+vgp_model.prior_sde.c = sde_params["c"][-1] * tf.ones_like(vgp_model.prior_sde.c)
+vgp_model.q_initial_mean = vgp_inference["m"][0] * tf.ones_like(vgp_model.q_initial_mean)
 
-print(f"ELBO : {vgp_model.elbo()}")
+# cov without the noise variance
+fx_cov_0 = np.square(np.sqrt(vgp_inference["S"][0]) - noise_stddev)
+vgp_model.q_initial_cov = fx_cov_0 * tf.ones_like(vgp_model.q_initial_cov)
+
+loaded_model_elbo = vgp_model.elbo()
+print(f"ELBO (Loaded model): {loaded_model_elbo}")
+
+trained_model_elbo = np.load(os.path.join(data_dir, model_used, "vgp_elbo.npz"))["elbo"][-1]
+print(f"ELBO (Trained model) : {trained_model_elbo}")
+
+np.testing.assert_array_almost_equal(trained_model_elbo, loaded_model_elbo)
 
 """ELBO BOUND"""
-n = 100
+n = 30
 
 a_value_range = np.linspace(0.2, 6, n).reshape((-1, 1))
 c_value_range = np.linspace(0.2, 2., n).reshape((1, -1))
