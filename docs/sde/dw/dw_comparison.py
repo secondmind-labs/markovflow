@@ -190,6 +190,9 @@ plt.show()
 np.savez(os.path.join(plot_save_dir, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
          nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
 
+np.savez(os.path.join(plot_save_dir, "ssm_sites.npz"), nat1=ssm_model.sites_nat1.numpy(),
+         nat2=ssm_model.sites_nat2.numpy())
+
 np.savez(os.path.join(plot_save_dir, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
 np.savez(os.path.join(plot_save_dir, "ssm_elbo.npz"), elbo=ssm_elbo)
 
