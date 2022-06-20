@@ -94,10 +94,6 @@ class SDESSM(CVIGaussianProcess):
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
 
-        for k in self.prior_params.keys():
-            v = self.prior_params[k]
-            wandb.log({"SSM-learning-" + str(k): v})
-
     def _store_prior_param_vals(self):
         """Update the list storing the prior sde parameter values"""
         for i, param in enumerate(self.prior_sde.trainable_variables):
@@ -205,88 +201,94 @@ class SDESSM(CVIGaussianProcess):
         """
         Calculates the gradient of wrt q_mean, q_covar:
 
-                0.5 * E_{q(x) [||f_{q} - f_{L}||^2_{\Sigma^{-1}}]
+                0.5 * E_{q(x) [||f_{L} - f_{p}||^2_{\Sigma^{-1}}]
         """
-        q_mean = tf.squeeze(self.fx_mus, axis=0)[:-1]
-        q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
+        dist_p = self.dist_p_ssm
+        m, S = self.dist_q.marginals
+
+        # removing batch and the last m and S. FIXME: check last point removal
+        q_mean = tf.squeeze(m, axis=0)[:-1]
+        q_covar = tf.squeeze(S, axis=0)[:-1]
 
         # convert from state transitons of the SSM to SDE P's drift and offset
-        A = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
-        b = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
+        A = tf.squeeze(dist_p.state_transitions, axis=0)
+        b = tf.squeeze(dist_p.state_offsets, axis=0)
         A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / (self.grid[1] - self.grid[0])
         b = b / (self.grid[1] - self.grid[0])
+
+        A = tf.stop_gradient(A)
+        b = tf.stop_gradient(b)
 
         with tf.GradientTape(persistent=True) as g:
             g.watch([q_mean, q_covar])
             val = KL_sde(self.prior_sde, -1 * A, b, q_mean, q_covar, dt=(self.grid[1] - self.grid[0]))
-            print(f"Linearization value: {val}")
 
         dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
 
-        return dE_dm, dE_dS
+        return val, dE_dm, dE_dS
 
-    def grad_cross_term(self):
-        """
-        Calculates the gradient of
-                    2 * E_{q(x)[(f_q - f_p)\Sigma^-1(f_L - f_p)] .
-        """
-        # convert from state transitons of the SSM to SDE's drift and offset
-
-        dt = self.grid[1] - self.grid[0]
-
-        A_q = tf.squeeze(self.dist_q.state_transitions, axis=0)
-        b_q = tf.squeeze(self.dist_q.state_offsets, axis=0)
-        A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
-        b_q = b_q / dt
-
-        # convert from state transitions of the SSM to SDE's drift and offset
-        A_p_l = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
-        b_p_l = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
-        A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / dt
-        b_p_l = b_p_l / dt
-
-        def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
-            # Adding N information
-            x = tf.transpose(x, perm=[1, 0, 2])
-            n_pnts = x.shape[1]
-
-            A_q = tf.repeat(A_q, n_pnts, axis=1)
-            b_q = tf.repeat(b_q, n_pnts, axis=1)
-            b_q = tf.expand_dims(b_q, axis=-1)
-            A_q = tf.stop_gradient(A_q)
-            b_q = tf.stop_gradient(b_q)
-
-            A_p_l = tf.repeat(A_p_l, n_pnts, axis=1)
-            b_p_l = tf.repeat(b_p_l, n_pnts, axis=1)
-            b_p_l = tf.expand_dims(b_p_l, axis=-1)
-            A_p_l = tf.stop_gradient(A_p_l)
-            b_p_l = tf.stop_gradient(b_p_l)
-
-            prior_drift = sde_p.drift(x=x, t=t)
-
-            fq_fp = ((x * A_q) - b_q) - prior_drift  # (f_q - f_p)
-            fl_fp = ((x * A_p_l) - b_p_l) - prior_drift  # (f_l - f_p)
-
-            sigma = sde_p.q
-            sigma = tf.stop_gradient(sigma)
-
-            val = fq_fp * (1 / sigma) * fl_fp
-
-            return tf.transpose(val, perm=[1, 0, 2])
-
-        diag_quad = NDiagGHQuadrature(self.prior_sde.state_dim, 20)
-        q_mean = tf.squeeze(self.fx_mus, axis=0)[:-1]
-        q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
-
-        with tf.GradientTape(persistent=True) as g:
-            g.watch([q_mean, q_covar])
-
-            val = diag_quad(func, q_mean, tf.squeeze(q_covar, axis=-1))
-            val = 2 * tf.reduce_sum(val) * dt
-            print(f"Cross-term value: {val}")
-
-        dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
-        return dE_dm, dE_dS
+    # def grad_cross_term(self):
+    #     """
+    #     Calculates the gradient of
+    #                 2 * E_{q(x)[(f_q - f_p)\Sigma^-1(f_L - f_p)] .
+    #     """
+    #     # convert from state transitions of the SSM to SDE's drift and offset
+    #
+    #     dt = self.grid[1] - self.grid[0]
+    #
+    #     A_q = tf.squeeze(self.dist_q.state_transitions, axis=0)
+    #     b_q = tf.squeeze(self.dist_q.state_offsets, axis=0)
+    #     A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
+    #     b_q = b_q / dt
+    #
+    #     # convert from state transitions of the SSM to SDE's drift and offset
+    #     A_p_l = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
+    #     b_p_l = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
+    #     A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / dt
+    #     b_p_l = b_p_l / dt
+    #
+    #     def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
+    #         # Adding N information
+    #         x = tf.transpose(x, perm=[1, 0, 2])
+    #         n_pnts = x.shape[1]
+    #
+    #         A_q = tf.repeat(A_q, n_pnts, axis=1)
+    #         b_q = tf.repeat(b_q, n_pnts, axis=1)
+    #         b_q = tf.expand_dims(b_q, axis=-1)
+    #         A_q = tf.stop_gradient(A_q)
+    #         b_q = tf.stop_gradient(b_q)
+    #
+    #         A_p_l = tf.repeat(A_p_l, n_pnts, axis=1)
+    #         b_p_l = tf.repeat(b_p_l, n_pnts, axis=1)
+    #         b_p_l = tf.expand_dims(b_p_l, axis=-1)
+    #         A_p_l = tf.stop_gradient(A_p_l)
+    #         b_p_l = tf.stop_gradient(b_p_l)
+    #
+    #         prior_drift = sde_p.drift(x=x, t=t)
+    #
+    #         fq_fp = ((x * A_q) - b_q) - prior_drift  # (f_q - f_p)
+    #         fl_fp = ((x * A_p_l) - b_p_l) - prior_drift  # (f_l - f_p)
+    #
+    #         sigma = sde_p.q
+    #         sigma = tf.stop_gradient(sigma)
+    #
+    #         val = fq_fp * (1 / sigma) * fl_fp
+    #
+    #         return tf.transpose(val, perm=[1, 0, 2])
+    #
+    #     diag_quad = NDiagGHQuadrature(self.prior_sde.state_dim, 20)
+    #     q_mean = tf.squeeze(self.fx_mus, axis=0)[:-1]
+    #     q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
+    #
+    #     with tf.GradientTape(persistent=True) as g:
+    #         g.watch([q_mean, q_covar])
+    #
+    #         val = diag_quad(func, q_mean, tf.squeeze(q_covar, axis=-1))
+    #         val = 2 * tf.reduce_sum(val) * dt
+    #         print(f"Cross-term value: {val}")
+    #
+    #     dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
+    #     return dE_dm, dE_dS
 
     def update_sites(self, convergence_tol=1e-4) -> bool:
         """
@@ -312,17 +314,15 @@ class SDESSM(CVIGaussianProcess):
         self.data_sites.nat1.assign(new_data_nat1)
 
         # Linearization gradient for updating the overall sites
-        # grads = self.grad_linearization_diff()
-        # # update
-        # # TODO (Check) : -1 because we don't have the gradient for the last state (m[-1, S[-1]])
-        # # TODO: Check the sign of the gradient. We should add or subtract?
-        # new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads[0]
-        # new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads[1]
-        # new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
-        # new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
-        # self.sites_nat2 = new_nat2
-        # self.sites_nat1 = new_nat1
-        #
+        _, grads0, grads1 = self.grad_linearization_diff()
+        # TODO (Check) : -1 because we don't have the gradient for the last state (m[-1, S[-1]])
+        new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads0
+        new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
+        new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
+        new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
+        self.sites_nat2 = new_nat2
+        self.sites_nat1 = new_nat1
+
         # # Cross term
         # grads = self.grad_cross_term()
         # new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads[0]
@@ -444,7 +444,7 @@ class SDESSM(CVIGaussianProcess):
 
     def loss_lin(self, dist_p: StateSpaceModel = None):
         """
-        KL[p || p_{lin}]
+        \E_{q}[||f_P - f_l||^2_{\Sigma^{-1}}]
         """
 
         if dist_p is None:
@@ -492,11 +492,13 @@ class SDESSM(CVIGaussianProcess):
 
         lin_loss = self.loss_lin()
 
+        # Don't need this as lin_loss above is the same
+        # fp_fl, _, _ = self.grad_linearization_diff()
+
         wandb.log({"SSM-KL": kl_fx})
         wandb.log({"SSM-VE": ve_fx})
         wandb.log({"SSM-Lin-Loss": lin_loss})
 
-        # print(f"kl_fx = {kl_fx}; ve_fx = {ve_fx}; lin_loss = {lin_loss}")
         return ve_fx - kl_fx - lin_loss
 
     def run(self, update_prior: bool = False) -> [list, dict]:

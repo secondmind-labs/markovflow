@@ -153,7 +153,7 @@ def plot_elbo_bound_learning(data_dir: str):
     ssm_data = np.load(ssm_path)
     a = ssm_data["a"]
     c = ssm_data["c"]
-    elbo = ssm_data["elbo"].T
+    elbo = ssm_data["elbo"]
 
     ssm_learning_path = os.path.join(data_dir, "ssm_learnt_sde.npz")
     ssm_learning = np.load(ssm_learning_path)
@@ -173,7 +173,7 @@ def plot_elbo_bound_learning(data_dir: str):
     vgp_data = np.load(vgp_path)
     a = vgp_data["a"]
     c = vgp_data["c"]
-    elbo = vgp_data["elbo"].T
+    elbo = vgp_data["elbo"]
     vgp_learning_path = os.path.join(data_dir, "vgp_learnt_sde.npz")
     vgp_learning = np.load(vgp_learning_path)
     vgp_learnt_a = vgp_learning["a"]
@@ -190,7 +190,7 @@ def plot_elbo_bound_learning(data_dir: str):
 
 
 if __name__ == '__main__':
-    data_dir = "data/91"
+    data_dir = "data/128"
 
     data_path = os.path.join(data_dir, "data.npz")
     data = np.load(data_path)

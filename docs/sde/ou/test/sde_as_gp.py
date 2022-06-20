@@ -13,7 +13,7 @@ import tensorflow as tf
 from gpflow.likelihoods import Gaussian
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE
 import sys
-sys.path.append("..")
+sys.path.append("../..")
 from sde_exp_utils import plot_posterior, predict_vgp, generate_ou_data
 
 DTYPE = gpflow.config.default_float()
