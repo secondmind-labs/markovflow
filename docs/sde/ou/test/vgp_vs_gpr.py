@@ -6,6 +6,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import wandb
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
@@ -17,6 +18,10 @@ from markovflow.models.vi_sde import VariationalMarkovGP
 import sys
 sys.path.append("../..")
 from sde_exp_utils import predict_vgp, plot_observations, plot_posterior, get_cvi_gpr_taylor, predict_cvi_gpr_taylor
+
+os.environ['WANDB_MODE'] = 'offline'
+"""Logging init"""
+wandb.init(project="VI-SDE", entity="vermaprakhar")
 
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]

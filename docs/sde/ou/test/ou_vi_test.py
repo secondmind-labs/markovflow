@@ -176,7 +176,7 @@ def update_psi_lagrange_test(vgp_model: VariationalMarkovGP, observation_varianc
 
 
 if __name__ == '__main__':
-    data_dir = "data/786"
+    data_dir = "../data/786"
 
     data_path = os.path.join(data_dir, "data.npz")
     data = np.load(data_path)

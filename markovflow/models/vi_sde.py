@@ -346,7 +346,7 @@ class VariationalMarkovGP:
             A = self.A[:-1]
             b = self.b[:-1]
 
-            return KL_sde(self.prior_sde, A, b, m, S, self.dt)  #+ self.KL_initial_state()
+            return KL_sde(self.prior_sde, A, b, m, S, self.dt)  + self.KL_initial_state()
 
         # FIXME: check all variables and not only the first one
         old_val = self.prior_sde.trainable_variables[0].numpy().item()
