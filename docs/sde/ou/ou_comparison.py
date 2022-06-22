@@ -31,9 +31,9 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "data/3"
+data_dir = "data/36"
 
-learn_prior_sde = True
+learn_prior_sde = False
 prior_initial_decay_val = 2. + 0 * tf.abs(tf.random.normal((1, 1), dtype=DTYPE))  # Used when learning prior sde
 
 """
@@ -148,13 +148,13 @@ VGP
 """
 # Prior SDE
 if learn_prior_sde:
-    prior_decay = prior_initial_decay_val
+    vgp_prior_decay = prior_initial_decay_val
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = PriorOUSDE(initial_val=-1*prior_decay, q=true_q)  # As prior OU SDE doesn't have a negative sign inside it.
+    prior_sde_vgp = PriorOUSDE(initial_val=-1*vgp_prior_decay, q=true_q)  # As prior OU SDE doesn't have a negative sign inside it.
 else:
-    true_decay = decay * tf.ones((1, 1), dtype=DTYPE)
+    vgp_prior_decay = decay * tf.ones((1, 1), dtype=DTYPE)
     true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = OrnsteinUhlenbeckSDE(decay=true_decay, q=true_q)
+    prior_sde_vgp = OrnsteinUhlenbeckSDE(decay=vgp_prior_decay, q=true_q)
 
 # likelihood
 likelihood_vgp = Gaussian(noise_stddev**2)
@@ -168,7 +168,7 @@ vgp_model.q_initial_cov = tf.identity(vgp_model.p_initial_cov)
 vgp_model.p_initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), vgp_model.p_initial_mean.shape)
 vgp_model.q_initial_mean = tf.identity(vgp_model.p_initial_mean)
 
-vgp_model.A = decay + 0. * vgp_model.A
+vgp_model.A = vgp_prior_decay + 0. * vgp_model.A
 
 v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=learn_prior_sde)
 if learn_prior_sde:
@@ -185,6 +185,7 @@ m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
 """
 Compare Posterior
 """
+# plt.vlines(time_grid.reshape(-1), -2, 2, alpha=0.2, color="black")
 plot_posterior(m_gpr, s_std_gpr, time_grid, "GPR")
 plot_posterior(m_ssm, s_std_ssm, time_grid, "SDE-SSM")
 plot_posterior(m_vgp, s_std_vgp, time_grid, "VGP")

@@ -20,7 +20,7 @@ import tensorflow as tf
 from gpflow.likelihoods import Likelihood, Gaussian
 from gpflow.base import Parameter
 from gpflow import default_float
-from gpflow.quadrature import NDiagGHQuadrature
+from markovflow.sde.sde import PriorOUSDE
 import wandb
 
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
@@ -434,6 +434,11 @@ class SDESSM(CVIGaussianProcess):
         self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
         new_val = self.prior_sde.trainable_variables[0].numpy().item()
 
+        # FIXME: ONLY FOR OU: Steady state covariance
+        if isinstance(self.prior_sde, PriorOUSDE):
+            self.initial_chol_cov = tf.linalg.cholesky(
+                (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
+
         diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
         if diff_sq_norm < convergence_tol:
             has_converged = True
@@ -542,10 +547,6 @@ class SDESSM(CVIGaussianProcess):
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
 
-                    # FIXME: ONLY FOR OU: Steady state covariance
-                    if isinstance(self.prior_sde, OrnsteinUhlenbeckSDE):
-                        self.initial_chol_cov = tf.linalg.cholesky(
-                            (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
             else:
                 # only linearize the prior
                 self._linearize_prior()
