@@ -376,7 +376,10 @@ class SDESSM(CVIGaussianProcess):
             theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
         )
 
-        return post_ssm_params
+        A = (tf.reshape(post_ssm_params[0], (-1, 1, 1)) - tf.eye(self.state_dim, dtype=post_ssm_params[0].dtype)) / (self.grid[1] - self.grid[0])
+        b = tf.reshape(post_ssm_params[1], (-1, 1)) / (self.grid[1] - self.grid[0])
+
+        return A, b, post_ssm_params
 
     def kl(self, dist_p: StateSpaceModel) -> tf.Tensor:
         r"""
