@@ -26,12 +26,14 @@ import wandb
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
 from markovflow.models.variational_cvi import CVIGaussianProcess
 from markovflow.mean_function import MeanFunction
-from markovflow.sde.sde import SDE, OrnsteinUhlenbeckSDE
+from markovflow.sde.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSites
 from markovflow.sde.sde_utils import KL_sde
+from markovflow.ssm_natgrad import naturals_to_ssm_params
+from markovflow.models.variational_cvi import back_project_nats
 
 
 class SDESSM(CVIGaussianProcess):
@@ -73,7 +75,7 @@ class SDESSM(CVIGaussianProcess):
         self.observations_time_points = self._time_points
         self.data_sites = UnivariateGaussianSitesNat(
             nat1=Parameter(tf.zeros_like(self.observations)),
-            nat2=Parameter(tf.ones_like(self.observations)[..., None] * -1e-10),
+            nat2=Parameter(tf.ones_like(self.observations)[..., None] * -1e-20),
             log_norm=Parameter(tf.zeros_like(self.observations)),
         )
         self.output_dim = 1
@@ -347,6 +349,34 @@ class SDESSM(CVIGaussianProcess):
         self.fx_mus, self.fx_covs = dist_q.marginals
 
         return has_converged
+
+    def get_posterior_drift_params(self):
+        """
+        Get the drift parameters of the posterior:
+            f(x_t) = A_t x_t + b_t
+        """
+        sites = self.posterior_kalman.sites
+
+        prec = self.dist_p_ssm._build_precision()
+
+        # [..., num_transitions + 1, state_dim, state_dim]
+        prec_diag = prec.block_diagonal
+        # [..., num_transitions, state_dim, state_dim]
+        prec_subdiag = prec.block_sub_diagonal
+
+        H = self.generate_emission_model(self.time_points).emission_matrix
+
+        bp_nat1, bp_nat2 = back_project_nats(sites.nat1, sites.nat2[..., 0], H)
+
+        # conjugate update of the natural parameter: post_nat = prior_nat + lik_nat
+        theta_diag = -0.5 * prec_diag + bp_nat2
+        theta_subdiag = -prec_subdiag
+
+        post_ssm_params = naturals_to_ssm_params(
+            theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
+        )
+
+        return post_ssm_params
 
     def kl(self, dist_p: StateSpaceModel) -> tf.Tensor:
         r"""
