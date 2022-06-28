@@ -428,9 +428,9 @@ if __name__ == '__main__':
     INITIAL_PRIOR_VALUE = args.prior_decay
 
     if LEARN_PRIOR_SDE:
-        cvi_gpr, cvi_params = cvi_gpr()
+        gpr_model, cvi_params = cvi_gpr()
     else:
-        gpr_taylor_model = gpr_taylor()
+        gpr_model = gpr_taylor()
 
     ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm()
     if LEARN_PRIOR_SDE:
@@ -440,7 +440,7 @@ if __name__ == '__main__':
     if LEARN_PRIOR_SDE:
         v_gp_prior_decay_values = vgp_prior_prior_vals[0]
 
-    compare_plot_posterior(gpr_taylor_model, ssm_model, vgp_model)
+    compare_plot_posterior(gpr_model, ssm_model, vgp_model)
 
     plot_elbo(ssm_elbo_vals, vgp_elbo_vals)
 
