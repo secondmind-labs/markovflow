@@ -17,7 +17,7 @@ from markovflow.models.vi_sde import VariationalMarkovGP
 from markovflow.sde.sde_utils import gaussian_log_predictive_density
 
 from docs.sde.sde_exp_utils import predict_vgp, predict_ssm, plot_observations, plot_posterior, get_cvi_gpr_taylor, \
-    predict_cvi_gpr_taylor, get_cvi_gpr, predict_gpr
+    predict_cvi_gpr_taylor, get_cvi_gpr, predict_cvi_gpr
 
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
@@ -229,7 +229,7 @@ def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
              label="Test Observations (Y)")
 
     if LEARN_PRIOR_SDE:
-        m_gpr, s_std_gpr = predict_gpr(cvi_gpr_model, TIME_GRID)
+        m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, TIME_GRID, NOISE_STDDEV)
     else:
         m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_model, NOISE_STDDEV)
 
