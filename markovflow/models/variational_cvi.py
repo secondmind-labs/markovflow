@@ -664,3 +664,207 @@ class CVIGaussianProcessTaylorKernel(CVIGaussianProcess):
 
         # Return ELBO(fₓ) = VE(fₓ) - KL[q(sₓ) || p(sₓ)]
         return ve_fx - kl_fx
+
+
+class CVIGaussianProcessSitesGrid(CVIGaussianProcess):
+    """
+    CVI GPR with kernel SSM approximated via Taylor expansion
+    """
+    def __init__(self, input_data: Tuple[tf.Tensor, tf.Tensor],
+                 time_grid: tf.Tensor,
+                 kernel: SDEKernel,
+                 likelihood: Likelihood,
+                 mean_function: Optional[MeanFunction] = None,
+                 learning_rate=0.1,
+                 ):
+        super(CVIGaussianProcessSitesGrid, self).__init__(input_data,
+                                                          kernel=kernel,
+                                                          likelihood=likelihood,
+                                                          mean_function=mean_function,
+                                                          learning_rate=learning_rate,
+                                                          initialize_sites=False)
+        self.time_grid = time_grid
+        self.observations_time_points = self._time_points
+        self.data_sites = UnivariateGaussianSitesNat(
+            nat1=Parameter(tf.zeros_like(self.observations)),
+            nat2=Parameter(tf.ones_like(self.observations)[..., None] * -1e-10),
+            log_norm=Parameter(tf.zeros_like(self.observations)),
+        )
+
+        self.sites_nat2 = tf.ones_like(self.time_grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
+
+    @property
+    def sites(self) -> UnivariateGaussianSitesNat:
+        """
+        Sites over a finer grid where at the observation timepoints the parameters are replaced by that
+        of the data sites.
+        """
+        indices = tf.where(tf.equal(self.time_grid[..., None], self.observations_time_points))[:, 0][..., None]
+
+        nat1 = tf.scatter_nd(indices, self.data_sites.nat1, self.time_grid[..., None].shape)
+        nat2 = tf.tensor_scatter_nd_update(self.sites_nat2, indices, self.data_sites.nat2)
+
+        log_norm = tf.scatter_nd(indices, self.data_sites.log_norm, self.time_grid[..., None].shape)
+
+        return UnivariateGaussianSitesNat(
+            nat1=Parameter(nat1),
+            nat2=Parameter(nat2),
+            log_norm=Parameter(log_norm),
+        )
+
+    @property
+    def dist_p(self) -> StateSpaceModel:
+        """
+        Return the prior Gauss-Markov distribution.
+        """
+        return self._kernel.state_space_model(self.time_points)
+
+    @property
+    def time_points(self) -> tf.Tensor:
+        """
+        Return the time points of the observations. For SDE CVI, it is the time-grid.
+
+        :return: A tensor with shape ``batch_shape + [grid_size]``.
+        """
+        return self.time_grid
+
+    @property
+    def dist_q(self) -> StateSpaceModel:
+        """
+        Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
+        the posterior process indexed at the time points.
+        """
+        """
+                Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
+                the posterior process indexed at the time points.
+                """
+        # get prior precision
+        prec = self.dist_p.precision
+
+        # [..., num_transitions + 1, state_dim, state_dim]
+        prec_diag = prec.block_diagonal
+        # [..., num_transitions, state_dim, state_dim]
+        prec_subdiag = prec.block_sub_diagonal
+
+        H = self.generate_emission_model(self.time_points).emission_matrix
+        bp_nat1, bp_nat2 = back_project_nats(self.sites.nat1, self.sites.nat2[..., 0], H)
+        # conjugate update of the natural parameter: post_nat = prior_nat + lik_nat
+        theta_diag = -0.5 * prec_diag + bp_nat2
+        theta_subdiag = -prec_subdiag
+
+        post_ssm_params = naturals_to_ssm_params(
+            theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
+        )
+
+        return StateSpaceModel(
+            state_transitions=post_ssm_params[0],
+            state_offsets=post_ssm_params[1],
+            chol_initial_covariance=post_ssm_params[2],
+            chol_process_covariances=post_ssm_params[3],
+            initial_mean=post_ssm_params[4],
+        )
+
+    @property
+    def posterior_kalman(self) -> KalmanFilterWithSites:
+        """Build the Kalman filter object from the prior state space models and the sites."""
+        return KalmanFilterWithSites(
+            state_space_model=self.dist_p,
+            emission_model=self.generate_emission_model(tf.reshape(self.time_points, (-1))),
+            sites=self.sites,
+        )
+
+    def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
+        """
+        Generate the :class:`~markovflow.emission_model.EmissionModel` that maps from the
+        latent :class:`~markovflow.state_space_model.StateSpaceModel` to the observations.
+
+        :param time_points: The time points over which the emission model is defined, with shape
+            ``batch_shape + [num_data]``.
+        """
+        # create 2D matrix
+        emission_matrix = tf.concat(
+            [
+                tf.ones((self.kernel.output_dim, 1), dtype=default_float()),
+                tf.zeros((self.kernel.output_dim, self.kernel.state_dim - 1), dtype=default_float()),
+            ],
+            axis=-1,
+        )
+        # tile for each time point
+        # expand emission_matrix from [output_dim, state_dim], to [1, 1 ... output_dim, state_dim]
+        # where there is a singleton dimension for the dimensions of time points
+        batch_shape = time_points.shape[:-1]  # num_data may be undefined so skip last dim
+        shape = tf.concat(
+            [tf.ones(len(batch_shape) + 1, dtype=tf.int32), tf.shape(emission_matrix)], axis=0
+        )
+        emission_matrix = tf.reshape(emission_matrix, shape)
+
+        # tile the emission matrix into shape batch_shape + [num_data, output_dim, state_dim]
+        repetitions = tf.concat([tf.shape(time_points), [1, 1]], axis=0)
+        return EmissionModel(tf.tile(emission_matrix, repetitions))
+
+    def update_sites(self):
+        """
+        Perform one joint update of the Gaussian sites. That is:
+
+        .. math:: 𝜽 ← ρ𝜽 + (1-ρ)𝐠
+
+        Note: We update the data sites and not the full sites.
+        """
+        fx_mus, fx_covs = self.dist_q.marginals
+
+        indices = tf.where(tf.equal(self.time_grid[..., None], self.observations_time_points))[:, 0][..., None]
+        fx_mus = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
+        fx_covs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
+
+        # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
+        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
+
+        # update
+        new_nat1 = (1 - self.learning_rate) * self.data_sites.nat1 + self.learning_rate * grads[0]
+        new_nat2 = (1 - self.learning_rate) * self.data_sites.nat2 + self.learning_rate * grads[1][..., None]
+
+        self.data_sites.nat2.assign(new_nat2)
+        self.data_sites.nat1.assign(new_nat1)
+
+    def log_likelihood(self) -> tf.Tensor:
+        fx_mus, fx_covs = self.dist_q.marginals
+
+        indices = tf.where(tf.equal(self.time_grid[..., None], self.observations_time_points))[:, 0][..., None]
+        fx_mus = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
+        fx_covs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
+
+        # VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfₓ
+        ve_fx = tf.reduce_sum(
+            input_tensor=self._likelihood.variational_expectations(
+                fx_mus, fx_covs, self._observations
+            )
+        )
+        return ve_fx
+
+    def classic_elbo(self) -> tf.Tensor:
+        """
+        Compute the ELBO the classic way. That is:
+
+        .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+        .. note:: This is mostly for testing purposes and should not be used for optimization.
+
+        :return: A scalar tensor representing the ELBO.
+        """
+        fx_mus, fx_covs = self.dist_q.marginals
+        indices = tf.where(tf.equal(self.time_grid[..., None], self.observations_time_points))[:, 0][..., None]
+        fx_mus = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
+        fx_covs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
+
+        # VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfₓ
+        ve_fx = tf.reduce_sum(
+            input_tensor=self._likelihood.variational_expectations(
+                fx_mus, fx_covs, self._observations
+            )
+        )
+
+        # KL[q(sₓ) || p(sₓ)]
+        kl_fx = self.dist_q.kl_divergence(self.dist_p)
+
+        # Return ELBO(fₓ) = VE(fₓ) - KL[q(sₓ) || p(sₓ)]
+        return ve_fx - kl_fx

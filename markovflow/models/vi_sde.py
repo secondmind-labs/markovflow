@@ -64,7 +64,7 @@ class VariationalMarkovGP:
         dx(t) = - A(t) dt + b(t) dW(t)
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
-                 lr: float = 0.5, prior_params_lr: float = 0.01):
+                 lr: float = 0.5, prior_params_lr: float = 0.01, forward_ssm_q=None):
         """
         Initialize the model.
 
@@ -77,6 +77,7 @@ class VariationalMarkovGP:
         self.state_dim = self.prior_sde.state_dim
         self.DTYPE = self.observations.dtype
 
+        self.orig_grid = grid
         self.grid = grid[1:]
         self.N = grid.shape[0]
 
@@ -104,6 +105,8 @@ class VariationalMarkovGP:
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)  # tf.optimizers.Adam(lr=0.1)
 
         self.elbo_vals = []
+        self.forward_ssm_q = forward_ssm_q
+        self.dist_q_ssm = None
 
         self.prior_params = {}
         for i, param in enumerate(self.prior_sde.trainable_variables):
@@ -121,37 +124,24 @@ class VariationalMarkovGP:
 
         The returned m and S have initial values appended too.
         """
-        # m = np.zeros_like(self.b)
-        # S = np.zeros_like(self.A)
-        #
-        # m[0] = self.q_initial_mean
-        # S[0] = self.q_initial_cov
-        #
-        # for i in range(self.N-1):
-        #     dmdt = -self.A[i] * m[i] + self.b[i]
-        #     dSdt = -self.A[i] * S[i] - S[i] * self.A[i] + self.prior_sde.q
-        #     m[i+1] = m[i] + self.dt * dmdt
-        #     S[i+1] = S[i] + self.dt * dSdt
-        #
-        # m = tf.convert_to_tensor(m)
-        # S = tf.convert_to_tensor(S)
-        # return m, S
-
         A = self.A[:-1]
         b = self.b[:-1]
         state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - A * self.dt
         state_offset = b * self.dt
 
-        q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
+        if self.forward_ssm_q is not None:
+            q = tf.reshape(self.forward_ssm_q, state_transition.shape)
+        else:
+            q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
-        ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
+        self.dist_q_ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
                               chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
                               state_transitions=state_transition,
                               state_offsets=state_offset,
                               chol_process_covariances=tf.linalg.cholesky(q)
                               )
 
-        return ssm.marginal_means, ssm.marginal_covariances
+        return self.dist_q_ssm.marginal_means, self.dist_q_ssm.marginal_covariances
 
     def grad_E_sde(self, m: tf.Tensor, S: tf.Tensor):
         """
@@ -314,11 +304,15 @@ class VariationalMarkovGP:
 
         # remove the final state and the final A and b
         E_sde = KL_sde(self.prior_sde, self.A[:-1], self.b[:-1], m[:-1], S[:-1], self.dt)
+        # from markovflow.sde.sde_utils import linearize_sde
+        # p_ssm = linearize_sde(self.prior_sde, self.orig_grid, tf.expand_dims(m[:-1], axis=0), tf.expand_dims(S[:-1], axis=0),
+        #                       tf.expand_dims(self.p_initial_mean, axis=0), tf.expand_dims(tf.math.sqrt(self.p_initial_cov), axis=0))
+        # E_sde = tf.reduce_sum(self.dist_q_ssm.kl_divergence(p_ssm))
 
         KL_q0_p0 = self.KL_initial_state()
 
         # E_obs
-        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0]
+        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0] + 1
         m_obs_t = tf.gather(m, indices, axis=0)
         S_obs_t = tf.gather(S, indices, axis=0)
 

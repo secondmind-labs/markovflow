@@ -49,8 +49,8 @@ if __name__ == '__main__':
     E_sde
     """
     m, S = kernel_ssm_q.marginals
-    m = m[1:]  # remove the first state
-    S = S[1:]  # remove the first state
+    m = m[:-1]  # remove the last state
+    S = S[:-1]  # remove the last state
 
     A_q = decay_q * tf.ones_like(m)[..., None]
     b_q = tf.zeros_like(m)

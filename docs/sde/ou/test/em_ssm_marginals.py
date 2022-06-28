@@ -40,4 +40,4 @@ ssm = StateSpaceModel(initial_mean=m[0],
 ssm_m, ssm_S = ssm.marginals
 
 np.testing.assert_array_almost_equal(m, ssm_m)
-np.testing.assert_array_almost_equal(S, ssm_S)
+np.testing.assert_array_almost_equal(S, ssm_S, decimal=2)

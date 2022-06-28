@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from docs.sde.sde_exp_utils import generate_ou_data, plot_observations
 
-seed = 98
+seed = 152
 tf.random.set_seed(seed)
 np.random.seed(seed)
 DTYPE = default_float()
@@ -19,10 +19,10 @@ Parameters
 """
 decay = .8  # specify without the negative sign
 q = 1.4
-noise_var = 0.01
+noise_var = 1.5
 x0 = -0.5
 
-t0, t1 = 0., 20.
+t0, t1 = 0., 5.
 simulation_dt = 0.01  # Used for Euler-Maruyama
 n_observations = 20
 

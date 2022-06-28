@@ -108,7 +108,7 @@ if __name__ == '__main__':
     q = .8
     t0 = 0
     t1 = 5
-    dt = 0.01
+    dt = 0.1
     m0 = 2.
     S0 = 1e-2
     num_passes = 50
@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
     vgp_model = VariationalMarkovGP(input_data=input_data, prior_sde=prior_sde, grid=tf.constant(t_grid),
                                     likelihood=likelihood,
-                                    lr=0.5)
+                                    lr=0.01)
 
     vgp_model.p_initial_cov = tf.reshape(tf.constant(steady_cov, dtype=observation_vals.dtype),
                                          vgp_model.p_initial_cov.shape)
@@ -186,10 +186,11 @@ if __name__ == '__main__':
     vgp_model.psi_lagrange = 0. * vgp_model.psi_lagrange
 
     # Perform steps
-    for _ in range(num_passes):
+    for _ in range(200):
         vgp_model.run_single_inference()
 
     m_vgp, S_std_vgp = predict_vgp(vgp_model, 0)
+    plt.vlines(time_grid.numpy().reshape(-1), -2, 2, alpha=0.2, color="black")
     plot_posterior(m_vgp, S_std_vgp, t_grid, "VGP")
 
     # Format plot
@@ -198,6 +199,7 @@ if __name__ == '__main__':
     plt.ylabel('$x$', fontsize=16)
     plt.xlim([t0, t1])
     plt.legend()
+    plt.savefig("test_vgp_stratis.svg")
     plt.show()
 
     """VGP==VGP-Stratis"""
