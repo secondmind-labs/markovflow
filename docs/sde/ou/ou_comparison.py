@@ -411,6 +411,7 @@ if __name__ == '__main__':
                         help='Prior decay value to be used when learning the prior SDE.')
     parser.add_argument('-gpu', type=bool, default=False, help='Use GPU')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
+    parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
 
     print(f"True decay value of the OU SDE is {DECAY}")
     print(f"Noise std-dev is {NOISE_STDDEV}")
@@ -419,6 +420,8 @@ if __name__ == '__main__':
     LEARN_PRIOR_SDE = args.learn_prior_sde
 
     load_data(args.data_dir)
+    modify_time_grid(args.dt)
+
     plot_data()
 
     set_output_dir()
