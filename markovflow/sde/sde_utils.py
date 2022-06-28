@@ -22,6 +22,7 @@ from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
+from markovflow.likelihoods import MultivariateGaussian
 
 
 def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
@@ -188,3 +189,16 @@ def KL_sde(sde_p: SDE, A_q, b_q, m, S, dt: float, quadrature_pnts: int = 20):
 
     kl_sde = 0.5 * tf.reduce_sum(kl_sde) * dt
     return kl_sde
+
+
+def gaussian_log_predictive_density(mean: tf.Tensor, chol_covariance: tf.Tensor, x: tf.Tensor) -> tf.Tensor:
+    """
+        Compute the log probability density for a Gaussian.
+    """
+    x = tf.reshape(x, (-1, 1))
+    mean = tf.reshape(mean, (-1, 1))
+
+    mvn = MultivariateGaussian(chol_covariance=chol_covariance)
+    log_pd = mvn.log_probability_density(mean, x)
+
+    return log_pd

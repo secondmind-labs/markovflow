@@ -83,7 +83,7 @@ class SDESSM(CVIGaussianProcess):
 
         self._initialize_mean_statistic()
         self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
-        self.sites_nat1 = tf.zeros_like(self.grid, dtype=self.observations.dtype)[..., None]
+        self.sites_nat1 = tf.zeros_like(self.grid)[..., None]
 
         self.sites_lr = learning_rate
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_params_lr)

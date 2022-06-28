@@ -36,8 +36,12 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
     N = time_grid.shape[0]
     l1 = int(N * 0.05)
     l2 = int(N * 0.95)
-    observation_idx = list(tf.cast(np.linspace(l1, l2, n_observations), dtype=tf.int32))
+    observation_idx = list(tf.cast(tf.linspace(l1, l2, n_observations), dtype=tf.int32))
     observation_grid = tf.gather(time_grid, observation_idx)
+
+    n_test = int(0.1 * n_observations)
+    test_idx = sorted(list(np.random.randint(0, time_grid.shape[0], n_test)))
+    test_grid = tf.gather(time_grid, test_idx)
 
     latent_process = euler_maruyama(sde, x0, time_grid)
 
@@ -47,7 +51,11 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
     # Adding observation noise
     simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
 
-    return simulated_values, observation_grid, latent_process, time_grid
+    # Pick test observations
+    test_latent_states = tf.gather(latent_process, test_idx, axis=1)
+    test_values = test_latent_states + tf.random.normal(test_latent_states.shape, stddev=noise_stddev, dtype=dtype)
+
+    return simulated_values, observation_grid, latent_process, time_grid, test_values, test_grid
 
 
 def generate_dw_data(q: float, x0: float, t0: float, t1: float, simulation_dt: float,
