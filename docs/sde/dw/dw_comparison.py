@@ -1,8 +1,20 @@
 """Double-well SDE CVI vs SDE VI"""
+
+import argparse
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+# Don't use GPU
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import tensorflow as tf
+
+# Restrict TensorFlow to only use the first GPU
+# gpus = tf.config.list_physical_devices('GPU')
+# if gpus:
+#     tf.config.set_visible_devices(gpus[1], 'GPU')
+
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
 import wandb
@@ -11,148 +23,215 @@ from markovflow.sde.sde import DoubleWellSDE, PriorDoubleWellSDE
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
 
-import sys
-sys.path.append("..")
-from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
-    get_cvi_gpr, predict_cvi_gpr
+from docs.sde.sde_exp_utils import predict_vgp, predict_ssm, plot_observations, plot_posterior
+from markovflow.sde.sde_utils import gaussian_log_predictive_density
 
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
 
-"""
-Parameters
-"""
-data_dir = "data/63"
+DATA_PATH = ""
+Q = 1.
+NOISE_STDDEV = 0.1 * np.ones((1, 1))
+X0 = 0.
+T0 = 0.
+T1 = 1.
+DT = 0.
+TIME_GRID = tf.zeros((1, 1))
+OBSERVATION_DATA = ()
+TEST_DATA = ()
+LATENT_PROCESS = tf.zeros((1, 1))
+OUTPUT_DIR = ""
+LEARN_PRIOR_SDE = False
+INITIAL_PRIOR_VALUE = 1.
+TRUE_DW_SDE = None
+PRIOR_VGP_SDE = None
+PRIOR_SDESSM_SDE = None
 
-learn_prior_sde = True
 
-"""
-Generate observations for a linear SDE
-"""
-data_path = os.path.join(data_dir, "data.npz")
-data = np.load(data_path)
-q = data["q"]
-noise_stddev = data["noise_stddev"]
-x0 = data["x0"]
-observation_vals = data["observation_vals"]
-observation_grid = data["observation_grid"]
-latent_process = data["latent_process"]
-time_grid = data["time_grid"]
-t0 = time_grid[0]
-t1 = time_grid[-1]
+def load_data(data_dir):
+    """
+    Get Data
+    """
+    global DATA_PATH, DECAY, Q, X0, NOISE_STDDEV, T0, T1, TIME_GRID, OBSERVATION_DATA, LATENT_PROCESS, TEST_DATA, DT, TRUE_DW_SDE
 
-true_dw_sde = DoubleWellSDE(q=q * tf.ones((1, 1), dtype=DTYPE))
+    DATA_PATH = data_dir
+    data = np.load(os.path.join(data_dir, "data.npz"))
+    Q = data["q"]
+    NOISE_STDDEV = data["noise_stddev"]
+    X0 = data["x0"]
+    OBSERVATION_DATA = (data["observation_grid"], tf.squeeze(data["observation_vals"], axis=0).numpy())
+    LATENT_PROCESS = data["latent_process"]
+    TIME_GRID = data["time_grid"]
+    T0 = TIME_GRID[0]
+    T1 = TIME_GRID[-1]
+    TEST_DATA = (data["test_grid"], data["test_vals"])
+    DT = TIME_GRID[1] - TIME_GRID[0]
 
-plt.clf()
-plot_observations(observation_grid, observation_vals)
-plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
-plt.xlabel("Time (t)")
-plt.ylabel("y(t)")
-plt.ylim([-2, 2])
-plt.xlim([t0, t1])
-plt.title("Observations")
-plt.legend()
-plt.show()
+    TRUE_DW_SDE = DoubleWellSDE(q=Q * tf.ones((1, 1), dtype=DTYPE))
 
-print(f"Noise std-dev is {noise_stddev}")
 
-input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
+def modify_time_grid(dt: float):
+    """Modifying time grid."""
+    global DT, TIME_GRID
+    DT = dt
+    TIME_GRID = tf.cast(np.arange(T0, T1 + DT, DT), dtype=DTYPE).numpy()
 
-if learn_prior_sde:
-    plot_save_dir = os.path.join(data_dir, "learning")
-else:
-    plot_save_dir = os.path.join(data_dir, "inference")
 
-if not os.path.exists(plot_save_dir):
-    os.makedirs(plot_save_dir)
+def plot_data():
+    """Plot the data"""
+    plt.clf()
+    plot_observations(OBSERVATION_DATA[0], OBSERVATION_DATA[1])
+    plt.plot(TIME_GRID, tf.reshape(LATENT_PROCESS, (-1)), label="Latent Process", alpha=0.2, color="gray")
+    plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
+             label="Test Observations (Y)")
+    plt.xlabel("Time (t)")
+    plt.ylabel("y(t)")
+    plt.ylim([-2, 2])
+    plt.xlim([T0, T1])
+    plt.title("Observations")
+    plt.legend()
+    plt.show()
 
-config = {
-    "seed": data_dir.split("/")[-1],
-    "learning": learn_prior_sde,
-    "t0": t0,
-    "t1": t1,
-    "grid_dt": time_grid[1] - time_grid[0],
-    "q": q,
-    "noise_stddev": noise_stddev,
-    "n_observations": observation_grid.shape[0]
-}
 
-"""Logging init"""
-wandb.init(project="VI-SDE", entity="vermaprakhar", config=config)
+def set_output_dir():
+    """Create output directory"""
+    global OUTPUT_DIR
+    if LEARN_PRIOR_SDE:
+        OUTPUT_DIR = os.path.join(DATA_PATH, "learning")
+    else:
+        OUTPUT_DIR = os.path.join(DATA_PATH, "inference")
 
-"""
-SDE-SSM
-"""
-# Prior SDE
-if learn_prior_sde:
-    true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_ssm = PriorDoubleWellSDE(q=true_q)
-else:
-    true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_ssm = DoubleWellSDE(q=true_q)
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
 
-# likelihood
-likelihood_ssm = Gaussian(noise_stddev**2)
 
-# model
-ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde_ssm, grid=time_grid, likelihood=likelihood_ssm,
-                   learning_rate=0.5, prior_params_lr=0.01)
-ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=learn_prior_sde)
-if learn_prior_sde:
-    ssm_prior_a_values = ssm_prior_prior_vals[0]
-    ssm_prior_c_values = ssm_prior_prior_vals[1]
+def init_wandb(uname: str, log: bool = False):
+    """Initialize Wandb"""
 
-"""
-VGP
-"""
-# Prior SDE
-if learn_prior_sde:
-    true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = PriorDoubleWellSDE(q=true_q)
-else:
-    true_q = q * tf.ones((1, 1), dtype=DTYPE)
-    prior_sde_vgp = DoubleWellSDE(q=true_q)
+    if not log:
+        os.environ['WANDB_MODE'] = 'offline'
 
-# likelihood
-likelihood_vgp = Gaussian(noise_stddev**2)
+    config = {
+        "seed": DATA_PATH.split("/")[-1],
+        "learning": LEARN_PRIOR_SDE,
+        "t0": T0,
+        "t1": T1,
+        "grid_dt": DT,
+        "q": Q,
+        "noise_stddev": NOISE_STDDEV,
+        "n_observations": OBSERVATION_DATA[0].shape[0]
+    }
 
-vgp_model = VariationalMarkovGP(input_data=input_data,
-                                prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.05, prior_params_lr=0.01)
+    """Logging init"""
+    wandb.init(project="VI-SDE", entity=uname, config=config)
 
-v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=learn_prior_sde)
-if learn_prior_sde:
-    v_gp_prior_a_values = v_gp_prior_vals[0]
-    v_gp_prior_c_values = v_gp_prior_vals[1]
 
-"""
-Predict Posterior
-"""
-plt.clf()
-plot_observations(observation_grid, observation_vals)
-m_ssm, s_std_ssm = predict_ssm(ssm_model, noise_stddev)
-m_vgp, s_std_vgp = predict_vgp(vgp_model, noise_stddev)
-"""
-Compare Posterior
-"""
-plot_posterior(m_ssm, s_std_ssm, time_grid, "SDE-SSM")
-plot_posterior(m_vgp, s_std_vgp, time_grid, "VGP")
-plt.legend()
+def perform_sde_ssm():
+    global PRIOR_SDESSM_SDE
 
-plt.savefig(os.path.join(plot_save_dir, "posterior.svg"))
-wandb.log({"posterior": wandb.Image(plt)})
-plt.show()
+    if LEARN_PRIOR_SDE:
+        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+        PRIOR_SDESSM_SDE = PriorDoubleWellSDE(q=true_q)
+    else:
+        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+        PRIOR_SDESSM_SDE = DoubleWellSDE(q=true_q)
 
-"""
-Plot drift evolution
-"""
-if learn_prior_sde:
+    # likelihood
+    likelihood_ssm = Gaussian(NOISE_STDDEV**2)
 
+    # model
+    ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=PRIOR_SDESSM_SDE, grid=TIME_GRID,
+                       likelihood=likelihood_ssm, learning_rate=0.1, prior_params_lr=0.01)
+
+    ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
+
+    return ssm_model, ssm_elbo, ssm_prior_prior_vals
+
+
+def perform_vgp():
+    global PRIOR_VGP_SDE
+    if LEARN_PRIOR_SDE:
+        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+        PRIOR_VGP_SDE = PriorDoubleWellSDE(q=true_q)
+    else:
+        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+        PRIOR_VGP_SDE = DoubleWellSDE(q=true_q)
+
+    # likelihood
+    likelihood_vgp = Gaussian(NOISE_STDDEV**2)
+
+    vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
+                                    prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
+                                    lr=0.005, prior_params_lr=0.01)
+
+    v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
+
+    return vgp_model, v_gp_elbo, v_gp_prior_vals
+
+
+def compare_plot_posterior(ssm_model, vgp_model):
+    plt.clf()
+    plot_observations(OBSERVATION_DATA[0], OBSERVATION_DATA[1])
+    plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
+             label="Test Observations (Y)")
+
+    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+    """
+    Compare Posterior
+    """
+    # plt.vlines(time_grid.reshape(-1), -2, 2, alpha=0.2, color="black")
+    plot_posterior(m_ssm, s_std_ssm, TIME_GRID, "SDE-SSM")
+    plot_posterior(m_vgp, s_std_vgp, TIME_GRID, "VGP")
+    plt.legend()
+
+    plt.savefig(os.path.join(OUTPUT_DIR, "posterior.svg"))
+    wandb.log({"posterior": wandb.Image(plt)})
+
+    plt.show()
+
+
+def plot_elbo(ssm_elbo, v_gp_elbo):
+    """ELBO comparison"""
+    plt.clf()
+    plt.plot(ssm_elbo, label="SDE-SSM")
+    plt.plot(v_gp_elbo, label="VGP")
+    plt.title("ELBO")
+    plt.legend()
+    plt.savefig(os.path.join(OUTPUT_DIR, "elbo.svg"))
+
+    wandb.log({"ELBO-Comparison": wandb.Image(plt)})
+
+    plt.show()
+
+
+def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
+    """Calculate NLPD on the test set for VGP and SDE-SSM"""
+
+    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+
+    """Calculate NLPD"""
+    pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
+    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1) + NOISE_STDDEV, (-1, 1, 1))
+    ssm_lpd = gaussian_log_predictive_density(mean=tf.gather(m_ssm, pred_idx, axis=0), chol_covariance=ssm_chol_covar,
+                                              x=tf.reshape(TEST_DATA[1], (-1,)))
+    ssm_nlpd = -1 * tf.reduce_mean(ssm_lpd).numpy().item()
+    print(f"SDE-SSM NLPD: {ssm_nlpd}")
+
+    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx) + NOISE_STDDEV, (-1, 1, 1))
+    vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
+                                              x=tf.reshape(TEST_DATA[1], (-1,)))
+    vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
+    print(f"VGP NLPD: {vgp_nlpd}")
+
+
+def compare_learnt_drift():
     x = np.linspace(-2, 2, 40).reshape((-1, 1))
 
-    true_drift = true_dw_sde.drift(x, None)
-    sde_ssm_learnt_drift = prior_sde_ssm.drift(x, None)
-    vgp_learnt_drift = prior_sde_vgp.drift(x, None)
+    true_drift = TRUE_DW_SDE.drift(x, None)
+    sde_ssm_learnt_drift = PRIOR_SDESSM_SDE.drift(x, None)
+    vgp_learnt_drift = PRIOR_VGP_SDE.drift(x, None)
 
     plt.subplots(1, 1, figsize=(5, 5))
 
@@ -165,47 +244,90 @@ if learn_prior_sde:
 
     plt.title("Drift")
     plt.legend()
-    plt.savefig(os.path.join(plot_save_dir, "drift.svg"))
+    plt.savefig(os.path.join(OUTPUT_DIR, "drift.svg"))
 
     wandb.log({"drift": wandb.Image(plt)})
 
     plt.show()
 
-    print(f"SSM learnt drift : f(x) = {ssm_prior_a_values[-1]} * x * ({ssm_prior_c_values[-1]} - x^2)")
-    print(f"VGP learnt drift : f(x) = {v_gp_prior_a_values[-1]} * x * ({v_gp_prior_c_values[-1]} - x^2)")
+
+def save_data(ssm_elbo, vgp_elbo):
+    """Save data into npz"""
+    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
 
 
-"""ELBO comparison"""
-plt.clf()
-plt.plot(ssm_elbo, label="SDE-SSM")
-plt.plot(v_gp_elbo[2:], label="VGP")
-plt.title("ELBO")
-plt.legend()
-plt.savefig(os.path.join(plot_save_dir, "elbo.svg"))
-wandb.log({"ELBO": wandb.Image(plt)})
-plt.show()
+    np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
+             nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
+
+    np.savez(os.path.join(OUTPUT_DIR, "ssm_sites.npz"), nat1=ssm_model.sites_nat1.numpy(),
+             nat2=ssm_model.sites_nat2.numpy())
+
+    np.savez(os.path.join(OUTPUT_DIR, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
+    np.savez(os.path.join(OUTPUT_DIR, "ssm_elbo.npz"), elbo=ssm_elbo)
+
+    if LEARN_PRIOR_SDE:
+        np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), a=ssm_prior_a_values, c=ssm_prior_c_values)
+
+    "Save VGP data"
+    np.savez(os.path.join(OUTPUT_DIR, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
+    np.savez(os.path.join(OUTPUT_DIR, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
+             lambda_lagrange=vgp_model.lambda_lagrange.numpy())
+
+    np.savez(os.path.join(OUTPUT_DIR, "vgp_inference.npz"), m=m_vgp, S=tf.square(s_std_vgp))
+    np.savez(os.path.join(OUTPUT_DIR, "vgp_elbo.npz"), elbo=vgp_elbo)
+    if LEARN_PRIOR_SDE:
+        np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), a=vgp_prior_a_values,
+                 c=vgp_prior_c_values)
 
 
-"Save SDE-SSM data"
-np.savez(os.path.join(plot_save_dir, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
-         nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Run VGP and SDE-SSM for DW process')
 
-np.savez(os.path.join(plot_save_dir, "ssm_sites.npz"), nat1=ssm_model.sites_nat1.numpy(),
-         nat2=ssm_model.sites_nat2.numpy())
+    parser.add_argument('-dir', '--data_dir', type=str, help='Data directory of the OU data.', required=True)
+    parser.add_argument('-wandb_username', type=str, help='Wandb username to be used for logging', default="")
+    parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
+    parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
+    parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
 
-np.savez(os.path.join(plot_save_dir, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
-np.savez(os.path.join(plot_save_dir, "ssm_elbo.npz"), elbo=ssm_elbo)
+    print(f"Noise std-dev is {NOISE_STDDEV}")
 
-if learn_prior_sde:
-    np.savez(os.path.join(plot_save_dir, "ssm_learnt_sde.npz"), a=ssm_prior_a_values, c=ssm_prior_c_values)
+    args = parser.parse_args()
 
-"Save VGP data"
-np.savez(os.path.join(plot_save_dir, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
-np.savez(os.path.join(plot_save_dir, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
-         lambda_lagrange=vgp_model.lambda_lagrange.numpy())
+    LEARN_PRIOR_SDE = args.learn_prior_sde
 
-np.savez(os.path.join(plot_save_dir, "vgp_inference.npz"), m=m_vgp, S=tf.square(s_std_vgp))
-np.savez(os.path.join(plot_save_dir, "vgp_elbo.npz"), elbo=v_gp_elbo)
-if learn_prior_sde:
-    np.savez(os.path.join(plot_save_dir, "vgp_learnt_sde.npz"), a=v_gp_prior_a_values,
-             c=v_gp_prior_c_values)
+    load_data(args.data_dir)
+
+    plot_data()
+
+    if args.dt != 0:
+        modify_time_grid(args.dt)
+
+    set_output_dir()
+
+    init_wandb(args.wandb_username, args.log)
+
+    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm()
+
+    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp()
+
+    if LEARN_PRIOR_SDE:
+        ssm_prior_a_values = ssm_prior_prior_vals[0]
+        ssm_prior_c_values = ssm_prior_prior_vals[1]
+
+        vgp_prior_a_values = vgp_prior_prior_vals[0]
+        vgp_prior_c_values = vgp_prior_prior_vals[1]
+
+        print(f"SSM learnt drift : f(x) = {ssm_prior_a_values[-1]} * x * ({ssm_prior_c_values[-1]} - x^2)")
+        print(f"VGP learnt drift : f(x) = {vgp_prior_a_values[-1]} * x * ({vgp_prior_c_values[-1]} - x^2)")
+
+    compare_plot_posterior(ssm_model, vgp_model)
+
+    plot_elbo(ssm_elbo_vals, vgp_elbo_vals)
+
+    calculate_nlpd(ssm_model, vgp_model)
+
+    save_data(ssm_elbo_vals, vgp_elbo_vals)
+
+    if LEARN_PRIOR_SDE:
+        compare_learnt_drift()

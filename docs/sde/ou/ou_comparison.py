@@ -9,12 +9,13 @@ import numpy as np
 # Don't use GPU
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+import tensorflow as tf
+
 # Restrict TensorFlow to only use the first GPU
 # gpus = tf.config.list_physical_devices('GPU')
 # if gpus:
 #     tf.config.set_visible_devices(gpus[1], 'GPU')
 
-import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
 import wandb
@@ -423,7 +424,8 @@ if __name__ == '__main__':
 
     plot_data()
 
-    modify_time_grid(args.dt)
+    if args.dt != 0:
+        modify_time_grid(args.dt)
 
     set_output_dir()
 

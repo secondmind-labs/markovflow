@@ -316,14 +316,14 @@ class SDESSM(CVIGaussianProcess):
         self.data_sites.nat1.assign(new_data_nat1)
 
         # Linearization gradient for updating the overall sites
-        _, grads0, grads1 = self.grad_linearization_diff()
-        # TODO (Check) : -1 because we don't have the gradient for the last state (m[-1, S[-1]])
-        new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads0
-        new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
-        new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
-        new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
-        self.sites_nat2 = new_nat2
-        self.sites_nat1 = new_nat1
+        # _, grads0, grads1 = self.grad_linearization_diff()
+        # # TODO (Check) : -1 because we don't have the gradient for the last state (m[-1, S[-1]])
+        # new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads0
+        # new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
+        # new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
+        # new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
+        # self.sites_nat2 = new_nat2
+        # self.sites_nat1 = new_nat1
 
         # # Cross term
         # grads = self.grad_cross_term()
