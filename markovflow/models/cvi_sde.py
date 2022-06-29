@@ -22,6 +22,7 @@ from gpflow.base import Parameter
 from gpflow import default_float
 from markovflow.sde.sde import PriorOUSDE
 import wandb
+from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
 from markovflow.models.variational_cvi import CVIGaussianProcess
@@ -229,68 +230,68 @@ class SDESSM(CVIGaussianProcess):
 
         return val, dE_dm, dE_dS
 
-    # def grad_cross_term(self):
-    #     """
-    #     Calculates the gradient of
-    #                 2 * E_{q(x)[(f_q - f_p)\Sigma^-1(f_L - f_p)] .
-    #     """
-    #     # convert from state transitions of the SSM to SDE's drift and offset
-    #
-    #     dt = self.grid[1] - self.grid[0]
-    #
-    #     A_q = tf.squeeze(self.dist_q.state_transitions, axis=0)
-    #     b_q = tf.squeeze(self.dist_q.state_offsets, axis=0)
-    #     A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
-    #     b_q = b_q / dt
-    #
-    #     # convert from state transitions of the SSM to SDE's drift and offset
-    #     A_p_l = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
-    #     b_p_l = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
-    #     A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / dt
-    #     b_p_l = b_p_l / dt
-    #
-    #     def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
-    #         # Adding N information
-    #         x = tf.transpose(x, perm=[1, 0, 2])
-    #         n_pnts = x.shape[1]
-    #
-    #         A_q = tf.repeat(A_q, n_pnts, axis=1)
-    #         b_q = tf.repeat(b_q, n_pnts, axis=1)
-    #         b_q = tf.expand_dims(b_q, axis=-1)
-    #         A_q = tf.stop_gradient(A_q)
-    #         b_q = tf.stop_gradient(b_q)
-    #
-    #         A_p_l = tf.repeat(A_p_l, n_pnts, axis=1)
-    #         b_p_l = tf.repeat(b_p_l, n_pnts, axis=1)
-    #         b_p_l = tf.expand_dims(b_p_l, axis=-1)
-    #         A_p_l = tf.stop_gradient(A_p_l)
-    #         b_p_l = tf.stop_gradient(b_p_l)
-    #
-    #         prior_drift = sde_p.drift(x=x, t=t)
-    #
-    #         fq_fp = ((x * A_q) - b_q) - prior_drift  # (f_q - f_p)
-    #         fl_fp = ((x * A_p_l) - b_p_l) - prior_drift  # (f_l - f_p)
-    #
-    #         sigma = sde_p.q
-    #         sigma = tf.stop_gradient(sigma)
-    #
-    #         val = fq_fp * (1 / sigma) * fl_fp
-    #
-    #         return tf.transpose(val, perm=[1, 0, 2])
-    #
-    #     diag_quad = NDiagGHQuadrature(self.prior_sde.state_dim, 20)
-    #     q_mean = tf.squeeze(self.fx_mus, axis=0)[:-1]
-    #     q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
-    #
-    #     with tf.GradientTape(persistent=True) as g:
-    #         g.watch([q_mean, q_covar])
-    #
-    #         val = diag_quad(func, q_mean, tf.squeeze(q_covar, axis=-1))
-    #         val = 2 * tf.reduce_sum(val) * dt
-    #         print(f"Cross-term value: {val}")
-    #
-    #     dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
-    #     return dE_dm, dE_dS
+    def grad_cross_term(self):
+        """
+        Calculates the gradient of
+                    E_{q(x)[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
+        """
+        # convert from state transitions of the SSM to SDE's drift and offset
+
+        dt = self.grid[1] - self.grid[0]
+
+        A_q = tf.squeeze(self.dist_q.state_transitions, axis=0)
+        b_q = tf.squeeze(self.dist_q.state_offsets, axis=0)
+        A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
+        b_q = b_q / dt
+
+        # convert from state transitions of the SSM to SDE's drift and offset
+        A_p_l = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
+        b_p_l = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
+        A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / dt
+        b_p_l = b_p_l / dt
+
+        def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
+            # Adding N information
+            x = tf.transpose(x, perm=[1, 0, 2])
+            n_pnts = x.shape[1]
+
+            A_q = tf.repeat(A_q, n_pnts, axis=1)
+            b_q = tf.repeat(b_q, n_pnts, axis=1)
+            b_q = tf.expand_dims(b_q, axis=-1)
+            A_q = tf.stop_gradient(A_q)
+            b_q = tf.stop_gradient(b_q)
+
+            A_p_l = tf.repeat(A_p_l, n_pnts, axis=1)
+            b_p_l = tf.repeat(b_p_l, n_pnts, axis=1)
+            b_p_l = tf.expand_dims(b_p_l, axis=-1)
+            A_p_l = tf.stop_gradient(A_p_l)
+            b_p_l = tf.stop_gradient(b_p_l)
+
+            prior_drift = sde_p.drift(x=x, t=t)
+
+            fq_fL = ((x * A_q) - b_q) - ((x * A_p_l) - b_p_l)  # (f_q - f_L)
+            fl_fp = ((x * A_p_l) - b_p_l) - prior_drift  # (f_l - f_p)
+
+            sigma = sde_p.q
+            sigma = tf.stop_gradient(sigma)
+
+            val = fq_fL * (1 / sigma) * fl_fp
+
+            return tf.transpose(val, perm=[1, 0, 2])
+
+        diag_quad = NDiagGHQuadrature(self.prior_sde.state_dim, 20)
+        q_mean = tf.squeeze(self.fx_mus, axis=0)[:-1]
+        q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
+
+        with tf.GradientTape(persistent=True) as g:
+            g.watch([q_mean, q_covar])
+
+            val = diag_quad(func, q_mean, tf.squeeze(q_covar, axis=-1))
+            val = tf.reduce_sum(val) * dt
+
+        print(f"cross term : {val}")
+        dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
+        return val, dE_dm, dE_dS
 
     def update_sites(self, convergence_tol=1e-4) -> bool:
         """
@@ -312,9 +313,6 @@ class SDESSM(CVIGaussianProcess):
         new_data_nat1 = (1 - self.sites_lr) * self.data_sites.nat1 + self.sites_lr * grads[0]
         new_data_nat2 = (1 - self.sites_lr) * self.data_sites.nat2 + self.sites_lr * grads[1][..., None]
 
-        self.data_sites.nat2.assign(new_data_nat2)
-        self.data_sites.nat1.assign(new_data_nat1)
-
         # Linearization gradient for updating the overall sites
         # _, grads0, grads1 = self.grad_linearization_diff()
         # # TODO (Check) : -1 because we don't have the gradient for the last state (m[-1, S[-1]])
@@ -322,8 +320,6 @@ class SDESSM(CVIGaussianProcess):
         # new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
         # new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
         # new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
-        # self.sites_nat2 = new_nat2
-        # self.sites_nat1 = new_nat1
 
         # # Cross term
         # grads = self.grad_cross_term()
@@ -335,14 +331,23 @@ class SDESSM(CVIGaussianProcess):
         # self.sites_nat1 = new_nat1
 
         # Check for convergence.
-        # ToDo: We check only data_sites as that term contributes the most. Might need to check for other terms.
-        nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
-        nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
+        data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
+        data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
 
-        if (nat1_sq_norm < convergence_tol) & (nat2_sq_norm < convergence_tol):
+        # sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
+        # sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
+
+        if (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol): # & (sites_nat1_sq_norm < convergence_tol) & (sites_nat2_sq_norm < convergence_tol):
             has_converged = True
         else:
             has_converged = False
+
+        # Assign new values
+        self.data_sites.nat2.assign(new_data_nat2)
+        self.data_sites.nat1.assign(new_data_nat1)
+
+        # self.sites_nat2 = new_nat2
+        # self.sites_nat1 = new_nat1
 
         # Done this way as dist_q -> dist_p_ssm -> fx_mus, fx_covs
         dist_q = self.dist_q
@@ -530,14 +535,14 @@ class SDESSM(CVIGaussianProcess):
 
         lin_loss = self.loss_lin()
 
-        # Don't need this as lin_loss above is the same
-        # fp_fl, _, _ = self.grad_linearization_diff()
+        cross_term_val, _, _ = self.grad_cross_term()
 
         wandb.log({"SSM-KL": kl_fx})
         wandb.log({"SSM-VE": ve_fx})
         wandb.log({"SSM-Lin-Loss": lin_loss})
+        wandb.log({"SSM-cross-term": cross_term_val})
 
-        return ve_fx - kl_fx - lin_loss
+        return ve_fx - kl_fx - lin_loss - cross_term_val
 
     def run(self, update_prior: bool = False) -> [list, dict]:
         """
@@ -550,23 +555,15 @@ class SDESSM(CVIGaussianProcess):
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
             while not sites_converged:
-                if isinstance(self.likelihood, Gaussian):
-                    # FIXME: Testing it for Gaussian. Clean later if works and is stable.
-                    print("SSM : As Likelihood is Gaussian, performing a single site update with LR=1.")
-                    orig_lr = self.sites_lr
-                    self.sites_lr = 1.
-                    self.update_sites()
-                    sites_converged = True
-                    if update_prior:
-                        self.sites_lr = orig_lr
-                    else:
-                        self.sites_lr = 1e-3
-                else:
-                    sites_converged = self.update_sites()
+                sites_converged = self.update_sites()
 
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
                 print(f"SSM: ELBO {self.elbo_vals[-1]}!")
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
+
+                # if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                #     print("ELBO increased! Breaking the Loop!")
+                #     break
 
             if update_prior:
                 prior_converged = False

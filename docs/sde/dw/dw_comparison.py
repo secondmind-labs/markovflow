@@ -141,7 +141,7 @@ def perform_sde_ssm():
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=PRIOR_SDESSM_SDE, grid=TIME_GRID,
-                       likelihood=likelihood_ssm, learning_rate=0.1, prior_params_lr=0.01)
+                       likelihood=likelihood_ssm, learning_rate=0.8, prior_params_lr=0.01)
 
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -162,7 +162,7 @@ def perform_vgp():
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
-                                    lr=0.005, prior_params_lr=0.01)
+                                    lr=0.001, prior_params_lr=0.01)
 
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
