@@ -5,6 +5,7 @@ import argparse
 import gpflow
 import matplotlib.pyplot as plt
 import numpy as np
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
@@ -39,12 +40,13 @@ LEARN_PRIOR_SDE = False
 INITIAL_PRIOR_VALUE = 1.
 
 
-def set_gpu():
+def set_gpu(use_gpu: bool = False):
     """Mostly for GPU to be used for the workstation"""
-    # Restrict TensorFlow to only use the first GPU
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        tf.config.set_visible_devices(gpus[1], 'GPU')
+    if use_gpu:
+        # Restrict TensorFlow to only use the first GPU
+        gpus = tf.config.list_physical_devices('GPU')
+        if gpus:
+            tf.config.set_visible_devices(gpus[1], 'GPU')
 
 
 def load_data(data_dir):
@@ -419,10 +421,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     LEARN_PRIOR_SDE = args.learn_prior_sde
 
+    set_gpu(args.gpu)
+
     load_data(args.data_dir)
-    modify_time_grid(args.dt)
 
     plot_data()
+
+    modify_time_grid(args.dt)
 
     set_output_dir()
 
