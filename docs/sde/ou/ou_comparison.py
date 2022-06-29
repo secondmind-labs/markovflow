@@ -5,7 +5,15 @@ import argparse
 import gpflow
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Don't use GPU
 # os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# Restrict TensorFlow to only use the first GPU
+# gpus = tf.config.list_physical_devices('GPU')
+# if gpus:
+#     tf.config.set_visible_devices(gpus[1], 'GPU')
+
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
@@ -38,15 +46,6 @@ LATENT_PROCESS = tf.zeros((1, 1))
 OUTPUT_DIR = ""
 LEARN_PRIOR_SDE = False
 INITIAL_PRIOR_VALUE = 1.
-
-
-def set_gpu(use_gpu: bool = False):
-    """Mostly for GPU to be used for the workstation"""
-    if use_gpu:
-        # Restrict TensorFlow to only use the first GPU
-        gpus = tf.config.list_physical_devices('GPU')
-        if gpus:
-            tf.config.set_visible_devices(gpus[1], 'GPU')
 
 
 def load_data(data_dir):
@@ -411,7 +410,6 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
     parser.add_argument('-d', '--prior_decay', type=float, default=1.,
                         help='Prior decay value to be used when learning the prior SDE.')
-    parser.add_argument('-gpu', type=bool, default=False, help='Use GPU')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
 
@@ -420,8 +418,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     LEARN_PRIOR_SDE = args.learn_prior_sde
-
-    set_gpu(args.gpu)
 
     load_data(args.data_dir)
 
