@@ -7,129 +7,167 @@ import tensorflow as tf
 from gpflow import default_float
 from gpflow.likelihoods import Gaussian
 import wandb
+import argparse
 
-from markovflow.sde.sde import DoubleWellSDE, PriorDoubleWellSDE
+from markovflow.sde.sde import PriorDoubleWellSDE
 from markovflow.models.vi_sde import VariationalMarkovGP
 
-import sys
-sys.path.append("..")
-from sde_exp_utils import get_gpr, predict_vgp, predict_ssm, predict_gpr, plot_observations, plot_posterior, \
-    get_cvi_gpr, predict_cvi_gpr
 
 DTYPE = default_float()
-plt.rcParams["figure.figsize"] = [15, 5]
+MODEL_DIR = ""
+Q = 1.
+NOISE_STDDEV = 0.1 * np.ones((1, 1))
+TIME_GRID = tf.zeros((1, 1))
+OBSERVATION_DATA = ()
+VGP_MODEL = None
+ELBO_VALS = []
+A_VALUE_RANGE = []
+C_VALUE_RANGE = []
 
-os.environ['WANDB_MODE'] = 'offline'
-"""Logging init"""
-wandb.init(project="VI-SDE", entity="vermaprakhar")
+def load_data(data_dir):
+    """
+    Get Data
+    """
+    global Q, NOISE_STDDEV, TIME_GRID, OBSERVATION_DATA
 
-"""
-Parameters
-"""
-data_dir = "data/128"
-model_used = "learning"  # path to inference or learning model
+    data = np.load(os.path.join(data_dir, "data.npz"))
+    Q = data["q"]
+    NOISE_STDDEV = data["noise_stddev"]
+    OBSERVATION_DATA = (data["observation_grid"], tf.squeeze(data["observation_vals"], axis=0).numpy())
+    TIME_GRID = data["time_grid"]
 
-"""
-Generate observations for a linear SDE
-"""
-data_path = os.path.join(data_dir, "data.npz")
-data = np.load(data_path)
-q = data["q"]
-noise_stddev = data["noise_stddev"]
-x0 = data["x0"]
-observation_vals = data["observation_vals"]
-observation_grid = data["observation_grid"]
-latent_process = data["latent_process"]
-time_grid = data["time_grid"]
-t0 = time_grid[0]
-t1 = time_grid[-1]
 
-true_dw_sde = DoubleWellSDE(q=q * tf.ones((1, 1), dtype=DTYPE))
+def load_model():
+    global VGP_MODEL
+    """Load VGP model with trained variables"""
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    likelihood = Gaussian(NOISE_STDDEV ** 2)
 
-plt.clf()
-plot_observations(observation_grid, observation_vals)
-plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
-plt.xlabel("Time (t)")
-plt.ylabel("y(t)")
-plt.ylim([-2, 2])
-plt.xlim([t0, t1])
-plt.title("Observations")
-plt.legend()
-plt.show()
+    prior_sde = PriorDoubleWellSDE(q=true_q)
 
-print(f"Noise std-dev is {noise_stddev}")
+    VGP_MODEL = VariationalMarkovGP(input_data=OBSERVATION_DATA,
+                                    prior_sde=prior_sde, grid=TIME_GRID, likelihood=likelihood)
 
-input_data = (observation_grid, tf.constant(tf.squeeze(observation_vals, axis=0)))
+    # Load trained model variables
+    A_b_data = np.load(os.path.join(MODEL_DIR, "vgp_A_b.npz"))
+    lagrange_data = np.load(os.path.join(MODEL_DIR, "vgp_lagrange.npz"))
+    sde_params = np.load(os.path.join(MODEL_DIR, "vgp_learnt_sde.npz"))
+    vgp_inference = np.load(os.path.join(MODEL_DIR, "vgp_inference.npz"))
 
-"""
-VGP Model
-"""
-# Prior SDE
-true_q = q * tf.ones((1, 1), dtype=DTYPE)
-prior_sde_vgp = PriorDoubleWellSDE(q=true_q)
+    VGP_MODEL.A = A_b_data["A"]
+    VGP_MODEL.b = A_b_data["b"]
+    VGP_MODEL.lambda_lagrange = lagrange_data["lambda_lagrange"]
+    VGP_MODEL.psi_lagrange = lagrange_data["psi_lagrange"]
+    VGP_MODEL.prior_sde.a = sde_params["a"][-1] * tf.ones_like(VGP_MODEL.prior_sde.a)
+    VGP_MODEL.prior_sde.c = sde_params["c"][-1] * tf.ones_like(VGP_MODEL.prior_sde.c)
+    VGP_MODEL.q_initial_mean = vgp_inference["m"][0] * tf.ones_like(VGP_MODEL.q_initial_mean)
 
-# likelihood
-likelihood_vgp = Gaussian(noise_stddev**2)
+    # cov without the noise variance
+    fx_cov_0 = vgp_inference["S"][0] - NOISE_STDDEV**2
+    VGP_MODEL.q_initial_cov = fx_cov_0 * tf.ones_like(VGP_MODEL.q_initial_cov)
 
-# model
-vgp_model = VariationalMarkovGP(input_data=input_data,
-                                prior_sde=prior_sde_vgp, grid=time_grid, likelihood=likelihood_vgp,
-                                lr=0.05)
 
-# Load trained model variables
-A_b_data = np.load(os.path.join(data_dir, model_used, "vgp_A_b.npz"))
-lagrange_data = np.load(os.path.join(data_dir, model_used, "vgp_lagrange.npz"))
-sde_params = np.load(os.path.join(data_dir, model_used, "vgp_learnt_sde.npz"))
-vgp_inference = np.load(os.path.join(data_dir, model_used, "vgp_inference.npz"))
+def compare_elbo():
+    """Compare ELBO between loaded moel and trained model"""
+    loaded_model_elbo = VGP_MODEL.elbo()
+    print(f"ELBO (Loaded model): {loaded_model_elbo}")
 
-vgp_model.A = A_b_data["A"]
-vgp_model.b = A_b_data["b"]
-vgp_model.lambda_lagrange = lagrange_data["lambda_lagrange"]
-vgp_model.psi_lagrange = lagrange_data["psi_lagrange"]
-vgp_model.prior_sde.a = sde_params["a"][-1] * tf.ones_like(vgp_model.prior_sde.a)
-vgp_model.prior_sde.c = sde_params["c"][-1] * tf.ones_like(vgp_model.prior_sde.c)
-vgp_model.q_initial_mean = vgp_inference["m"][0] * tf.ones_like(vgp_model.q_initial_mean)
+    trained_model_elbo = np.load(os.path.join(MODEL_DIR, "vgp_elbo.npz"))["elbo"][-1]
+    print(f"ELBO (Trained model) : {trained_model_elbo}")
 
-# cov without the noise variance
-fx_cov_0 = np.square(np.sqrt(vgp_inference["S"][0]) - noise_stddev)
-vgp_model.q_initial_cov = fx_cov_0 * tf.ones_like(vgp_model.q_initial_cov)
+    np.testing.assert_array_almost_equal(trained_model_elbo, loaded_model_elbo)
 
-loaded_model_elbo = vgp_model.elbo()
-print(f"ELBO (Loaded model): {loaded_model_elbo}")
 
-trained_model_elbo = np.load(os.path.join(data_dir, model_used, "vgp_elbo.npz"))["elbo"][-1]
-print(f"ELBO (Trained model) : {trained_model_elbo}")
+def calculate_elbo_bound(n=30):
+    """ELBO BOUND"""
+    global ELBO_VALS, A_VALUE_RANGE, C_VALUE_RANGE
 
-np.testing.assert_array_almost_equal(trained_model_elbo, loaded_model_elbo)
+    A_VALUE_RANGE = np.linspace(0.2, 6, n).reshape((-1, 1))
+    C_VALUE_RANGE = np.linspace(0.2, 2., n).reshape((1, -1))
 
-"""ELBO BOUND"""
-n = 30
+    A_VALUE_RANGE = np.repeat(A_VALUE_RANGE, n, axis=1)
+    C_VALUE_RANGE = np.repeat(C_VALUE_RANGE, n, axis=0)
 
-a_value_range = np.linspace(0.2, 6, n).reshape((-1, 1))
-c_value_range = np.linspace(0.2, 2., n).reshape((1, -1))
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
 
-a_value_range = np.repeat(a_value_range, n, axis=1)
-c_value_range = np.repeat(c_value_range, n, axis=0)
+    for a, c in zip(A_VALUE_RANGE.reshape(-1), C_VALUE_RANGE.reshape(-1)):
+        print(f"Calculating ELBO bound for a={a}, c={c}")
+        VGP_MODEL.prior_sde = PriorDoubleWellSDE(q=true_q, initial_a_val=a, initial_c_val=c)
+        ELBO_VALS.append(VGP_MODEL.elbo())
 
-elbo_vals = []
+    ELBO_VALS = np.array(ELBO_VALS).reshape((n, n)).T
 
-true_q = q * tf.ones((1, 1), dtype=DTYPE)
 
-for a, c in zip(a_value_range.reshape(-1), c_value_range.reshape(-1)):
-    print(f"Calculating ELBO bound for a={a}, c={c}")
-    vgp_model.prior_sde = PriorDoubleWellSDE(q=true_q, initial_a_val=a, initial_c_val=c)
-    elbo_vals.append(vgp_model.elbo())
+def normalize_elbo_vals():
+    global ELBO_VALS
+    mean_val = np.mean(ELBO_VALS)
+    std_val = np.std(ELBO_VALS)
 
-elbo_vals = np.array(elbo_vals).reshape((n, n)).T
+    ELBO_VALS = (ELBO_VALS - mean_val) / std_val
 
-plt.clf()
-plt.subplots(1, 1, figsize=(5, 5))
 
-c = plt.pcolormesh(a_value_range[:, 0], c_value_range[0], elbo_vals,
-                   vmin=np.min(elbo_vals), vmax=np.max(elbo_vals), shading='auto')
-plt.colorbar(c)
-plt.savefig(os.path.join(data_dir, "learning", "vgp_learning_bound.svg"))
-plt.show()
+def plot_elbo_bound():
+    clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
+    levels = np.linspace(-1, 1, 25)
 
-np.savez(os.path.join(data_dir, "learning", "vgp_learning_bound.npz"), elbo=elbo_vals, a=a_value_range,
-         c=c_value_range)
+    fig = plt.figure(1, figsize=(6, 5))
+    contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
+    fig.colorbar(contour1)
+    plt.savefig(os.path.join(MODEL_DIR, "vgp_learning_bound.svg"))
+    plt.show()
+
+    np.savez(os.path.join(MODEL_DIR, "vgp_learning_bound.npz"), elbo=clipped_elbo_vals, a=A_VALUE_RANGE,
+             c=C_VALUE_RANGE)
+
+
+def plot_learning_plot():
+    ssm_learning_path = os.path.join(MODEL_DIR, "vgp_learnt_sde.npz")
+    ssm_learning = np.load(ssm_learning_path)
+    ssm_learnt_a = ssm_learning["a"]
+    ssm_learnt_c = ssm_learning["c"]
+
+    clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
+    levels = np.linspace(-1, 1, 25)
+
+    fig = plt.figure(1, figsize=(6, 5))
+    contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
+    fig.colorbar(contour1)
+    plt.plot(ssm_learnt_a, ssm_learnt_c, "x")
+
+    plt.savefig(os.path.join(MODEL_DIR, "vgp_learning_bound_learning.svg"))
+    plt.show()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='VGP ELBO bound for DW process')
+
+    parser.add_argument('-dir', '--data_dir', type=str, help='Directory of the saved VGP model', required=True)
+    parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
+
+    args = parser.parse_args()
+
+    # setting wandb loggin to off
+    os.environ['WANDB_MODE'] = 'offline'
+    wandb.init(project="VI-SDE")
+
+    MODEL_DIR = args.data_dir
+
+    load_data("/".join(MODEL_DIR.split("/")[:-1]))
+
+    if args.dt > 0:
+        dt = args.dt
+        t0 = TIME_GRID[0]
+        t1 = TIME_GRID[-1]
+        TIME_GRID = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
+
+    load_model()
+
+    compare_elbo()
+
+    calculate_elbo_bound()
+
+    normalize_elbo_vals()
+
+    plot_elbo_bound()
+
+    plot_learning_plot()

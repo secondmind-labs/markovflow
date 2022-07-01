@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood
 from gpflow.utilities.bijectors import positive
+from scipy.linalg import solve_discrete_lyapunov, solve_continuous_lyapunov
 
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE, DoubleWellSDE
 from markovflow.sde.sde_utils import euler_maruyama
@@ -275,3 +276,30 @@ def get_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, train: bool, 
             opt_step()
 
     return gpr_model
+
+
+def calculate_inv(A: tf.Tensor) -> tf.Tensor:
+    """Calculate inverse of a matrix using Cholesky."""
+    A_chol = tf.linalg.cholesky(A)
+    A_inv = tf.linalg.cholesky_solve(A_chol, tf.eye(A.shape[0], dtype=A.dtype))
+
+    return A_inv
+
+
+def get_steady_state(A: tf.Tensor, b: tf.Tensor, Q: tf.Tensor) -> [tf.Tensor, tf.Tensor]:
+    """
+    Calculate the steady state mean and covariance for the SDE
+
+    Input SDE: d x_t = (-A_t x_t + b_t) dt + dB_t; Q
+
+    """
+    if A.shape[0] != A.shape[1]:
+       A = -1 * tf.linalg.diag(tf.reshape(A, (-1)))
+
+    A_inv = calculate_inv(A)
+    steady_m = A_inv @ b
+
+    Q = tf.linalg.diag(tf.reshape(Q, (-1)))
+    steady_P = solve_continuous_lyapunov(A, Q)
+
+    return steady_m, steady_P

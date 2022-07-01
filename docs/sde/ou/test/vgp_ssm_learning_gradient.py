@@ -29,7 +29,7 @@ plt.rcParams["figure.figsize"] = [15, 5]
 """
 Parameters
 """
-data_dir = "../data/26"
+data_dir = "../data/12"
 
 """
 Get Data
@@ -70,17 +70,15 @@ sde_ssm_model = SDESSM(input_data=input_data, prior_sde=prior_sde, grid=time_gri
 sde_ssm_model.initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), sde_ssm_model.initial_mean.shape)
 sde_ssm_model.initial_chol_cov = tf.reshape(tf.linalg.cholesky(kernel.initial_covariance(time_grid[..., 0:1])),
                                             sde_ssm_model.initial_chol_cov.shape)
-sde_ssm_model.fx_covs = q + 0 * sde_ssm_model.fx_covs
-
+sde_ssm_model.fx_covs = sde_ssm_model.initial_chol_cov.numpy().item()**2 + 0 * sde_ssm_model.fx_covs
 sde_ssm_model._linearize_prior()
 
-ssm_elbo, _ = sde_ssm_model.run(update_prior=False)
 """
 VGP
 """
 # creater a finer grid for VGP
-dt = 0.001
-time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
+# dt = 0.001
+# time_grid = tf.cast(np.arange(t0, t1 + dt, dt), dtype=DTYPE).numpy()
 
 vgp_model = VariationalMarkovGP(input_data=input_data,
                                 prior_sde=prior_sde, grid=time_grid, likelihood=likelihood,
@@ -92,11 +90,8 @@ vgp_model.p_initial_mean = tf.reshape(kernel.initial_mean(tf.TensorShape(1)), vg
 vgp_model.q_initial_mean = tf.identity(vgp_model.p_initial_mean)
 vgp_model.A = -1 * prior_sde.decay + 0. * vgp_model.A
 
-# do inference but not learning
-v_gp_elbo, _ = vgp_model.run(update_prior=False)
-
-print(f"SDE-SSM converges at ELBO : {ssm_elbo[-1]}")
-print(f"VGP converges at ELBO : {v_gp_elbo[-1]}")
+print(f"SDE-SSM converges at ELBO : {sde_ssm_model.classic_elbo()}")
+print(f"VGP converges at ELBO : {vgp_model.elbo()}")
 
 
 def func(vgp_model: VariationalMarkovGP):
@@ -109,7 +104,7 @@ def func(vgp_model: VariationalMarkovGP):
     A = vgp_model.A[:-1]
     b = vgp_model.b[:-1]
 
-    return KL_sde(vgp_model.prior_sde, A, b, m, S, vgp_model.dt) + vgp_model.KL_initial_state()
+    return KL_sde(vgp_model.prior_sde, A, b, m, S, vgp_model.dt) - vgp_model.KL_initial_state()
 
 
 # Checking the gradient of the learning objective for SSM

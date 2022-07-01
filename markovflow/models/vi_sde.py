@@ -56,6 +56,7 @@ from markovflow.sde import SDE
 from markovflow.sde.sde import PriorOUSDE
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import KL_sde
+from markovflow.sde.sde_utils import gaussian_log_predictive_density
 
 
 class VariationalMarkovGP:
@@ -64,7 +65,7 @@ class VariationalMarkovGP:
         dx(t) = - A(t) dt + b(t) dW(t)
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
-                 lr: float = 0.5, prior_params_lr: float = 0.01, forward_ssm_q=None):
+                 lr: float = 0.5, prior_params_lr: float = 0.01, test_data: [tf.Tensor, tf.Tensor] = None):
         """
         Initialize the model.
 
@@ -76,6 +77,7 @@ class VariationalMarkovGP:
         self.likelihood = likelihood
         self.state_dim = self.prior_sde.state_dim
         self.DTYPE = self.observations.dtype
+        self.test_data = test_data
 
         self.orig_grid = grid
         self.grid = grid[1:]
@@ -102,10 +104,9 @@ class VariationalMarkovGP:
         self.p_lr = prior_params_lr  # lr for prior parameters
         self.x_lr = lr   # lr for initial statistics
 
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)  # tf.optimizers.Adam(lr=0.1)
+        self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)
 
         self.elbo_vals = []
-        self.forward_ssm_q = forward_ssm_q
         self.dist_q_ssm = None
 
         self.prior_params = {}
@@ -129,17 +130,14 @@ class VariationalMarkovGP:
         state_transition = tf.eye(self.state_dim, dtype=self.A.dtype) - A * self.dt
         state_offset = b * self.dt
 
-        if self.forward_ssm_q is not None:
-            q = tf.reshape(self.forward_ssm_q, state_transition.shape)
-        else:
-            q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
+        q = tf.repeat(tf.reshape(self.prior_sde.q * self.dt, (1, 1, 1)), state_transition.shape[0], axis=0)
 
         self.dist_q_ssm = StateSpaceModel(initial_mean=self.q_initial_mean,
-                              chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
-                              state_transitions=state_transition,
-                              state_offsets=state_offset,
-                              chol_process_covariances=tf.linalg.cholesky(q)
-                              )
+                                          chol_initial_covariance=tf.linalg.cholesky(self.q_initial_cov),
+                                          state_transitions=state_transition,
+                                          state_offsets=state_offset,
+                                          chol_process_covariances=tf.linalg.cholesky(q)
+                                          )
 
         return self.dist_q_ssm.marginal_means, self.dist_q_ssm.marginal_covariances
 
@@ -304,10 +302,6 @@ class VariationalMarkovGP:
 
         # remove the final state and the final A and b
         E_sde = KL_sde(self.prior_sde, self.A[:-1], self.b[:-1], m[:-1], S[:-1], self.dt)
-        # from markovflow.sde.sde_utils import linearize_sde
-        # p_ssm = linearize_sde(self.prior_sde, self.orig_grid, tf.expand_dims(m[:-1], axis=0), tf.expand_dims(S[:-1], axis=0),
-        #                       tf.expand_dims(self.p_initial_mean, axis=0), tf.expand_dims(tf.math.sqrt(self.p_initial_cov), axis=0))
-        # E_sde = tf.reduce_sum(self.dist_q_ssm.kl_divergence(p_ssm))
 
         KL_q0_p0 = self.KL_initial_state()
 
@@ -323,7 +317,7 @@ class VariationalMarkovGP:
         wandb.log({"VGP-EObs": E_obs})
         wandb.log({"VGP-ESDE": E_sde})
         wandb.log({"VGP-KL-X0": KL_q0_p0})
-        # print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
+        print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
 
         return E.numpy().item()
 
@@ -341,7 +335,7 @@ class VariationalMarkovGP:
             A = self.A[:-1]
             b = self.b[:-1]
 
-            return KL_sde(self.prior_sde, A, b, m, S, self.dt)  + self.KL_initial_state()
+            return KL_sde(self.prior_sde, A, b, m, S, self.dt) + self.KL_initial_state()
 
         # FIXME: check all variables and not only the first one
         old_val = self.prior_sde.trainable_variables[0].numpy().item()
@@ -361,6 +355,25 @@ class VariationalMarkovGP:
 
         return has_converged
 
+    def calculate_nlpd(self) -> float:
+        """
+            Calculate NLPD on the test set
+            FIXME: Only in case of Gaussian
+        """
+        if self.test_data is None:
+            return 0.
+
+        m, S = self.forward_pass
+        s_std = tf.linalg.cholesky(S + self.likelihood.variance)
+
+        pred_idx = list((tf.where(self.orig_grid == self.test_data[0][..., None])[:, 1]).numpy())
+        s_std = tf.reshape(tf.gather(s_std, pred_idx, axis=0), (-1, 1, 1))
+        lpd = gaussian_log_predictive_density(mean=tf.gather(m, pred_idx, axis=0), chol_covariance=s_std,
+                                              x=tf.reshape(self.test_data[1], (-1,)))
+        nlpd = -1 * tf.reduce_mean(lpd)
+
+        return nlpd.numpy().item()
+
     def run_single_inference(self):
         """
         Run a single loop of inference.
@@ -379,7 +392,7 @@ class VariationalMarkovGP:
         print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
         wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-        for _ in range(5):  # FIXME: DO it on the basis of ELBO vals
+        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             itr = 0  # Minimum iterations
             while itr < 5 or (self.elbo_vals[-1] - self.elbo_vals[-2]) > 1e-4:
                 self.run_single_inference()
@@ -390,6 +403,8 @@ class VariationalMarkovGP:
 
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+                wandb.log({"VGP-NLPD": self.calculate_nlpd()})
+
                 itr += 1
                 if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
                     print("ELBO increased!!! Breaking the loop")
@@ -407,11 +422,11 @@ class VariationalMarkovGP:
 
                 self.elbo_vals.append(self.elbo())
 
-            print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
+            # print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
-            self.q_lr = self.q_lr / 2
-            self.x_lr = self.x_lr / 2
-            self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+            # self.q_lr = self.q_lr / 2
+            # self.x_lr = self.x_lr / 2
+            # self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True) -> [list, dict]:
         """

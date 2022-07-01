@@ -52,7 +52,7 @@ def load_data(data_dir):
     """
     Get Data
     """
-    global DATA_PATH, DECAY, Q, X0, NOISE_STDDEV, T0, T1, TIME_GRID, OBSERVATION_DATA, LATENT_PROCESS, TEST_DATA, DT, TRUE_DW_SDE
+    global DATA_PATH, Q, X0, NOISE_STDDEV, T0, T1, TIME_GRID, OBSERVATION_DATA, LATENT_PROCESS, TEST_DATA, DT, TRUE_DW_SDE
 
     DATA_PATH = data_dir
     data = np.load(os.path.join(data_dir, "data.npz"))
@@ -105,7 +105,8 @@ def set_output_dir():
         os.makedirs(OUTPUT_DIR)
 
 
-def init_wandb(uname: str, log: bool = False):
+def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
+               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01):
     """Initialize Wandb"""
 
     if not log:
@@ -119,14 +120,18 @@ def init_wandb(uname: str, log: bool = False):
         "grid_dt": DT,
         "q": Q,
         "noise_stddev": NOISE_STDDEV,
-        "n_observations": OBSERVATION_DATA[0].shape[0]
+        "n_observations": OBSERVATION_DATA[0].shape[0],
+        "sites_lr": sites_lr,
+        "SSM_prior_lr": ssm_prior_lr,
+        "vgp_lr": vgp_lr,
+        "vgp_prior_lr": vgp_prior_lr
     }
 
     """Logging init"""
     wandb.init(project="VI-SDE", entity=uname, config=config)
 
 
-def perform_sde_ssm():
+def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
     global PRIOR_SDESSM_SDE
 
     if LEARN_PRIOR_SDE:
@@ -141,14 +146,14 @@ def perform_sde_ssm():
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=PRIOR_SDESSM_SDE, grid=TIME_GRID,
-                       likelihood=likelihood_ssm, learning_rate=0.8, prior_params_lr=0.01)
+                       likelihood=likelihood_ssm, learning_rate=sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
 
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
     return ssm_model, ssm_elbo, ssm_prior_prior_vals
 
 
-def perform_vgp():
+def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01):
     global PRIOR_VGP_SDE
     if LEARN_PRIOR_SDE:
         true_q = Q * tf.ones((1, 1), dtype=DTYPE)
@@ -162,7 +167,7 @@ def perform_vgp():
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
-                                    lr=0.001, prior_params_lr=0.01)
+                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
 
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -213,13 +218,13 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
 
     """Calculate NLPD"""
     pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
-    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1) + NOISE_STDDEV, (-1, 1, 1))
+    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1), (-1, 1, 1))
     ssm_lpd = gaussian_log_predictive_density(mean=tf.gather(m_ssm, pred_idx, axis=0), chol_covariance=ssm_chol_covar,
                                               x=tf.reshape(TEST_DATA[1], (-1,)))
     ssm_nlpd = -1 * tf.reduce_mean(ssm_lpd).numpy().item()
     print(f"SDE-SSM NLPD: {ssm_nlpd}")
 
-    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx) + NOISE_STDDEV, (-1, 1, 1))
+    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
     vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
                                               x=tf.reshape(TEST_DATA[1], (-1,)))
     vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
@@ -289,6 +294,10 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
+    parser.add_argument('-sites_lr', type=float, default=0.5, help='Learning rate for sites.')
+    parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
+    parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
+    parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
@@ -305,11 +314,11 @@ if __name__ == '__main__':
 
     set_output_dir()
 
-    init_wandb(args.wandb_username, args.log)
+    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr)
 
-    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm()
+    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.sites_lr, args.prior_ssm_lr)
 
-    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp()
+    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr)
 
     if LEARN_PRIOR_SDE:
         ssm_prior_a_values = ssm_prior_prior_vals[0]
