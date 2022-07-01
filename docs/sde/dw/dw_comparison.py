@@ -106,7 +106,7 @@ def set_output_dir():
 
 
 def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
-               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01):
+               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01):
     """Initialize Wandb"""
 
     if not log:
@@ -124,7 +124,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
         "sites_lr": sites_lr,
         "SSM_prior_lr": ssm_prior_lr,
         "vgp_lr": vgp_lr,
-        "vgp_prior_lr": vgp_prior_lr
+        "vgp_prior_lr": vgp_prior_lr,
+        "vgp_x0_lr": x0_lr
     }
 
     """Logging init"""
@@ -153,7 +154,7 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
     return ssm_model, ssm_elbo, ssm_prior_prior_vals
 
 
-def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01):
+def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
     global PRIOR_VGP_SDE
     if LEARN_PRIOR_SDE:
         true_q = Q * tf.ones((1, 1), dtype=DTYPE)
@@ -167,7 +168,7 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01):
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
-                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
+                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr)
 
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -298,6 +299,7 @@ if __name__ == '__main__':
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
@@ -314,11 +316,12 @@ if __name__ == '__main__':
 
     set_output_dir()
 
-    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr)
+    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+               args.vgp_x0_lr)
 
     ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.sites_lr, args.prior_ssm_lr)
 
-    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr)
+    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
 
     if LEARN_PRIOR_SDE:
         ssm_prior_a_values = ssm_prior_prior_vals[0]

@@ -65,7 +65,8 @@ class VariationalMarkovGP:
         dx(t) = - A(t) dt + b(t) dW(t)
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
-                 lr: float = 0.5, prior_params_lr: float = 0.01, test_data: [tf.Tensor, tf.Tensor] = None):
+                 lr: float = 0.5, prior_params_lr: float = 0.01, test_data: [tf.Tensor, tf.Tensor] = None,
+                 initial_state_lr: float = 0.01):
         """
         Initialize the model.
 
@@ -102,7 +103,7 @@ class VariationalMarkovGP:
 
         self.q_lr = lr  # lr for variational parameters A and b
         self.p_lr = prior_params_lr  # lr for prior parameters
-        self.x_lr = lr   # lr for initial statistics
+        self.x_lr = initial_state_lr  # lr for initial statistics
 
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=self.p_lr)
 
@@ -317,7 +318,7 @@ class VariationalMarkovGP:
         wandb.log({"VGP-EObs": E_obs})
         wandb.log({"VGP-ESDE": E_sde})
         wandb.log({"VGP-KL-X0": KL_q0_p0})
-        print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
+        # print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
 
         return E.numpy().item()
 
@@ -424,6 +425,10 @@ class VariationalMarkovGP:
 
             # print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+
+            if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
+                print("ELBO increased!!! Breaking the main loop too!")
+                break
             # self.q_lr = self.q_lr / 2
             # self.x_lr = self.x_lr / 2
             # self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
