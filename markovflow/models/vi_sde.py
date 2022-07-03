@@ -411,6 +411,11 @@ class VariationalMarkovGP:
                     print("ELBO increased!!! Breaking the loop")
                     break
 
+            if update_initial_statistics:
+                converged = False
+                while not converged:
+                    converged = self.update_initial_statistics()
+
             if update_prior:
                 prior_converged = False
                 while not prior_converged:

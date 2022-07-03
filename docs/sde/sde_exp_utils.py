@@ -150,7 +150,7 @@ def predict_vgp(model: VariationalMarkovGP, noise_stddev: np.ndarray) -> (np.nda
     S = tf.reshape(S, (-1)).numpy()
 
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S) + noise_stddev
+    S_std = np.sqrt(S + noise_stddev**2)
 
     return m, S_std
 
@@ -163,7 +163,7 @@ def predict_ssm(model: SDESSM, noise_stddev: np.ndarray) -> (np.ndarray, np.ndar
     m, S = posterior_ssm.marginal_means, posterior_ssm.marginal_covariances
 
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S) + noise_stddev
+    S_std = np.sqrt(S + noise_stddev**2)
 
     return m, S_std
 
@@ -174,7 +174,7 @@ def predict_cvi_gpr(model: CVIGaussianProcess, time_grid: np.ndarray, noise_stdd
     """
     m, S = model.predict_f(time_grid)
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S) + noise_stddev
+    S_std = np.sqrt(S + noise_stddev**2)
 
     return m, S_std
 
@@ -185,7 +185,7 @@ def predict_cvi_gpr_taylor(model: CVIGaussianProcessTaylorKernel, noise_stddev: 
     """
     m, S = model.dist_q.marginals
     m = m.numpy().reshape(-1)
-    S_std = np.sqrt(S) + noise_stddev
+    S_std = np.sqrt(S + noise_stddev**2)
 
     return m, S_std
 

@@ -104,7 +104,7 @@ def set_output_dir():
 
 
 def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
-               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01):
+               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01):
     """Initialize Wandb"""
 
     if not log:
@@ -123,7 +123,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
         "sites_lr": sites_lr,
         "SSM_prior_lr": ssm_prior_lr,
         "vgp_lr": vgp_lr,
-        "vgp_prior_lr": vgp_prior_lr
+        "vgp_prior_lr": vgp_prior_lr,
+        "vgp_x0_lr": x0_lr
     }
 
     """Logging init"""
@@ -194,7 +195,7 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
     return ssm_model, ssm_elbo, ssm_prior_prior_vals
 
 
-def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01):
+def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
     # Prior SDE
     if LEARN_PRIOR_SDE:
         vgp_prior_decay = INITIAL_PRIOR_VALUE
@@ -215,7 +216,7 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01):
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=prior_sde_vgp, grid=TIME_GRID, likelihood=likelihood_vgp,
-                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
+                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr)
 
     vgp_model.p_initial_cov = tf.reshape(initial_cov, vgp_model.p_initial_cov.shape)
     vgp_model.q_initial_cov = tf.identity(vgp_model.p_initial_cov)
@@ -279,13 +280,13 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
 
     """Calculate NLPD"""
     pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
-    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1) + NOISE_STDDEV, (-1, 1, 1))
+    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1), (-1, 1, 1))
     ssm_lpd = gaussian_log_predictive_density(mean=tf.gather(m_ssm, pred_idx, axis=0), chol_covariance=ssm_chol_covar,
                                               x=tf.reshape(TEST_DATA[1], (-1,)))
     ssm_nlpd = -1 * tf.reduce_mean(ssm_lpd).numpy().item()
     print(f"SDE-SSM NLPD: {ssm_nlpd}")
 
-    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx) + NOISE_STDDEV, (-1, 1, 1))
+    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
     vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
                                               x=tf.reshape(TEST_DATA[1], (-1,)))
     vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
@@ -401,7 +402,7 @@ def vgp_from_sdessm(sde_ssm_model: SDESSM):
 
     pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
     m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
-    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx) + NOISE_STDDEV, (-1, 1, 1))
+    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
     vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
                                               x=tf.reshape(TEST_DATA[1], (-1,)))
     vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
@@ -422,6 +423,7 @@ if __name__ == '__main__':
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
 
     print(f"True decay value of the OU SDE is {DECAY}")
     print(f"Noise std-dev is {NOISE_STDDEV}")
@@ -438,7 +440,8 @@ if __name__ == '__main__':
 
     set_output_dir()
 
-    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr)
+    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+               args.vgp_x0_lr)
 
     INITIAL_PRIOR_VALUE = args.prior_decay
 
@@ -451,7 +454,7 @@ if __name__ == '__main__':
     if LEARN_PRIOR_SDE:
         ssm_prior_decay_values = ssm_prior_prior_vals[0]
 
-    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr)
+    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
     if LEARN_PRIOR_SDE:
         v_gp_prior_decay_values = vgp_prior_prior_vals[0]
 
