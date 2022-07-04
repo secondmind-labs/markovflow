@@ -53,8 +53,9 @@ def plot_data(o_grid: tf.Tensor, o_vals: tf.Tensor, time_grid: tf.Tensor, latent
     plt.rcParams["figure.figsize"] = [15, 5]
     plot_observations(o_grid.numpy(), o_vals.numpy())
     plt.plot(time_grid, tf.reshape(latent_process, (-1)), label="Latent Process", alpha=0.2, color="gray")
-    plt.plot(test_grid.numpy().reshape(-1), test_values.numpy().reshape(-1), 'x', color="red", ms=8, mew=2,
-             label="Test Observations (Y)")
+    if test_grid is not None:
+        plt.plot(test_grid.numpy().reshape(-1), test_values.numpy().reshape(-1), 'x', color="red", ms=8, mew=2,
+                 label="Test Observations (Y)")
     plt.xlabel("Time (t)")
     plt.ylabel("y(t)")
     plt.xlim([t0, t1])
@@ -97,6 +98,10 @@ if __name__ == '__main__':
 
     plot_data(observation_grid, observation_vals, time_grid, latent_process, args.t0, args.t1, output_dir, test_values,
               test_grid)
+
+    if test_grid is None:
+        test_grid = []
+        test_values = []
 
     np.savez(os.path.join(output_dir, "data.npz"), observation_grid=observation_grid,
              observation_vals=observation_vals, latent_process=latent_process, test_grid=test_grid,

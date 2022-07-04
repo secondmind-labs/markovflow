@@ -65,7 +65,11 @@ def load_data(data_dir):
     TIME_GRID = data["time_grid"]
     T0 = TIME_GRID[0]
     T1 = TIME_GRID[-1]
-    TEST_DATA = (data["test_grid"], data["test_vals"])
+    if data["test_grid"].shape[0] > 0:
+        TEST_DATA = (data["test_grid"], data["test_vals"])
+    else:
+        TEST_DATA = None
+
     DT = TIME_GRID[1] - TIME_GRID[0]
 
 
@@ -81,8 +85,9 @@ def plot_data():
     plt.clf()
     plot_observations(OBSERVATION_DATA[0], OBSERVATION_DATA[1])
     plt.plot(TIME_GRID, tf.reshape(LATENT_PROCESS, (-1)), label="Latent Process", alpha=0.2, color="gray")
-    plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
-             label="Test Observations (Y)")
+    if TEST_DATA is not None:
+        plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
+                 label="Test Observations (Y)")
     plt.xlabel("Time (t)")
     plt.ylabel("y(t)")
     plt.xlim([T0, T1])
@@ -233,8 +238,9 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
 def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
     plt.clf()
     plot_observations(OBSERVATION_DATA[0], OBSERVATION_DATA[1])
-    plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
-             label="Test Observations (Y)")
+    if TEST_DATA is not None:
+        plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
+                 label="Test Observations (Y)")
 
     if LEARN_PRIOR_SDE:
         m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, TIME_GRID, NOISE_STDDEV)
@@ -274,6 +280,10 @@ def plot_elbo(ssm_elbo, v_gp_elbo):
 
 def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
     """Calculate NLPD on the test set for VGP and SDE-SSM"""
+
+    if TEST_DATA is None:
+        print("Test data is not available so slipping calculating NLPD!")
+        return
 
     m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
     m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
@@ -400,13 +410,14 @@ def vgp_from_sdessm(sde_ssm_model: SDESSM):
 
     print(f"VGP (SDE-SSM params) ELBO: {vgp_model.elbo()}")
 
-    pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
-    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
-    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
-    vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
-                                              x=tf.reshape(TEST_DATA[1], (-1,)))
-    vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
-    print(f"VGP (SDE-SSM params) NLPD: {vgp_nlpd}")
+    if TEST_DATA is not None:
+        pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
+        m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+        vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
+        vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
+                                                  x=tf.reshape(TEST_DATA[1], (-1,)))
+        vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
+        print(f"VGP (SDE-SSM params) NLPD: {vgp_nlpd}")
 
 
 if __name__ == '__main__':

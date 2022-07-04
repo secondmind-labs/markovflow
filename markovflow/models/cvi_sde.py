@@ -541,7 +541,7 @@ class SDESSM(CVIGaussianProcess):
         wandb.log({"SSM-Lin-Loss": lin_loss})
         wandb.log({"SSM-cross-term": cross_term_val})
 
-        return ve_fx - kl_fx - lin_loss  # - cross_term_val
+        return ve_fx - kl_fx - lin_loss - cross_term_val
 
     def calculate_nlpd(self) -> float:
         """
@@ -576,15 +576,8 @@ class SDESSM(CVIGaussianProcess):
                 sites_converged = self.update_sites()
 
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {self.elbo_vals[-1]}!")
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                 wandb.log({"SSM-NLPD": self.calculate_nlpd()})
-
-                self._linearize_prior()
-
-                # if self.elbo_vals[-2] > self.elbo_vals[-1]:
-                #     print("ELBO increased! Breaking the Loop!")
-                #     break
 
             if update_prior:
                 prior_converged = False
@@ -597,9 +590,11 @@ class SDESSM(CVIGaussianProcess):
                     for k in self.prior_params.keys():
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
+            else:
+                self._linearize_prior()
 
             self.elbo_vals.append(self.classic_elbo().numpy().item())
-            print(f"SSM: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
+            print(f"SSM: ELBO {self.elbo_vals[-1]}; Sites Converged!!!")
             wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
             # self.sites_lr = self.sites_lr / 2
             # self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2

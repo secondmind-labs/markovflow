@@ -42,7 +42,10 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
 
     n_test = int(0.1 * n_observations)
     test_idx = sorted(list(np.random.randint(0, time_grid.shape[0], n_test)))
-    test_grid = tf.gather(time_grid, test_idx)
+    if len(test_idx) > 0:
+        test_grid = tf.gather(time_grid, test_idx)
+    else:
+        test_grid = None
 
     latent_process = euler_maruyama(sde, x0, time_grid)
 
@@ -53,8 +56,11 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
     simulated_values = latent_states + tf.random.normal(latent_states.shape, stddev=noise_stddev, dtype=dtype)
 
     # Pick test observations
-    test_latent_states = tf.gather(latent_process, test_idx, axis=1)
-    test_values = test_latent_states + tf.random.normal(test_latent_states.shape, stddev=noise_stddev, dtype=dtype)
+    if len(test_idx) > 0:
+        test_latent_states = tf.gather(latent_process, test_idx, axis=1)
+        test_values = test_latent_states + tf.random.normal(test_latent_states.shape, stddev=noise_stddev, dtype=dtype)
+    else:
+        test_values = None
 
     return simulated_values, observation_grid, latent_process, time_grid, test_values, test_grid
 

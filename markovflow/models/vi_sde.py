@@ -407,14 +407,9 @@ class VariationalMarkovGP:
                 wandb.log({"VGP-NLPD": self.calculate_nlpd()})
 
                 itr += 1
-                if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
-                    print("ELBO increased!!! Breaking the loop")
-                    break
-
-            if update_initial_statistics:
-                converged = False
-                while not converged:
-                    converged = self.update_initial_statistics()
+                # if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
+                #     print("ELBO increased!!! Breaking the loop")
+                #     break
 
             if update_prior:
                 prior_converged = False
@@ -431,9 +426,9 @@ class VariationalMarkovGP:
             # print(f"VGP: ELBO {self.elbo_vals[-1]}; Decaying LR!!!")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-            if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
-                print("ELBO increased!!! Breaking the main loop too!")
-                break
+            # if self.elbo_vals[-1] - self.elbo_vals[-2] < 0:
+            #     print("ELBO increased!!! Breaking the main loop too!")
+            #     break
             # self.q_lr = self.q_lr / 2
             # self.x_lr = self.x_lr / 2
             # self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
