@@ -319,6 +319,8 @@ if __name__ == '__main__':
 
     set_output_dir()
 
+    assert TIME_GRID[-1] == T1
+
     init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr)
 
