@@ -434,7 +434,7 @@ if __name__ == '__main__':
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
-    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
 
     print(f"True decay value of the OU SDE is {DECAY}")
     print(f"Noise std-dev is {NOISE_STDDEV}")

@@ -3,6 +3,8 @@ Script to generate data for OU and save as npz files that can be used later for 
 """
 import os
 import argparse
+# Don't use GPU
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import tensorflow as tf
 import numpy as np

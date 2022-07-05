@@ -397,7 +397,6 @@ class VariationalMarkovGP:
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
 
             orig_q_lr = self.q_lr
-            orig_x_lr = self.x_lr
 
             q_converged = False
             while not q_converged:
@@ -416,24 +415,18 @@ class VariationalMarkovGP:
             print("VGP: q converged!!!")
 
             if update_initial_statistics:
-                x0_converged = False
-                while not x0_converged:
-                    x0_converged = self.update_initial_statistics()
-
-                    self.elbo_vals.append(self.elbo())
-                    print(f"VGP: ELBO {self.elbo_vals[-1]}")
-                    if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
-                        print("VGP: Breaking x0 loop as ELBO converged!!!")
-                        break
-
-                    self.x_lr = self.x_lr / 2
+                self.update_initial_statistics()
+                self.elbo_vals.append(self.elbo())
+                print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
+                    print("VGP: Breaking x0 loop as ELBO converged!!!")
+                    break
 
             print("VGP: X0 converged!!!")
             print(f"VGP: ELBO {self.elbo_vals[-1]}")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
             self.q_lr = orig_q_lr
-            self.x_lr = orig_x_lr
 
             print("VGP: Inference converged!!!")
             if update_prior:
@@ -465,8 +458,7 @@ class VariationalMarkovGP:
         # One final update for the updated prior
         if update_prior:
             self.run_single_inference()
-            if update_initial_statistics:
-                self.update_initial_statistics()
+            self.update_initial_statistics()
 
             self.elbo_vals.append(self.elbo())
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
