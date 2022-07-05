@@ -396,8 +396,6 @@ class VariationalMarkovGP:
         i = 0
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
 
-            orig_q_lr = self.q_lr
-
             q_converged = False
             while not q_converged:
                 q_converged = self.run_single_inference()
@@ -407,7 +405,6 @@ class VariationalMarkovGP:
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
                 wandb.log({"VGP-NLPD": self.calculate_nlpd()})
 
-                self.q_lr = self.q_lr / 2
                 if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
@@ -426,12 +423,9 @@ class VariationalMarkovGP:
             print(f"VGP: ELBO {self.elbo_vals[-1]}")
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-            self.q_lr = orig_q_lr
-
             print("VGP: Inference converged!!!")
             if update_prior:
                 prior_converged = False
-                orig_lr = self.prior_sde_optimizer.learning_rate.numpy()
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     self._store_prior_param_vals()
@@ -440,11 +434,7 @@ class VariationalMarkovGP:
                         v = self.prior_params[k][-1]
                         wandb.log({"VGP-learning-" + str(k): v})
 
-                    # Decay LR
-                    self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
-
                 self.elbo_vals.append(self.elbo())
-                self.prior_sde_optimizer.learning_rate = orig_lr  # Put the original LR
 
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
