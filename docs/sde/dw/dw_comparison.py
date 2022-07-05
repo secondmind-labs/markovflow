@@ -135,12 +135,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
 def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
     global PRIOR_SDESSM_SDE
 
-    if LEARN_PRIOR_SDE:
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        PRIOR_SDESSM_SDE = PriorDoubleWellSDE(q=true_q)
-    else:
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        PRIOR_SDESSM_SDE = DoubleWellSDE(q=true_q)
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    PRIOR_SDESSM_SDE = PriorDoubleWellSDE(q=true_q)
 
     # likelihood
     likelihood_ssm = Gaussian(NOISE_STDDEV**2)
@@ -156,12 +152,8 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
     global PRIOR_VGP_SDE
-    if LEARN_PRIOR_SDE:
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        PRIOR_VGP_SDE = PriorDoubleWellSDE(q=true_q)
-    else:
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        PRIOR_VGP_SDE = DoubleWellSDE(q=true_q)
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    PRIOR_VGP_SDE = PriorDoubleWellSDE(q=true_q)
 
     # likelihood
     likelihood_vgp = Gaussian(NOISE_STDDEV**2)
