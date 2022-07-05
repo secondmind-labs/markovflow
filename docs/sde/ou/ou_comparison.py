@@ -20,7 +20,7 @@ from gpflow import default_float
 from gpflow.likelihoods import Gaussian
 import wandb
 
-from markovflow.sde.sde import OrnsteinUhlenbeckSDE, PriorOUSDE
+from markovflow.sde.sde import PriorOUSDE
 from markovflow.kernels import OrnsteinUhlenbeck
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
@@ -46,7 +46,7 @@ TEST_DATA = ()
 LATENT_PROCESS = tf.zeros((1, 1))
 OUTPUT_DIR = ""
 LEARN_PRIOR_SDE = False
-INITIAL_PRIOR_VALUE = 1.
+INITIAL_PRIOR_VALUE = -1.
 
 
 def load_data(data_dir):
@@ -140,7 +140,7 @@ def gpr_taylor():
     likelihood_gpr = Gaussian(NOISE_STDDEV**2)
 
     if LEARN_PRIOR_SDE:
-        kernel = OrnsteinUhlenbeck(decay=INITIAL_PRIOR_VALUE, diffusion=Q)
+        kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
         gpflow.set_trainable(kernel.diffusion, False)
     else:
         kernel = OrnsteinUhlenbeck(decay=DECAY, diffusion=Q)
@@ -158,7 +158,7 @@ def cvi_gpr():
     likelihood_gpr = Gaussian(NOISE_STDDEV ** 2)
 
     if LEARN_PRIOR_SDE:
-        kernel = OrnsteinUhlenbeck(decay=INITIAL_PRIOR_VALUE, diffusion=Q)
+        kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
         gpflow.set_trainable(kernel.diffusion, False)
     else:
         kernel = OrnsteinUhlenbeck(decay=DECAY, diffusion=Q)
@@ -169,19 +169,10 @@ def cvi_gpr():
 
 
 def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
-    if LEARN_PRIOR_SDE:
-        prior_decay = INITIAL_PRIOR_VALUE
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        # As prior OU SDE doesn't have a negative sign inside it.
-        prior_sde_ssm = PriorOUSDE(initial_val=-1*prior_decay, q=true_q)
-        # Steady covariance
-        initial_cov = Q / (2 * -1 * prior_sde_ssm.decay)
-    else:
-        true_decay = DECAY * tf.ones((1, 1), dtype=DTYPE)
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        prior_sde_ssm = OrnsteinUhlenbeckSDE(decay=true_decay, q=true_q)
-        # Steady covariance
-        initial_cov = Q / (2 * prior_sde_ssm.decay)
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    # As prior OU SDE doesn't have a negative sign inside it.
+    prior_sde_ssm = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
+    initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)  # Steady covariance
 
     # likelihood
     likelihood_ssm = Gaussian(NOISE_STDDEV**2)
@@ -202,19 +193,10 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
     # Prior SDE
-    if LEARN_PRIOR_SDE:
-        vgp_prior_decay = INITIAL_PRIOR_VALUE
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        # As prior OU SDE doesn't have a negative sign inside it.
-        prior_sde_vgp = PriorOUSDE(initial_val=-1*vgp_prior_decay, q=true_q)
-        # Steady covariance
-        initial_cov = Q / (2 * -1 * prior_sde_vgp.decay)
-    else:
-        vgp_prior_decay = DECAY * tf.ones((1, 1), dtype=DTYPE)
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        prior_sde_vgp = OrnsteinUhlenbeckSDE(decay=vgp_prior_decay, q=true_q)
-        # Steady covariance
-        initial_cov = Q / (2 * prior_sde_vgp.decay)
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    # As prior OU SDE doesn't have a negative sign inside it.
+    prior_sde_vgp = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
+    initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)  # Steady covariance
 
     # likelihood
     likelihood_vgp = Gaussian(NOISE_STDDEV**2)
@@ -228,7 +210,7 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
     vgp_model.p_initial_mean = tf.zeros_like(vgp_model.p_initial_mean)
     vgp_model.q_initial_mean = tf.identity(vgp_model.p_initial_mean)
 
-    vgp_model.A = vgp_prior_decay + 0. * vgp_model.A
+    vgp_model.A = -1 * INITIAL_PRIOR_VALUE + 0. * vgp_model.A
 
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -347,7 +329,7 @@ def plot_prior_decay_learn_evolution():
 
 def plot_elbo_bound():
     """Plot ELBO bound to see the learning objective bound"""
-    decay_value_range = np.linspace(0.01, DECAY + 2.5, 10)
+    decay_value_range = np.linspace(0.01, DECAY + 2.5, 20)
     # gpr_taylor_elbo_vals = []
     ssm_elbo_vals = []
     vgp_elbo_vals = []
@@ -358,20 +340,20 @@ def plot_elbo_bound():
         # cvi_gpr_taylor_model.orig_kernel = kernel
         # gpr_taylor_elbo_vals.append(cvi_gpr_taylor_model.classic_elbo().numpy().item())
 
-        ssm_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
+        ssm_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
         ssm_model._linearize_prior()  # To linearize the new prior
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
-        vgp_model.prior_sde = OrnsteinUhlenbeckSDE(decay=decay_val, q=true_q)
+        vgp_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
         vgp_elbo_vals.append(vgp_model.elbo())
 
     plt.clf()
     plt.subplots(1, 1, figsize=(5, 5))
-    plt.plot(decay_value_range, ssm_elbo_vals, label="SDE-SSM")
-    plt.plot(decay_value_range, vgp_elbo_vals, label="VGP")
+    plt.plot(-1 * decay_value_range, ssm_elbo_vals, label="SDE-SSM")
+    plt.plot(-1 * decay_value_range, vgp_elbo_vals, label="VGP")
     # plt.plot(decay_value_range, gpr_taylor_elbo_vals, label="CVI-GPR (Taylor) ELBO", alpha=0.2, linestyle="dashed",
     #          color="black")
-    plt.vlines(DECAY, np.min(vgp_elbo_vals), np.max(vgp_elbo_vals))
+    plt.vlines(-1 * DECAY, np.min(vgp_elbo_vals), np.max(vgp_elbo_vals))
     plt.legend()
     wandb.log({"elbo_bound": wandb.Image(plt)})
     plt.savefig(os.path.join(OUTPUT_DIR, "elbo_bound.svg"))
@@ -382,22 +364,16 @@ def vgp_from_sdessm(sde_ssm_model: SDESSM):
     """Load the posterior A and b value from SDE-SSM trained model and print ELBO and NLPD"""
     A, b, post_ssm_params = sde_ssm_model.get_posterior_drift_params()
 
-    if LEARN_PRIOR_SDE:
-        vgp_prior_decay = INITIAL_PRIOR_VALUE
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        # As prior OU SDE doesn't have a negative sign inside it.
-        prior_sde = PriorOUSDE(initial_val=-1*vgp_prior_decay, q=true_q)
-    else:
-        vgp_prior_decay = DECAY * tf.ones((1, 1), dtype=DTYPE)
-        true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-        prior_sde = OrnsteinUhlenbeckSDE(decay=vgp_prior_decay, q=true_q)
+    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
+    # As prior OU SDE doesn't have a negative sign inside it.
+    prior_sde = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
 
     likelihood = Gaussian(NOISE_STDDEV**2)
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA, prior_sde=prior_sde, grid=TIME_GRID,
                                     likelihood=likelihood)
 
     # Steady covariance
-    initial_cov = Q / (2 * prior_sde.decay)
+    initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)
     vgp_model.p_initial_cov = tf.reshape(initial_cov, vgp_model.p_initial_cov.shape)
     vgp_model.p_initial_mean = tf.zeros_like(vgp_model.p_initial_mean)
 
@@ -426,7 +402,7 @@ if __name__ == '__main__':
     parser.add_argument('-dir', '--data_dir', type=str, help='Data directory of the OU data.', required=True)
     parser.add_argument('-wandb_username', type=str, help='Wandb username to be used for logging', default="")
     parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
-    parser.add_argument('-d', '--prior_decay', type=float, default=1.,
+    parser.add_argument('-d', '--prior_decay', type=float, default=-1.,
                         help='Prior decay value to be used when learning the prior SDE.')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
