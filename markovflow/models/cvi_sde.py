@@ -96,6 +96,8 @@ class SDESSM(CVIGaussianProcess):
         self.elbo_vals = []
 
         self.dist_p_ssm = None
+
+        self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
 
         self.prior_params = {}
@@ -115,12 +117,9 @@ class SDESSM(CVIGaussianProcess):
 
             Here, we approximate (linearize) the prior SDE based on the grid.
         """
-        # FIXME: check this. because of timepoints[:-1]?
-        fx_mus = self.fx_mus[:, :-1, :]
-        fx_covs = self.fx_covs[:, :-1, :, :]
-
-        self.dist_p_ssm = linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
-                                        q_covar=fx_covs, initial_mean=self.initial_mean,
+        self.dist_p_ssm = linearize_sde(sde=self.prior_sde, transition_times=self.time_points,
+                                        q_mean=self.linearization_pnts[0],
+                                        q_covar=self.linearization_pnts[1], initial_mean=self.initial_mean,
                                         initial_chol_covariance=self.initial_chol_cov,
                                         )
 
@@ -236,17 +235,20 @@ class SDESSM(CVIGaussianProcess):
 
         return val, dE_dm, dE_dS
 
-    def cross_term(self):
+    def cross_term(self, dist_q=None):
         """
-        Calculates the gradient of
+        Calculate
                     E_{q(x)[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
         """
         # convert from state transitions of the SSM to SDE's drift and offset
 
         dt = self.grid[1] - self.grid[0]
 
-        A_q = tf.squeeze(self.dist_q.state_transitions, axis=0)
-        b_q = tf.squeeze(self.dist_q.state_offsets, axis=0)
+        if dist_q is None:
+            dist_q = self.dist_q
+
+        A_q = tf.squeeze(dist_q.state_transitions, axis=0)
+        b_q = tf.squeeze(dist_q.state_offsets, axis=0)
         A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
         b_q = b_q / dt
 
@@ -465,7 +467,7 @@ class SDESSM(CVIGaussianProcess):
 
         def loss():
             return self.kl(dist_p=dist_p()) + self.loss_lin(dist_p=dist_p())
-            # return -1. * self.posterior_kalman.log_likelihood() #+ self.loss_lin()
+            # return -1. * self.posterior_kalman.log_likelihood() + self.loss_lin()
 
         old_val = self.prior_sde.trainable_variables[0].numpy().item()
         self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
@@ -484,7 +486,7 @@ class SDESSM(CVIGaussianProcess):
 
         return has_converged
 
-    def loss_lin(self, dist_p: StateSpaceModel = None):
+    def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
         """
         1/2 * \E_{q}[||f_P - f_l||^2_{\Sigma^{-1}}]
         """
@@ -492,9 +494,13 @@ class SDESSM(CVIGaussianProcess):
         if dist_p is None:
             dist_p = self.dist_p_ssm
 
-        m, S = self.dist_q.marginals
-        S = tf.stop_gradient(S)
-        m = tf.stop_gradient(m)
+        if m is None:
+            m, S = self.dist_q.marginals
+            S = tf.stop_gradient(S)
+            m = tf.stop_gradient(m)
+        else:
+            S = tf.stop_gradient(S)
+            m = tf.stop_gradient(m)
 
         # removing batch and the last m and S. FIXME: check last point removal
         m = tf.squeeze(m, axis=0)[:-1]
@@ -518,23 +524,24 @@ class SDESSM(CVIGaussianProcess):
             Compute the ELBO.
         """
         # s ~ q(s) = N(μ, P)
-        fx_mus, fx_covs = self.dist_q.marginals
+        dist_q = self.dist_q
+        fx_mus, fx_covs = dist_q.marginals
         indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
-        fx_mus = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
-        fx_covs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
+        fx_mus_obs = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
+        fx_covs_obs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
 
         # VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfₓ
         ve_fx = tf.reduce_sum(
             input_tensor=self._likelihood.variational_expectations(
-                fx_mus, fx_covs, self._observations
+                fx_mus_obs, fx_covs_obs, self._observations
             )
         )
         # KL[q(sₓ) || p(sₓ)]
-        kl_fx = tf.reduce_sum(self.dist_q.kl_divergence(self.dist_p_ssm))
+        kl_fx = tf.reduce_sum(dist_q.kl_divergence(self.dist_p_ssm))
 
-        lin_loss = self.loss_lin()
+        lin_loss = self.loss_lin(m=fx_mus, S=fx_covs)
 
-        cross_term_val = self.cross_term()
+        cross_term_val = self.cross_term(dist_q=dist_q)
 
         wandb.log({"SSM-KL": kl_fx})
         wandb.log({"SSM-VE": ve_fx})
@@ -562,7 +569,7 @@ class SDESSM(CVIGaussianProcess):
 
         return nlpd.numpy().item()
 
-    def run(self, update_prior: bool = False) -> [list, dict]:
+    def run(self, update_prior: bool = False, max_itr: int = 50) -> [list, dict]:
         """
         Run inference and (if required) update prior till convergence.
         """
@@ -570,34 +577,60 @@ class SDESSM(CVIGaussianProcess):
         print(f"SSM: Starting ELBO {self.elbo_vals[-1]};")
         wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
 
+        i = 0
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
+            orig_lr = self.sites_lr
             while not sites_converged:
                 sites_converged = self.update_sites()
 
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
+                print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                 wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+                self.sites_lr = self.sites_lr / 2
+            self.sites_lr = orig_lr
 
+            print(f"SSM: Sites Converged!!!")
             if update_prior:
                 prior_converged = False
+                orig_lr = self.prior_sde_optimizer.learning_rate.numpy()
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
                     # Linearize the prior
+                    self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
+                                               tf.identity(self.fx_covs[:, :-1, :, :]))
                     self._linearize_prior()
                     self._store_prior_param_vals()
 
                     for k in self.prior_params.keys():
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
+
+                    # Decay LR
+                    self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
+                # Replace LR with the original LR
+                self.prior_sde_optimizer.learning_rate = orig_lr
             else:
+                self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
                 self._linearize_prior()
 
             self.elbo_vals.append(self.classic_elbo().numpy().item())
-            print(f"SSM: ELBO {self.elbo_vals[-1]}; Sites Converged!!!")
+            print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")
             wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
-            # self.sites_lr = self.sites_lr / 2
-            # self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
+            i = i + 1
+            if i == max_itr:
+                print("SDESSM: Reached maximum iterations!!!")
+                break
+
+        # One last site update for the updated linearized prior
+        sites_converged = False
+        while not sites_converged:
+            sites_converged = self.update_sites()
+            self.elbo_vals.append(self.classic_elbo().numpy().item())
+            wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
 
         return self.elbo_vals, self.prior_params
 

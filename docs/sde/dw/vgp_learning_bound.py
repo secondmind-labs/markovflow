@@ -110,6 +110,7 @@ def plot_elbo_bound():
     clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
     levels = np.linspace(-1, 1, 25)
 
+    plt.clf()
     fig = plt.figure(1, figsize=(6, 5))
     contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
     fig.colorbar(contour1)
@@ -129,6 +130,7 @@ def plot_learning_plot():
     clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
     levels = np.linspace(-1, 1, 25)
 
+    plt.clf()
     fig = plt.figure(1, figsize=(6, 5))
     contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
     fig.colorbar(contour1)

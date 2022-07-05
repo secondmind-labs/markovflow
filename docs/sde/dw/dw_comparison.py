@@ -275,6 +275,9 @@ def save_data(ssm_elbo, vgp_elbo):
     if LEARN_PRIOR_SDE:
         np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), a=ssm_prior_a_values, c=ssm_prior_c_values)
 
+    np.savez(os.path.join(OUTPUT_DIR, "ssm_linearization_path.npz"), fx_mus=ssm_model.linearization_pnts[0],
+             fx_covs=ssm_model.linearization_pnts[1])
+
     "Save VGP data"
     np.savez(os.path.join(OUTPUT_DIR, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
     np.savez(os.path.join(OUTPUT_DIR, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
@@ -299,7 +302,7 @@ if __name__ == '__main__':
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
-    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 

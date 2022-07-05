@@ -60,16 +60,20 @@ def load_model():
     SDESSM_MODEL.sites_nat1 = sites["nat1"]
     SDESSM_MODEL.sites_nat2 = sites["nat2"]
 
-    q_path = np.load(os.path.join(MODEL_DIR, "ssm_inference.npz"))
-    SDESSM_MODEL.fx_mus = q_path["m"].reshape(SDESSM_MODEL.fx_mus.shape) * tf.ones_like(SDESSM_MODEL.fx_mus)
-    # cov without the noise variance
-    fx_covs = q_path["S"] - NOISE_STDDEV**2
-    SDESSM_MODEL.fx_covs = fx_covs.reshape(SDESSM_MODEL.fx_covs.shape)
+    lin_path = np.load(os.path.join(MODEL_DIR, "ssm_linearization_path.npz"))
+    SDESSM_MODEL.linearization_pnts = (lin_path["fx_mus"].reshape(SDESSM_MODEL.linearization_pnts[0].shape),
+                                       lin_path["fx_covs"].reshape(SDESSM_MODEL.linearization_pnts[1].shape))
 
     ssm_learning_path = os.path.join(MODEL_DIR, "ssm_learnt_sde.npz")
     ssm_learning = np.load(ssm_learning_path)
     SDESSM_MODEL.prior_sde.a = ssm_learning["a"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.a)
     SDESSM_MODEL.prior_sde.c = ssm_learning["c"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.c)
+
+    q_path = np.load(os.path.join(MODEL_DIR, "ssm_inference.npz"))
+    SDESSM_MODEL.fx_mus = q_path["m"].reshape(SDESSM_MODEL.fx_mus.shape) * tf.ones_like(SDESSM_MODEL.fx_mus)
+    # cov without the noise variance
+    fx_covs = q_path["S"] - NOISE_STDDEV ** 2
+    SDESSM_MODEL.fx_covs = fx_covs.reshape(SDESSM_MODEL.fx_covs.shape)
 
     SDESSM_MODEL._linearize_prior()
 
@@ -118,6 +122,7 @@ def plot_elbo_bound():
     clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
     levels = np.linspace(-1, 1, 25)
 
+    plt.clf()
     fig = plt.figure(1, figsize=(6, 5))
     contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
     fig.colorbar(contour1)
@@ -137,6 +142,7 @@ def plot_learning_plot():
     clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
     levels = np.linspace(-1, 1, 25)
 
+    plt.clf()
     fig = plt.figure(1, figsize=(6, 5))
     contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
     fig.colorbar(contour1)
