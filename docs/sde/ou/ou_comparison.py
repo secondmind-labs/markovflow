@@ -139,11 +139,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
 def gpr_taylor():
     likelihood_gpr = Gaussian(NOISE_STDDEV**2)
 
-    if LEARN_PRIOR_SDE:
-        kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
-        gpflow.set_trainable(kernel.diffusion, False)
-    else:
-        kernel = OrnsteinUhlenbeck(decay=DECAY, diffusion=Q)
+    kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
+    gpflow.set_trainable(kernel.diffusion, False)
 
     cvi_gpr_taylor_model, cvi_taylor_params, cvi_taylor_elbo_vals = get_cvi_gpr_taylor(OBSERVATION_DATA, kernel,
                                                                                        TIME_GRID, likelihood_gpr,
@@ -157,14 +154,12 @@ def gpr_taylor():
 def cvi_gpr():
     likelihood_gpr = Gaussian(NOISE_STDDEV ** 2)
 
-    if LEARN_PRIOR_SDE:
-        kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
-        gpflow.set_trainable(kernel.diffusion, False)
-    else:
-        kernel = OrnsteinUhlenbeck(decay=DECAY, diffusion=Q)
+    kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
+    gpflow.set_trainable(kernel.diffusion, False)
 
     cvi_gpr_model, cvi_params = get_cvi_gpr(OBSERVATION_DATA, kernel, likelihood_gpr, train=LEARN_PRIOR_SDE,
                                             sites_lr=0.9)
+    print(f"CVI-GPR ELBO: {cvi_gpr_model.classic_elbo()}")
     return cvi_gpr_model, cvi_params
 
 
@@ -315,6 +310,8 @@ def plot_prior_decay_learn_evolution():
     plt.clf()
     plt.hlines(-1 * DECAY, 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
                label="True Value", color="black", linestyles="dashed")
+    plt.hlines(-1 * cvi_params[0][-1], 0, max(len(v_gp_prior_decay_values), len(ssm_prior_decay_values)),
+               label="GPR Value", color="red", linestyles="dashed")
     plt.plot(v_gp_prior_decay_values, label="VGP", color="green")
     plt.plot(ssm_prior_decay_values, label="SDE-SSM", color="blue")
     plt.title("Prior Learning (decay)")

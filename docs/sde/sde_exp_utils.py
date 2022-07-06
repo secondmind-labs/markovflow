@@ -253,10 +253,9 @@ def get_cvi_gpr_taylor(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, ti
         prior_params[i] = [positive().forward(param).numpy().item()]
 
     elbo_vals = [cvi_model.classic_elbo()]
-    while len(elbo_vals) < 5 or elbo_vals[-2] - elbo_vals[-1] > 1e-2:
-        for _ in range(1):
-            cvi_model.update_sites()
-            elbo_vals.append(cvi_model.classic_elbo())
+    while len(elbo_vals) < 5 or (elbo_vals[-2] - elbo_vals[-1]) > 1e-4:
+        cvi_model.update_sites()
+        elbo_vals.append(cvi_model.classic_elbo())
 
     return cvi_model, prior_params, elbo_vals
 

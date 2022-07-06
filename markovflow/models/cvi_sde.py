@@ -588,6 +588,10 @@ class SDESSM(CVIGaussianProcess):
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                 wandb.log({"SSM-NLPD": self.calculate_nlpd()})
 
+                if self.elbo_vals[-1] > self.elbo_vals[-1]:
+                    print("SSM: ELBO increased! Decaying LR!!!")
+                    self.sites_lr = self.sites_lr / 2
+
             print(f"SSM: Sites Converged!!!")
             if update_prior:
                 prior_converged = False
