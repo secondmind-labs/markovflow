@@ -585,12 +585,16 @@ class SDESSM(CVIGaussianProcess):
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
             while not sites_converged:
-                sites_converged = self.update_sites()
+                for _ in range(2):  # FIXME: find a better way to fix this rather than hardcoding
+                    sites_converged = self.update_sites()
 
-                self.elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
-                wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
-                wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+                    self.elbo_vals.append(self.classic_elbo().numpy().item())
+                    print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
+                    wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
+                    wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+
+                self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
+                self._linearize_prior()
 
                 if self.elbo_vals[-2] > self.elbo_vals[-1]:
                     print("SSM: ELBO decreasing! Decaying LR!!!")
@@ -611,9 +615,9 @@ class SDESSM(CVIGaussianProcess):
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
 
-            else:
-                self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
-                self._linearize_prior()
+            # else:
+            #   self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
+            #   self._linearize_prior()
 
             self.elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")
