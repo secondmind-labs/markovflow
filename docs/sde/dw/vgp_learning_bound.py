@@ -57,7 +57,7 @@ def load_model():
         sde_params = np.load(vgp_learnt_sde_path)
         VGP_MODEL.prior_sde.a = sde_params["a"][-1] * tf.ones_like(VGP_MODEL.prior_sde.a)
         VGP_MODEL.prior_sde.c = sde_params["c"][-1] * tf.ones_like(VGP_MODEL.prior_sde.c)
-        
+
     vgp_inference = np.load(os.path.join(MODEL_DIR, "vgp_inference.npz"))
 
     VGP_MODEL.A = A_b_data["A"]
@@ -126,10 +126,13 @@ def plot_elbo_bound():
 
 
 def plot_learning_plot():
-    ssm_learning_path = os.path.join(MODEL_DIR, "vgp_learnt_sde.npz")
-    ssm_learning = np.load(ssm_learning_path)
-    ssm_learnt_a = ssm_learning["a"]
-    ssm_learnt_c = ssm_learning["c"]
+    learning_path = os.path.join(MODEL_DIR, "vgp_learnt_sde.npz")
+    if not os.path.exists(learning_path):
+        return
+
+    vgp_learning = np.load(learning_path)
+    vgp_learnt_a = vgp_learning["a"]
+    vgp_learnt_c = vgp_learning["c"]
 
     clipped_elbo_vals = np.clip(ELBO_VALS, -1, np.max(ELBO_VALS))
     levels = np.linspace(-1, 1, 25)
@@ -138,7 +141,7 @@ def plot_learning_plot():
     fig = plt.figure(1, figsize=(6, 5))
     contour1 = plt.contourf(A_VALUE_RANGE[:, 0], C_VALUE_RANGE[0], clipped_elbo_vals, levels=levels, cmap="gray")
     fig.colorbar(contour1)
-    plt.plot(ssm_learnt_a, ssm_learnt_c, "x")
+    plt.plot(vgp_learnt_a, vgp_learnt_c, "x")
 
     plt.savefig(os.path.join(MODEL_DIR, "vgp_learning_bound_learning.svg"))
     plt.show()

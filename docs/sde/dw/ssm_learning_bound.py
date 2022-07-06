@@ -136,6 +136,10 @@ def plot_elbo_bound():
 
 def plot_learning_plot():
     ssm_learning_path = os.path.join(MODEL_DIR, "ssm_learnt_sde.npz")
+
+    if not os.path.exists(ssm_learning_path):
+        return
+
     ssm_learning = np.load(ssm_learning_path)
     ssm_learnt_a = ssm_learning["a"]
     ssm_learnt_c = ssm_learning["c"]
