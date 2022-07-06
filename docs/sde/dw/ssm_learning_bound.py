@@ -65,9 +65,10 @@ def load_model():
                                        lin_path["fx_covs"].reshape(SDESSM_MODEL.linearization_pnts[1].shape))
 
     ssm_learning_path = os.path.join(MODEL_DIR, "ssm_learnt_sde.npz")
-    ssm_learning = np.load(ssm_learning_path)
-    SDESSM_MODEL.prior_sde.a = ssm_learning["a"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.a)
-    SDESSM_MODEL.prior_sde.c = ssm_learning["c"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.c)
+    if os.path.exists(ssm_learning_path):
+        ssm_learning = np.load(ssm_learning_path)
+        SDESSM_MODEL.prior_sde.a = ssm_learning["a"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.a)
+        SDESSM_MODEL.prior_sde.c = ssm_learning["c"][-1] * tf.ones_like(SDESSM_MODEL.prior_sde.c)
 
     q_path = np.load(os.path.join(MODEL_DIR, "ssm_inference.npz"))
     SDESSM_MODEL.fx_mus = q_path["m"].reshape(SDESSM_MODEL.fx_mus.shape) * tf.ones_like(SDESSM_MODEL.fx_mus)

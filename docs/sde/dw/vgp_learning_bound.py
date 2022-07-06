@@ -51,15 +51,19 @@ def load_model():
     # Load trained model variables
     A_b_data = np.load(os.path.join(MODEL_DIR, "vgp_A_b.npz"))
     lagrange_data = np.load(os.path.join(MODEL_DIR, "vgp_lagrange.npz"))
-    sde_params = np.load(os.path.join(MODEL_DIR, "vgp_learnt_sde.npz"))
+
+    vgp_learnt_sde_path = os.path.join(MODEL_DIR, "vgp_learnt_sde.npz")
+    if os.path.exists(vgp_learnt_sde_path):
+        sde_params = np.load(vgp_learnt_sde_path)
+        VGP_MODEL.prior_sde.a = sde_params["a"][-1] * tf.ones_like(VGP_MODEL.prior_sde.a)
+        VGP_MODEL.prior_sde.c = sde_params["c"][-1] * tf.ones_like(VGP_MODEL.prior_sde.c)
+        
     vgp_inference = np.load(os.path.join(MODEL_DIR, "vgp_inference.npz"))
 
     VGP_MODEL.A = A_b_data["A"]
     VGP_MODEL.b = A_b_data["b"]
     VGP_MODEL.lambda_lagrange = lagrange_data["lambda_lagrange"]
     VGP_MODEL.psi_lagrange = lagrange_data["psi_lagrange"]
-    VGP_MODEL.prior_sde.a = sde_params["a"][-1] * tf.ones_like(VGP_MODEL.prior_sde.a)
-    VGP_MODEL.prior_sde.c = sde_params["c"][-1] * tf.ones_like(VGP_MODEL.prior_sde.c)
     VGP_MODEL.q_initial_mean = vgp_inference["m"][0] * tf.ones_like(VGP_MODEL.q_initial_mean)
 
     # cov without the noise variance
