@@ -559,7 +559,7 @@ class CVIGaussianProcessTaylorKernel(CVIGaussianProcess):
 
         As = self.orig_kernel.feedback_matrix * tf.expand_dims(transition_deltas, -1) + tf.eye(self.orig_kernel.state_dim, dtype=default_float())
         Qs = self.orig_kernel.diffusion * tf.expand_dims(transition_deltas, -1)
-        bs = self.orig_kernel.state_mean * transition_deltas
+        bs = tf.reshape(self.orig_kernel.state_offsets(self.time_grid, transition_deltas), (-1, 1))
 
         return state_space_model_from_covariances(
             initial_mean=self.orig_kernel.initial_mean(batch_shape),

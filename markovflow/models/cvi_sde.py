@@ -326,10 +326,14 @@ class SDESSM(CVIGaussianProcess):
             # Linearization gradient for updating the overall sites
             _, grads0, grads1 = self.grad_linearization_diff()
             # we don't have the gradient for the last state (m[-1, S[-1]])
-            new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads0
-            new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
+            # FIXME: Check this -gradient as we want to decrease this term
+            new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] - self.sites_lr * grads0
+            new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] - self.sites_lr * grads1
             new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
             new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
+
+            # Clipping the nat2 value.
+            new_nat2 = tf.clip_by_value(new_nat2, 0, tf.reduce_max(new_nat2))
 
             sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
             sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
@@ -588,8 +592,8 @@ class SDESSM(CVIGaussianProcess):
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                 wandb.log({"SSM-NLPD": self.calculate_nlpd()})
 
-                if self.elbo_vals[-1] > self.elbo_vals[-1]:
-                    print("SSM: ELBO increased! Decaying LR!!!")
+                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                    print("SSM: ELBO decreasing! Decaying LR!!!")
                     self.sites_lr = self.sites_lr / 2
 
             print(f"SSM: Sites Converged!!!")

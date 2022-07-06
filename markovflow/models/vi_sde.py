@@ -409,8 +409,8 @@ class VariationalMarkovGP:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 
-                if self.elbo_vals[-2] < self.elbo_vals[-1]:
-                    print("VGP: q loop ELBO increased!!! Decaying LR!")
+                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                    print("VGP: q loop ELBO decreasing!!! Decaying LR!")
                     self.q_lr = self.q_lr / 2
 
             print("VGP: q converged!!!")
@@ -419,8 +419,8 @@ class VariationalMarkovGP:
                 self.update_initial_statistics()
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
-                if self.elbo_vals[-2] < self.elbo_vals[-1]:
-                    print("VGP: x0 loop ELBO increased!!! Decaying LR!")
+                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                    print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
                     self.x_lr = self.x_lr / 2
 
             print("VGP: X0 converged!!!")

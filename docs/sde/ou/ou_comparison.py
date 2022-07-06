@@ -47,6 +47,7 @@ LATENT_PROCESS = tf.zeros((1, 1))
 OUTPUT_DIR = ""
 LEARN_PRIOR_SDE = False
 INITIAL_PRIOR_VALUE = -1.
+UPDATE_ALL_SITES = False
 
 
 def load_data(data_dir):
@@ -174,7 +175,8 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=prior_sde_ssm, grid=TIME_GRID, likelihood=likelihood_ssm,
-                       learning_rate=sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
+                       learning_rate=sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA,
+                       update_all_sites=UPDATE_ALL_SITES)
 
     ssm_model.initial_mean = tf.zeros_like(ssm_model.initial_mean)
     ssm_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, ssm_model.initial_chol_cov.shape))
@@ -327,30 +329,37 @@ def plot_prior_decay_learn_evolution():
 def plot_elbo_bound():
     """Plot ELBO bound to see the learning objective bound"""
     decay_value_range = np.linspace(0.01, DECAY + 2.5, 20)
-    # gpr_taylor_elbo_vals = []
+    gpr_taylor_elbo_vals = []
     ssm_elbo_vals = []
     vgp_elbo_vals = []
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
 
     for decay_val in decay_value_range:
-        # kernel = OrnsteinUhlenbeck(decay=decay_val, diffusion=q)
-        # cvi_gpr_taylor_model.orig_kernel = kernel
-        # gpr_taylor_elbo_vals.append(cvi_gpr_taylor_model.classic_elbo().numpy().item())
+        kernel = OrnsteinUhlenbeck(decay=decay_val, diffusion=Q)
+        gpr_model.orig_kernel = kernel
+        gpr_taylor_elbo_vals.append(gpr_model.classic_elbo().numpy().item())
 
         ssm_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
+        # Steady covariance
+        ssm_model.initial_chol_cov = tf.linalg.cholesky((Q / (2 * decay_val)) + 0. * ssm_model.initial_chol_cov)
         ssm_model._linearize_prior()  # To linearize the new prior
         ssm_elbo_vals.append(ssm_model.classic_elbo())
 
         vgp_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
+        # Steady covariance
+        vgp_model.p_initial_cov = (Q / (2 * decay_val)) + 0. * vgp_model.p_initial_cov
         vgp_elbo_vals.append(vgp_model.elbo())
 
     plt.clf()
     plt.subplots(1, 1, figsize=(5, 5))
     plt.plot(-1 * decay_value_range, ssm_elbo_vals, label="SDE-SSM")
     plt.plot(-1 * decay_value_range, vgp_elbo_vals, label="VGP")
-    # plt.plot(decay_value_range, gpr_taylor_elbo_vals, label="CVI-GPR (Taylor) ELBO", alpha=0.2, linestyle="dashed",
-    #          color="black")
-    plt.vlines(-1 * DECAY, np.min(vgp_elbo_vals), np.max(vgp_elbo_vals))
+    plt.plot(-1 * decay_value_range, gpr_taylor_elbo_vals, label="CVI-GPR (Taylor) ELBO", alpha=0.2, linestyle="dashed",
+             color="black")
+    plt.vlines(-1 * DECAY, np.min(vgp_elbo_vals) - 0.5, np.max(ssm_elbo_vals) + 0.5, linestyle="dashed", alpha=0.2,
+               color="red", label="Simulating Decay")
+    plt.vlines(INITIAL_PRIOR_VALUE, np.min(vgp_elbo_vals) - 0.5, np.max(ssm_elbo_vals) + 0.5, linestyle="dashed",
+               alpha=0.2, color="green", label="Initial Decay")
     plt.legend()
     wandb.log({"elbo_bound": wandb.Image(plt)})
     plt.savefig(os.path.join(OUTPUT_DIR, "elbo_bound.svg"))
@@ -408,12 +417,16 @@ if __name__ == '__main__':
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
     parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
+    parser.add_argument('-all_sites', type=bool, default=False,
+                        help='Update all sites using cross-term or only data-sites')
 
     print(f"True decay value of the OU SDE is {DECAY}")
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
     args = parser.parse_args()
     LEARN_PRIOR_SDE = args.learn_prior_sde
+
+    UPDATE_ALL_SITES = args.all_sites
 
     load_data(args.data_dir)
 

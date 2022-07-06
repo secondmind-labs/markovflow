@@ -46,6 +46,7 @@ INITIAL_PRIOR_VALUE = 1.
 TRUE_DW_SDE = None
 PRIOR_VGP_SDE = None
 PRIOR_SDESSM_SDE = None
+UPDATE_ALL_SITES = False
 
 
 def load_data(data_dir):
@@ -143,7 +144,8 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=PRIOR_SDESSM_SDE, grid=TIME_GRID,
-                       likelihood=likelihood_ssm, learning_rate=sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA)
+                       likelihood=likelihood_ssm, learning_rate=sites_lr, prior_params_lr=prior_lr,
+                       test_data=TEST_DATA, update_all_sites=UPDATE_ALL_SITES)
 
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -295,12 +297,16 @@ if __name__ == '__main__':
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
     parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
+    parser.add_argument('-all_sites', type=bool, default=False,
+                        help='Update all sites using cross-term or only data-sites')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
     args = parser.parse_args()
 
     LEARN_PRIOR_SDE = args.learn_prior_sde
+
+    UPDATE_ALL_SITES = args.all_sites
 
     load_data(args.data_dir)
 
