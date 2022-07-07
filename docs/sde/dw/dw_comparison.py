@@ -77,7 +77,7 @@ def modify_time_grid(dt: float):
     """Modifying time grid."""
     global DT, TIME_GRID
     DT = dt
-    TIME_GRID = tf.cast(np.arange(T0, T1 + DT, DT), dtype=DTYPE).numpy()
+    TIME_GRID = tf.cast(np.linspace(T0, T1, int((T1-T0)//DT) + 2), dtype=DTYPE).numpy()
 
 
 def plot_data():
@@ -330,6 +330,7 @@ if __name__ == '__main__':
     set_output_dir(args.o)
 
     assert TIME_GRID[-1] == T1
+    assert TIME_GRID[1] - TIME_GRID[0] == DT
 
     init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr)
