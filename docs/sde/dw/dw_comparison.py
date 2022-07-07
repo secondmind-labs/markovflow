@@ -47,6 +47,8 @@ TRUE_DW_SDE = None
 PRIOR_VGP_SDE = None
 PRIOR_SDESSM_SDE = None
 UPDATE_ALL_SITES = False
+INITIAL_A = 1.
+INITIAL_C = .5
 
 
 def load_data(data_dir):
@@ -94,10 +96,12 @@ def plot_data():
     plt.show()
 
 
-def set_output_dir():
+def set_output_dir(dir_name):
     """Create output directory"""
     global OUTPUT_DIR
-    if LEARN_PRIOR_SDE:
+    if dir_name is not None:
+        OUTPUT_DIR = os.path.join(DATA_PATH, dir_name)
+    elif LEARN_PRIOR_SDE:
         OUTPUT_DIR = os.path.join(DATA_PATH, "learning")
     else:
         OUTPUT_DIR = os.path.join(DATA_PATH, "inference")
@@ -137,7 +141,7 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
     global PRIOR_SDESSM_SDE
 
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-    PRIOR_SDESSM_SDE = PriorDoubleWellSDE(q=true_q)
+    PRIOR_SDESSM_SDE = PriorDoubleWellSDE(q=true_q, initial_a_val=INITIAL_A, initial_c_val=INITIAL_C)
 
     # likelihood
     likelihood_ssm = Gaussian(NOISE_STDDEV**2)
@@ -155,7 +159,7 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
     global PRIOR_VGP_SDE
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-    PRIOR_VGP_SDE = PriorDoubleWellSDE(q=true_q)
+    PRIOR_VGP_SDE = PriorDoubleWellSDE(q=true_q, initial_a_val=INITIAL_A, initial_c_val=INITIAL_C)
 
     # likelihood
     likelihood_vgp = Gaussian(NOISE_STDDEV**2)
@@ -299,12 +303,17 @@ if __name__ == '__main__':
     parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
     parser.add_argument('-all_sites', type=bool, default=False,
                         help='Update all sites using cross-term or only data-sites')
+    parser.add_argument('-a', type=float, default=1., help='Initial value of A for the prior double-well SDE')
+    parser.add_argument('-c', type=float, default=.5, help='Initial value of C for the prior double-well SDE')
+    parser.add_argument('-o', type=str, default=None, help='Output directory name')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
     args = parser.parse_args()
 
     LEARN_PRIOR_SDE = args.learn_prior_sde
+    INITIAL_A = args.a
+    INITIAL_C = args.c
 
     UPDATE_ALL_SITES = args.all_sites
 
@@ -315,7 +324,7 @@ if __name__ == '__main__':
     if args.dt != 0:
         modify_time_grid(args.dt)
 
-    set_output_dir()
+    set_output_dir(args.o)
 
     assert TIME_GRID[-1] == T1
 

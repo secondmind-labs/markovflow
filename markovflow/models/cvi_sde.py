@@ -36,6 +36,7 @@ from markovflow.sde.sde_utils import KL_sde
 from markovflow.ssm_natgrad import naturals_to_ssm_params
 from markovflow.models.variational_cvi import back_project_nats
 from markovflow.sde.sde_utils import gaussian_log_predictive_density
+from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
 class SDESSM(CVIGaussianProcess):
@@ -231,7 +232,11 @@ class SDESSM(CVIGaussianProcess):
         with tf.GradientTape(persistent=True) as g:
             g.watch([q_mean, q_covar])
             val = KL_sde(self.prior_sde, -1 * A, b, q_mean, q_covar, dt=(self.grid[1] - self.grid[0]))
-        dE_dm, dE_dS = g.gradient(val, [q_mean, q_covar])
+        grads = g.gradient(val, [q_mean, q_covar])
+
+        # TODO: Check this once
+        # turn into gradient wrt μ, σ² + μ²
+        dE_dm, dE_dS = gradient_transformation_mean_var_to_expectation((q_mean, q_covar), grads)
 
         return val, dE_dm, dE_dS
 
@@ -587,13 +592,16 @@ class SDESSM(CVIGaussianProcess):
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
             while not sites_converged:
-                for _ in range(2):  # FIXME: find a better way to fix this rather than hardcoding
+                for _ in range(15):  # FIXME: find a better way to fix this rather than hardcoding
                     sites_converged = self.update_sites()
 
                     self.elbo_vals.append(self.classic_elbo().numpy().item())
                     print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
                     wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                     wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+
+                    if sites_converged:
+                        break
 
                 self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
                 self._linearize_prior()
