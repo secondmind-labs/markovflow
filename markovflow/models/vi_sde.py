@@ -415,15 +415,15 @@ class VariationalMarkovGP:
                     print("VGP: q loop ELBO decreasing!!! Decaying LR!")
                     self.q_lr = self.q_lr / 2
 
-            print("VGP: q converged!!!")
+                if update_initial_statistics:
+                    self.update_initial_statistics()
+                    self.elbo_vals.append(self.elbo())
+                    print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                    if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                        print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
+                        self.x_lr = self.x_lr / 2
 
-            if update_initial_statistics:
-                self.update_initial_statistics()
-                self.elbo_vals.append(self.elbo())
-                print(f"VGP: ELBO {self.elbo_vals[-1]}")
-                if self.elbo_vals[-2] > self.elbo_vals[-1]:
-                    print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
-                    self.x_lr = self.x_lr / 2
+            print("VGP: q converged!!!")
 
             print("VGP: X0 converged!!!")
             print(f"VGP: ELBO {self.elbo_vals[-1]}")
@@ -453,11 +453,20 @@ class VariationalMarkovGP:
 
         # One final update for the updated prior
         if update_prior:
+            print("VGP: Performing last inference step!!!")
             self.run_single_inference()
             self.update_initial_statistics()
 
             self.elbo_vals.append(self.elbo())
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+
+        if update_initial_statistics:
+            print("VGP: Performing initial state update till convergence!!!")
+            converged = False
+            while not converged:
+                converged = self.update_initial_statistics()
+                self.elbo_vals.append(self.elbo())
+                print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
             max_itr: int = 100) -> [list, dict]:

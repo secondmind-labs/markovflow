@@ -29,7 +29,7 @@ def generate_ou_data(decay: float, q: float, x0: float, t0: float, t1: float, si
     x0_shape = (num_batch, state_dim)
     x0 = x0 + tf.zeros(x0_shape, dtype=dtype)
 
-    time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
+    time_grid = tf.cast(np.linspace(t0, t1, int((t1-t0)//simulation_dt)), dtype=dtype)
 
     # Observation at every even place
 
@@ -75,7 +75,7 @@ def generate_dw_data(q: float, x0: float, t0: float, t1: float, simulation_dt: f
     x0_shape = (num_batch, state_dim)
     x0 = x0 + tf.zeros(x0_shape, dtype=dtype)
 
-    time_grid = tf.cast(np.arange(t0, t1+simulation_dt, simulation_dt), dtype=dtype)
+    time_grid = tf.cast(np.linspace(t0, t1, int((t1-t0)//simulation_dt)), dtype=dtype)
 
     # Observation at every even place
     observation_idx = list(tf.cast(np.linspace(2, time_grid.shape[0]-2, n_observations), dtype=tf.int32))

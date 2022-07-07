@@ -633,6 +633,11 @@ class SDESSM(CVIGaussianProcess):
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")
             wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
 
+            if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                print("SSM: ELBO decreasing! Decaying LR!!!")
+                self.sites_lr = self.sites_lr / 2
+                self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
             i = i + 1
             if i == max_itr:
                 print("SDESSM: Reached maximum iterations!!!")

@@ -168,6 +168,9 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
                                     lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr)
 
+    vgp_model.q_initial_cov = tf.reshape(ssm_model.fx_covs, (-1))[0] + 0. * vgp_model.q_initial_cov
+    vgp_model.q_initial_mean = tf.reshape(ssm_model.fx_mus, (-1))[0] + 0. * vgp_model.q_initial_mean
+
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
     return vgp_model, v_gp_elbo, v_gp_prior_vals
