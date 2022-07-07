@@ -317,7 +317,9 @@ class VariationalMarkovGP:
         wandb.log({"VGP-EObs": E_obs})
         wandb.log({"VGP-ESDE": E_sde})
         wandb.log({"VGP-KL-X0": KL_q0_p0})
-        # print(f"E_obs: {E_obs}; E_sde: {E_sde}; KL_x0 : {KL_q0_p0}")
+
+        # print(f"VGP-KL:{E_sde + KL_q0_p0}")
+        # print(f"VGP-VE: {E_obs}")
 
         return E.numpy().item()
 

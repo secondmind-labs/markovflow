@@ -64,7 +64,8 @@ def plot_data(o_grid: tf.Tensor, o_vals: tf.Tensor, time_grid: tf.Tensor, latent
     plt.title("Observations")
     plt.legend()
 
-    plt.savefig(os.path.join(output_dir, "data.svg"))
+    if output_dir != "":
+        plt.savefig(os.path.join(output_dir, "data.svg"))
 
     plt.show()
 

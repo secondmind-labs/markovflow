@@ -106,7 +106,11 @@ def calculate_elbo_bound(n=30):
         print(f"Calculating ELBO bound for a={a}, c={c}")
         SDESSM_MODEL.prior_sde = PriorDoubleWellSDE(q=true_q, initial_a_val=a, initial_c_val=c)
         SDESSM_MODEL._linearize_prior()  # To linearize the new prior
-        ELBO_VALS.append(SDESSM_MODEL.classic_elbo().numpy().item())
+        try:
+            ELBO_VALS.append(SDESSM_MODEL.classic_elbo().numpy().item())
+        except Exception:  # FIXME: bad idea
+            print(f"Exception while calculating the ELBO for values: {a, c}")
+            ELBO_VALS.append(ELBO_VALS[-1])
 
     ELBO_VALS = np.array(ELBO_VALS).reshape((n, n)).T
 

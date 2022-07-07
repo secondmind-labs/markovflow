@@ -328,7 +328,7 @@ def plot_prior_decay_learn_evolution():
 
 def plot_elbo_bound():
     """Plot ELBO bound to see the learning objective bound"""
-    decay_value_range = np.linspace(0.01, DECAY + 2.5, 20)
+    decay_value_range = np.linspace(0.01, DECAY + 2.5, 40)
     gpr_taylor_elbo_vals = []
     ssm_elbo_vals = []
     vgp_elbo_vals = []
@@ -361,9 +361,14 @@ def plot_elbo_bound():
     plt.vlines(INITIAL_PRIOR_VALUE, np.min(vgp_elbo_vals) - 0.5, np.max(ssm_elbo_vals) + 0.5, linestyle="dashed",
                alpha=0.2, color="green", label="Initial Decay")
     plt.legend()
+    plt.xlim(-1 * np.max(decay_value_range), -1 * np.min(decay_value_range))
+
     wandb.log({"elbo_bound": wandb.Image(plt)})
     plt.savefig(os.path.join(OUTPUT_DIR, "elbo_bound.svg"))
     plt.show()
+
+    np.savez(os.path.join(OUTPUT_DIR, "elbo_bound.npz"), ssm_elbo=ssm_elbo_vals, vgp_elbo=vgp_elbo_vals,
+             gpr_taylor_elbo=gpr_taylor_elbo_vals, decay_values=decay_value_range)
 
 
 def vgp_from_sdessm(sde_ssm_model: SDESSM):
