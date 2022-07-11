@@ -89,7 +89,7 @@ class SDESSM(CVIGaussianProcess):
         self.test_data = test_data
 
         self._initialize_mean_statistic()
-        self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-20
+        self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-18
         self.sites_nat1 = tf.zeros_like(self.grid)[..., None]
 
         self.sites_lr = learning_rate
@@ -141,8 +141,8 @@ class SDESSM(CVIGaussianProcess):
         """
         indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
 
-        nat1 = tf.tensor_scatter_nd_add(self.sites_nat1, indices, self.data_sites.nat1)
-        nat2 = tf.tensor_scatter_nd_add(self.sites_nat2, indices, self.data_sites.nat2)
+        nat1 = tf.tensor_scatter_nd_add(-1 * self.sites_nat1, indices, self.data_sites.nat1)
+        nat2 = tf.tensor_scatter_nd_add(-1 * self.sites_nat2, indices, self.data_sites.nat2)
 
         log_norm = tf.scatter_nd(indices, self.data_sites.log_norm, self.grid[..., None].shape)
 
@@ -218,7 +218,7 @@ class SDESSM(CVIGaussianProcess):
 
         # removing batch and the last m and S. FIXME: check last point removal
         q_mean = tf.squeeze(m, axis=0)[:-1]
-        q_covar = tf.squeeze(S, axis=0)[:-1]
+        q_covar = tf.squeeze(S, axis=[0, -1])[:-1]
 
         # convert from state transitons of the SSM to SDE P's drift and offset
         A = tf.squeeze(dist_p.state_transitions, axis=0)
@@ -332,12 +332,12 @@ class SDESSM(CVIGaussianProcess):
             _, grads0, grads1 = self.grad_linearization_diff()
             # we don't have the gradient for the last state (m[-1, S[-1]])
             new_nat1 = (1 - self.sites_lr) * self.sites_nat1[:-1] + self.sites_lr * grads0
-            new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1
+            new_nat2 = (1 - self.sites_lr) * self.sites_nat2[:-1] + self.sites_lr * grads1[..., None]
             new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
             new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
 
             # Clipping the nat2 value.
-            new_nat2 = tf.clip_by_value(new_nat2, 0, tf.reduce_max(new_nat2))
+            new_nat2 = tf.clip_by_value(new_nat2, 1e-20, tf.reduce_max(new_nat2))
 
             sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
             sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
@@ -462,7 +462,7 @@ class SDESSM(CVIGaussianProcess):
 
         return k_l
 
-    def update_prior_sde(self, convergence_tol=1e-4):
+    def update_prior_sde(self, convergence_tol=1e-3):
 
         def dist_p() -> StateSpaceModel:
             fx_mus = self.fx_mus[:, :-1, :]
@@ -477,22 +477,27 @@ class SDESSM(CVIGaussianProcess):
             return self.kl(dist_p=dist_p()) + self.loss_lin(dist_p=dist_p())
             # return -1. * self.posterior_kalman.log_likelihood() + self.loss_lin()
 
-        old_val = self.prior_sde.trainable_variables[0].numpy().item()
         self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
-        new_val = self.prior_sde.trainable_variables[0].numpy().item()
+
+        # Check convergence
+        converged = True
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            old_val = self.prior_params[i][-1]
+            new_val = param.numpy().item()
+
+            diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
+
+            if diff_sq_norm < convergence_tol:
+                converged = converged & True
+            else:
+                converged = False
 
         # FIXME: ONLY FOR OU: Steady state covariance
         if isinstance(self.prior_sde, PriorOUSDE):
             self.initial_chol_cov = tf.linalg.cholesky(
                 (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
 
-        diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
-        if diff_sq_norm < convergence_tol:
-            has_converged = True
-        else:
-            has_converged = False
-
-        return has_converged
+        return converged
 
     def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
         """
@@ -624,10 +629,6 @@ class SDESSM(CVIGaussianProcess):
                     for k in self.prior_params.keys():
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
-
-            # else:
-            #   self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
-            #   self._linearize_prior()
 
             self.elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")

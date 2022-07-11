@@ -323,7 +323,7 @@ class VariationalMarkovGP:
 
         return E.numpy().item()
 
-    def update_prior_sde(self, convergence_tol=1e-4):
+    def update_prior_sde(self, convergence_tol=1e-3):
         """
         Function to update the prior SDE.
         """
@@ -339,23 +339,27 @@ class VariationalMarkovGP:
 
             return KL_sde(self.prior_sde, A, b, m, S, self.dt) + self.KL_initial_state()
 
-        # FIXME: check all variables and not only the first one
-        old_val = self.prior_sde.trainable_variables[0].numpy().item()
         self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
-        new_val = self.prior_sde.trainable_variables[0].numpy().item()
+
+        # Check convergence
+        converged = True
+        for i, param in enumerate(self.prior_sde.trainable_variables):
+            old_val = self.prior_params[i][-1]
+            new_val = param.numpy().item()
+
+            diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
+
+            if diff_sq_norm < convergence_tol:
+                converged = converged & True
+            else:
+                converged = False
 
         # FIXME: Only for OU: Steady state covariance
         if isinstance(self.prior_sde, PriorOUSDE):
             self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(
                 self.p_initial_cov)
 
-        diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
-        if diff_sq_norm < convergence_tol:
-            has_converged = True
-        else:
-            has_converged = False
-
-        return has_converged
+        return converged
 
     def calculate_nlpd(self) -> float:
         """
@@ -403,7 +407,7 @@ class VariationalMarkovGP:
                 q_converged = self.run_single_inference()
 
                 self.elbo_vals.append(self.elbo())
-                print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                print(f"VGP - q loop: ELBO {self.elbo_vals[-1]}")
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
                 wandb.log({"VGP-NLPD": self.calculate_nlpd()})
 
@@ -416,9 +420,11 @@ class VariationalMarkovGP:
                     self.q_lr = self.q_lr / 2
 
                 if update_initial_statistics:
-                    self.update_initial_statistics()
+                    # x0_converged = False
+                    # while not x0_converged:
+                    x0_converged = self.update_initial_statistics()
                     self.elbo_vals.append(self.elbo())
-                    print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                    print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
                     if self.elbo_vals[-2] > self.elbo_vals[-1]:
                         print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
                         self.x_lr = self.x_lr / 2
@@ -461,12 +467,12 @@ class VariationalMarkovGP:
             wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
         if update_initial_statistics:
-            print("VGP: Performing initial state update till convergence!!!")
-            converged = False
-            while not converged:
-                converged = self.update_initial_statistics()
-                self.elbo_vals.append(self.elbo())
-                print(f"VGP: ELBO {self.elbo_vals[-1]}")
+            # print("VGP: Performing initial state update till convergence!!!")
+            # converged = False
+            # while not converged:
+            converged = self.update_initial_statistics()
+            self.elbo_vals.append(self.elbo())
+            print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
             max_itr: int = 100) -> [list, dict]:
