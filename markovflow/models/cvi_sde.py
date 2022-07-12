@@ -22,6 +22,7 @@ from gpflow.base import Parameter
 from gpflow import default_float
 from markovflow.sde.sde import PriorOUSDE
 import wandb
+from tensorflow_probability import distributions
 from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
@@ -215,11 +216,11 @@ class SDESSM(CVIGaussianProcess):
                 0.5 * E_{q(x) [||f_{L} - f_{p}||^2_{\Sigma^{-1}}]
         """
         dist_p = self.dist_p_ssm
-        m, S = self.dist_q.marginals
+        m, S = self.fx_mus, self.fx_covs
 
         # removing batch and the last m and S. FIXME: check last point removal
         q_mean = tf.squeeze(m, axis=0)[:-1]
-        q_covar = tf.squeeze(S, axis=[0, -1])[:-1]
+        q_covar = tf.squeeze(S, axis=0)[:-1]
 
         # convert from state transitons of the SSM to SDE P's drift and offset
         A = tf.squeeze(dist_p.state_transitions, axis=0)
@@ -237,6 +238,9 @@ class SDESSM(CVIGaussianProcess):
 
         # TODO: Check this once
         # turn into gradient wrt μ, σ² + μ²
+        # Managing the shape
+        q_covar = tf.squeeze(q_covar, axis=-1)
+        grads[1] = tf.squeeze(grads[1], axis=-1)
         dE_dm, dE_dS = gradient_transformation_mean_var_to_expectation((q_mean, q_covar), grads)
 
         return val, dE_dm, dE_dS
