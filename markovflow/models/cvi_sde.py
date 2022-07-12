@@ -130,8 +130,9 @@ class SDESSM(CVIGaussianProcess):
         self.initial_mean = tf.zeros((1, self.state_dim), dtype=self.observations.dtype)
         self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
 
-        self.fx_mus = tf.zeros((1, self.grid.shape[0], self.state_dim), dtype=self.observations.dtype)
-        self.fx_covs = tf.square(self.initial_chol_cov) * tf.ones_like(self.fx_mus[..., None])
+        self.fx_mus = tf.ones((1, self.grid.shape[0], self.state_dim), dtype=self.observations.dtype)
+
+        self.fx_covs = 0.5 * tf.ones_like(self.fx_mus[..., None])
 
     @property
     def sites(self) -> UnivariateGaussianSitesNat:
@@ -596,24 +597,32 @@ class SDESSM(CVIGaussianProcess):
         i = 0
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
             sites_converged = False
+            sites_itr = 0
             while not sites_converged:
-                for _ in range(15):  # FIXME: find a better way to fix this rather than hardcoding
-                    sites_converged = self.update_sites()
+                # for _ in range(15):  # FIXME: find a better way to fix this rather than hardcoding
+                sites_converged = self.update_sites()
 
-                    self.elbo_vals.append(self.classic_elbo().numpy().item())
-                    print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
-                    wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
-                    wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+                self.elbo_vals.append(self.classic_elbo().numpy().item())
+                print(f"SSM: ELBO {self.elbo_vals[-1]}!!!")
+                wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
+                wandb.log({"SSM-NLPD": self.calculate_nlpd()})
 
-                    if sites_converged:
-                        break
+                # if sites_converged:
+                #     break
 
                 self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
                 self._linearize_prior()
+                self.elbo_vals.append(self.classic_elbo().numpy().item())
+                print(f"SSM: ELBO after linearization {self.elbo_vals[-1]}!!!")
 
                 if self.elbo_vals[-2] > self.elbo_vals[-1]:
                     print("SSM: ELBO decreasing! Decaying LR!!!")
                     self.sites_lr = self.sites_lr / 2
+
+                sites_itr = sites_itr + 1
+                if sites_itr == max_itr:
+                    print("Breaking sites loop as max iterations reached!!!")
+                    break
 
             print(f"SSM: Sites Converged!!!")
             if update_prior:
@@ -630,18 +639,15 @@ class SDESSM(CVIGaussianProcess):
                         v = self.prior_params[k][-1]
                         wandb.log({"SSM-learning-" + str(k): v})
 
-            self.elbo_vals.append(self.classic_elbo().numpy().item())
-            print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")
-            wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
+                self.elbo_vals.append(self.classic_elbo().numpy().item())
+                print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {self.elbo_vals[-1]};!!!")
+                wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
 
-            if self.elbo_vals[-2] > self.elbo_vals[-1]:
-                print("SSM: ELBO decreasing! Decaying LR!!!")
-                self.sites_lr = self.sites_lr / 2
-                self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
-
-            i = i + 1
-            if i == max_itr:
-                print("SDESSM: Reached maximum iterations!!!")
+                i = i + 1
+                if i == max_itr:
+                    print("SDESSM: Reached maximum iterations!!!")
+                    break
+            else:
                 break
 
         # One last site update for the updated linearized prior
