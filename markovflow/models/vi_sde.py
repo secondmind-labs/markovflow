@@ -420,9 +420,7 @@ class VariationalMarkovGP:
                     self.q_lr = self.q_lr / 2
 
                 if update_initial_statistics:
-                    # x0_converged = False
-                    # while not x0_converged:
-                    x0_converged = self.update_initial_statistics()
+                    self.update_initial_statistics()
                     self.elbo_vals.append(self.elbo())
                     print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
                     if self.elbo_vals[-2] > self.elbo_vals[-1]:
@@ -460,19 +458,22 @@ class VariationalMarkovGP:
         # One final update for the updated prior
         if update_prior:
             print("VGP: Performing last inference step!!!")
-            self.run_single_inference()
-            self.update_initial_statistics()
+            q_converged = False
+            while not q_converged:
+                q_converged = self.run_single_inference()
 
-            self.elbo_vals.append(self.elbo())
-            wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+                self.elbo_vals.append(self.elbo())
+                wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-        if update_initial_statistics:
-            # print("VGP: Performing initial state update till convergence!!!")
-            # converged = False
-            # while not converged:
-            converged = self.update_initial_statistics()
-            self.elbo_vals.append(self.elbo())
-            print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
+                    print("VGP: Breaking q loop as ELBO converged!!!")
+                    break
+
+                if update_initial_statistics:
+                    print("VGP: Performing last x0 update step!!!")
+                    self.update_initial_statistics()
+                    self.elbo_vals.append(self.elbo())
+                    print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
             max_itr: int = 100) -> [list, dict]:
