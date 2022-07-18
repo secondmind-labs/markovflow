@@ -151,6 +151,9 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
                        likelihood=likelihood_ssm, learning_rate=sites_lr, prior_params_lr=prior_lr,
                        test_data=TEST_DATA, update_all_sites=UPDATE_ALL_SITES)
 
+    ssm_model.initial_mean = OBSERVATION_DATA[1][0] + 0. * ssm_model.initial_mean
+    ssm_model.initial_chol_cov = 0.5**(1/2) + 0. * ssm_model.initial_chol_cov
+
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
     return ssm_model, ssm_elbo, ssm_prior_prior_vals
@@ -168,8 +171,10 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
                                     lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr)
 
-    vgp_model.q_initial_cov = tf.reshape(ssm_model.fx_covs, (-1))[0] + 0. * vgp_model.q_initial_cov
-    vgp_model.q_initial_mean = tf.reshape(ssm_model.fx_mus, (-1))[0] + 0. * vgp_model.q_initial_mean
+    vgp_model.q_initial_cov = 0.5 + 0. * vgp_model.q_initial_cov
+    vgp_model.q_initial_mean = OBSERVATION_DATA[1][0] + 0. * vgp_model.q_initial_mean
+    vgp_model.p_initial_mean = OBSERVATION_DATA[1][0] + 0. * vgp_model.p_initial_mean
+    vgp_model.p_initial_cov = 0.5 + 0. * vgp_model.p_initial_cov
 
     v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
