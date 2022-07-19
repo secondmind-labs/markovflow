@@ -152,7 +152,7 @@ class VariationalMarkovGP:
         dE_dm, dE_dS = g.gradient(E_sde, [m, S])
         dE_dS = tf.squeeze(dE_dS, axis=-1)
 
-        return dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
+        return dE_dm, dE_dS #dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
 
     def update_initial_statistics(self, convergence_tol=1e-4):
         """

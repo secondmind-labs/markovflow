@@ -236,6 +236,9 @@ class SDESSM(CVIGaussianProcess):
             val = -1 * KL_sde(self.prior_sde, -1 * A, b, q_mean, q_covar, dt=(self.grid[1] - self.grid[0]))
         grads = g.gradient(val, [q_mean, q_covar])
 
+        # grads[0] = grads[0]/(self.grid[1] - self.grid[0])
+        # grads[1] = grads[1] / (self.grid[1] - self.grid[0])
+
         # TODO: Check this once
         # turn into gradient wrt μ, σ² + μ²
         # Managing the shape
@@ -647,6 +650,11 @@ class SDESSM(CVIGaussianProcess):
             wandb.log({"SSM-ELBO": elbo_vals[-1]})
 
             elbo_after = self.classic_elbo().numpy().item()
+
+            if elbo_before > elbo_after:
+                print("SSM: ELBO increasing! Decaying LR!")
+                self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
             if tf.math.abs(elbo_before - elbo_after) < 1e-4:
                 print("SSM: ELBO converged!!!")
                 break
