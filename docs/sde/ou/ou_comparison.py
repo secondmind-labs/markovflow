@@ -97,10 +97,12 @@ def plot_data():
     plt.show()
 
 
-def set_output_dir():
+def set_output_dir(dir_name):
     """Create output directory"""
     global OUTPUT_DIR
-    if LEARN_PRIOR_SDE:
+    if dir_name is not None:
+        OUTPUT_DIR = os.path.join(DATA_PATH, dir_name)
+    elif LEARN_PRIOR_SDE:
         OUTPUT_DIR = os.path.join(DATA_PATH, "learning")
     else:
         OUTPUT_DIR = os.path.join(DATA_PATH, "inference")
@@ -426,6 +428,7 @@ if __name__ == '__main__':
     parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
     parser.add_argument('-all_sites', type=bool, default=False,
                         help='Update all sites using cross-term or only data-sites')
+    parser.add_argument('-o', type=str, default=None, help='Output directory name')
 
     print(f"True decay value of the OU SDE is {DECAY}")
     print(f"Noise std-dev is {NOISE_STDDEV}")
@@ -445,7 +448,7 @@ if __name__ == '__main__':
     assert TIME_GRID[-1] == T1
     assert TIME_GRID[1] - TIME_GRID[0] == DT
 
-    set_output_dir()
+    set_output_dir(args.o)
 
     init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
