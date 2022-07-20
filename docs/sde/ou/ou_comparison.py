@@ -137,7 +137,8 @@ def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_pr
     }
 
     """Logging init"""
-    wandb.init(project="VI-SDE", entity=uname, config=config)
+    exp_name = "OU-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT)
+    wandb.init(project="VI-SDE", entity=uname, config=config, name=exp_name, group="OU")
 
 
 def gpr_taylor():

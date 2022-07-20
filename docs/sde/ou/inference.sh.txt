@@ -1,0 +1,33 @@
+#!/bin/bash
+#SBATCH --time=24:00:00
+#SBATCH --mem=4G
+
+module load miniconda
+conda create -n "markovflow" python=3.7
+
+conda activate markovflow
+
+pip install -r requirements.txt
+pip install poetry
+pip install wandb
+poetry install
+
+cd docs/sde/ou/
+
+seed = (33, 66)
+sites_lr = (1., 0.5, 0.1)
+vgp_lr = (1., 0.5, 0.1, 0.05, 0.01, 0.005, 0.001)
+vgp_x0_lr = (1., 0.5, 0.1, 0.05, 0.01, 0.005, 0.001)
+dt = (0.01, 0.005, 0.001)
+
+for s in "${seed[@]}"; do
+	for s_lr in "${sites_lr[@]}";do
+		for v_lr in "${vgp_lr[@]}";do
+			for vx0_lr in "${vgp_x0_lr[@]}";do
+				for dt_i in "${dt[@]}";do
+					srun python ou_comparison.py -dir data/$s -wandb_username NAME -log True -data_sites_lr $s_lr -vgp_x0_lr $vx0_lr -vgp_lr $v_lr -o inference_dt_$dt_i -dt $dt_i
+				done
+			done
+		done
+	done
+done

@@ -403,6 +403,7 @@ class VariationalMarkovGP:
         while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
 
             q_converged = False
+            q_loop_itr = 0
             while not q_converged:
                 q_converged = self.run_single_inference()
 
@@ -418,6 +419,14 @@ class VariationalMarkovGP:
                 if self.elbo_vals[-2] > self.elbo_vals[-1]:
                     print("VGP: q loop ELBO decreasing!!! Decaying LR!")
                     self.q_lr = self.q_lr / 2
+
+                q_loop_itr = q_loop_itr + 1
+                # Perform initial state update once after a few iterations (20 hardcoded) and don't wait till the end
+                if q_loop_itr % 20 == 0:
+                    if update_initial_statistics:
+                        self.update_initial_statistics()
+                        self.elbo_vals.append(self.elbo())
+                        print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
 
             if update_initial_statistics:
                 self.update_initial_statistics()
