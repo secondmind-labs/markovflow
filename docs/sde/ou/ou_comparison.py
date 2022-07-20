@@ -109,8 +109,8 @@ def set_output_dir():
         os.makedirs(OUTPUT_DIR)
 
 
-def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
-               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01):
+def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
+               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01, all_sites_lr: float = 0.1):
     """Initialize Wandb"""
 
     if not log:
@@ -126,7 +126,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
         "q": Q,
         "noise_stddev": NOISE_STDDEV,
         "n_observations": OBSERVATION_DATA[0].shape[0],
-        "sites_lr": sites_lr,
+        "data_sites_lr": data_sites_lr,
+        "all_sites_lr": all_sites_lr,
         "SSM_prior_lr": ssm_prior_lr,
         "vgp_lr": vgp_lr,
         "vgp_prior_lr": vgp_prior_lr,
@@ -164,7 +165,7 @@ def cvi_gpr():
     return cvi_gpr_model, cvi_params
 
 
-def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
+def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior_lr: float = 0.01):
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
     # As prior OU SDE doesn't have a negative sign inside it.
     prior_sde_ssm = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
@@ -175,8 +176,8 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=prior_sde_ssm, grid=TIME_GRID, likelihood=likelihood_ssm,
-                       learning_rate=sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA,
-                       update_all_sites=UPDATE_ALL_SITES)
+                       learning_rate=data_sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA,
+                       update_all_sites=UPDATE_ALL_SITES, all_sites_lr=all_sites_lr)
 
     ssm_model.initial_mean = tf.zeros_like(ssm_model.initial_mean)
     ssm_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, ssm_model.initial_chol_cov.shape))
@@ -417,11 +418,12 @@ if __name__ == '__main__':
                         help='Prior decay value to be used when learning the prior SDE.')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
-    parser.add_argument('-sites_lr', type=float, default=0.5, help='Learning rate for sites.')
+    parser.add_argument('-data_sites_lr', type=float, default=0.5, help='Learning rate for data-sites.')
+    parser.add_argument('-all_sites_lr', type=float, default=0.1, help='Learning rate for all-sites.')
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
-    parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
     parser.add_argument('-all_sites', type=bool, default=False,
                         help='Update all sites using cross-term or only data-sites')
 
@@ -445,8 +447,8 @@ if __name__ == '__main__':
 
     set_output_dir()
 
-    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
-               args.vgp_x0_lr)
+    init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+               args.vgp_x0_lr, args.all_sites_lr)
 
     INITIAL_PRIOR_VALUE = args.prior_decay
 
@@ -455,7 +457,8 @@ if __name__ == '__main__':
     else:
         gpr_model = gpr_taylor()
 
-    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.sites_lr, args.prior_ssm_lr)
+    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
+                                                                     args.prior_ssm_lr)
     if LEARN_PRIOR_SDE:
         ssm_prior_decay_values = ssm_prior_prior_vals[0]
 

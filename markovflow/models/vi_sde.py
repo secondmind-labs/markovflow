@@ -152,7 +152,7 @@ class VariationalMarkovGP:
         dE_dm, dE_dS = g.gradient(E_sde, [m, S])
         dE_dS = tf.squeeze(dE_dS, axis=-1)
 
-        return dE_dm, dE_dS #dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
+        return dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
 
     def update_initial_statistics(self, convergence_tol=1e-4):
         """
@@ -419,13 +419,13 @@ class VariationalMarkovGP:
                     print("VGP: q loop ELBO decreasing!!! Decaying LR!")
                     self.q_lr = self.q_lr / 2
 
-                if update_initial_statistics:
-                    self.update_initial_statistics()
-                    self.elbo_vals.append(self.elbo())
-                    print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
-                    if self.elbo_vals[-2] > self.elbo_vals[-1]:
-                        print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
-                        self.x_lr = self.x_lr / 2
+            if update_initial_statistics:
+                self.update_initial_statistics()
+                self.elbo_vals.append(self.elbo())
+                print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
+                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                    print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
+                    self.x_lr = self.x_lr / 2
 
             print("VGP: q converged!!!")
 
@@ -469,11 +469,11 @@ class VariationalMarkovGP:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 
-                if update_initial_statistics:
-                    print("VGP: Performing last x0 update step!!!")
-                    self.update_initial_statistics()
-                    self.elbo_vals.append(self.elbo())
-                    print(f"VGP: ELBO {self.elbo_vals[-1]}")
+            if update_initial_statistics:
+                print("VGP: Performing last x0 update step!!!")
+                self.update_initial_statistics()
+                self.elbo_vals.append(self.elbo())
+                print(f"VGP: ELBO {self.elbo_vals[-1]}")
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
             max_itr: int = 100) -> [list, dict]:

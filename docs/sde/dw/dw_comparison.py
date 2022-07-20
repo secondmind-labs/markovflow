@@ -110,8 +110,8 @@ def set_output_dir(dir_name):
         os.makedirs(OUTPUT_DIR)
 
 
-def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
-               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01):
+def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_prior_lr: float = 0.01,
+               vgp_lr: float = 0.01, vgp_prior_lr: float = 0.01, x0_lr: float = 0.01, all_sites_lr: float = 0.5):
     """Initialize Wandb"""
 
     if not log:
@@ -126,7 +126,8 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
         "q": Q,
         "noise_stddev": NOISE_STDDEV,
         "n_observations": OBSERVATION_DATA[0].shape[0],
-        "sites_lr": sites_lr,
+        "data_sites_lr": data_sites_lr,
+        "all_sites_lr": all_sites_lr,
         "SSM_prior_lr": ssm_prior_lr,
         "vgp_lr": vgp_lr,
         "vgp_prior_lr": vgp_prior_lr,
@@ -137,7 +138,7 @@ def init_wandb(uname: str, log: bool = False, sites_lr: float = 0.5, ssm_prior_l
     wandb.init(project="VI-SDE", entity=uname, config=config)
 
 
-def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
+def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior_lr: float = 0.01):
     global PRIOR_SDESSM_SDE
 
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
@@ -148,11 +149,13 @@ def perform_sde_ssm(sites_lr: float = 0.5, prior_lr: float = 0.01):
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=PRIOR_SDESSM_SDE, grid=TIME_GRID,
-                       likelihood=likelihood_ssm, learning_rate=sites_lr, prior_params_lr=prior_lr,
-                       test_data=TEST_DATA, update_all_sites=UPDATE_ALL_SITES)
+                       likelihood=likelihood_ssm, learning_rate=data_sites_lr, all_sites_lr=all_sites_lr,
+                       prior_params_lr=prior_lr, test_data=TEST_DATA, update_all_sites=UPDATE_ALL_SITES)
 
     ssm_model.initial_mean = OBSERVATION_DATA[1][0] + 0. * ssm_model.initial_mean
     ssm_model.initial_chol_cov = 0.5**(1/2) + 0. * ssm_model.initial_chol_cov
+    ssm_model.fx_mus = ssm_model.initial_mean + 0. * ssm_model.fx_mus
+    ssm_model.fx_covs = 1. + 0. * ssm_model.fx_covs
 
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -304,11 +307,12 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
-    parser.add_argument('-sites_lr', type=float, default=0.5, help='Learning rate for sites.')
+    parser.add_argument('-data_sites_lr', type=float, default=0.5, help='Learning rate for data-sites.')
+    parser.add_argument('-all_sites_lr', type=float, default=0.1, help='Learning rate for all-sites.')
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
-    parser.add_argument('-vgp_x0_lr', type=float, default=0.001, help='Learning rate for VGP initial state.')
+    parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
     parser.add_argument('-all_sites', type=bool, default=False,
                         help='Update all sites using cross-term or only data-sites')
     parser.add_argument('-a', type=float, default=1., help='Initial value of A for the prior double-well SDE')
@@ -337,10 +341,11 @@ if __name__ == '__main__':
     assert TIME_GRID[-1] == T1
     assert TIME_GRID[1] - TIME_GRID[0] == DT
 
-    init_wandb(args.wandb_username, args.log, args.sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
-               args.vgp_x0_lr)
+    init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+               args.vgp_x0_lr, args.all_sites_lr)
 
-    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.sites_lr, args.prior_ssm_lr)
+    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
+                                                                     args.prior_ssm_lr)
 
     vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
 
