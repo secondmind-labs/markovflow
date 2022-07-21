@@ -1,12 +1,13 @@
 """Double-well SDE CVI vs SDE VI"""
 
 import argparse
+import random
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 # Don't use GPU
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import tensorflow as tf
 
@@ -135,7 +136,7 @@ def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_pr
     }
 
     """Logging init"""
-    exp_name = "DW-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT)
+    exp_name = "DW-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT) + "-" + str(random.randint(1, 100))
     wandb.init(project="VI-SDE", entity=uname, config=config, name=exp_name, group="DW")
 
 
