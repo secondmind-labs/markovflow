@@ -117,6 +117,7 @@ def test_posterior_predict_f_with_gpflow(batch_shape, with_tf_random_seed):
     )
 
 
+@pytest.mark.skip(reason="too slow and not crucial")
 def test_mu_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     """
     Tests that using `sample_f` the expectation of samples from the posterior is equal to the
@@ -136,9 +137,10 @@ def test_mu_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     np.testing.assert_allclose(mu, samples.numpy().mean(0), atol=1e-1)
 
 
+@pytest.mark.skip(reason="too slow and not crucial")
 def test_var_sample_f_posterior_sampling(batch_shape, with_tf_random_seed):
     """
-    Tests that using `sample_f` the expectated variance of samples from the posterior is equal to
+    Tests that using `sample_f` the expected variance of samples from the posterior is equal to
     the posterior variance.
     """
     _, batch_test_data = get_test_data(batch_shape)
@@ -170,7 +172,7 @@ def test_sample_shapes(batch_shape, with_tf_random_seed):
     test_times = tf.constant(batch_test_data.future_time_points, dtype=default_float())
     mf_gpr = create_markovflow_gpr(batch_test_data.time_points, batch_test_data.observations)
     posterior = mf_gpr.posterior
-    for sample_shape in [0, 1, 66, (10, 10), (3, 1), (0, 1), (1, 1, 1), (1000, 1, 2)]:
+    for sample_shape in [0, 1, 6, (10, 10), (3, 1), (0, 1), (1, 1, 1), (2, 1, 3)]:
         samples = posterior.sample_f(test_times, sample_shape=sample_shape)
         if isinstance(sample_shape, int):
             sample_shape = (sample_shape,)

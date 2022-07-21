@@ -60,7 +60,6 @@ class PiecewiseKernel(NonStationaryKernel):
         :param jitter: A small non-negative number to add into a matrix's diagonal to
             maintain numerical stability during inversion.
         """
-        super().__init__(output_dim=output_dim, jitter=jitter)
         self.kernels = kernels
         assert self.kernels, "There must be at least one child kernel."
         kernels_output_dims = set(k.output_dim for k in kernels)
@@ -77,6 +76,7 @@ class PiecewiseKernel(NonStationaryKernel):
         self._output_dim = kernels[0].output_dim
         self._state_dim = kernels[0].state_dim
         self.jitter = jitter
+        super().__init__(output_dim=output_dim, jitter=jitter)
 
     @property
     def state_dim(self) -> int:
@@ -244,3 +244,45 @@ class PiecewiseKernel(NonStationaryKernel):
         # tiling the steady state covariance accordingly
         selected_feedback_matrices = tf.gather(feedback_matrices, y)
         return tf.gather(selected_feedback_matrices, idx)
+
+    def state_offsets(self, transition_times: tf.Tensor, time_deltas: tf.Tensor) -> tf.Tensor:
+        """
+        Return the state offsets :math:`bₖ` of the generated
+        :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+        This will usually be zero, but can be overridden if necessary.
+        :param transition_times: A tensor of times at which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+            ``batch_shape + [num_transitions]``.
+        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
+        """
+        indices = self.split_time_indices(transition_times)
+        split_transition_times = self.split_input(transition_times, indices)
+        split_time_deltas = self.split_input(time_deltas, indices)
+        split_state_transitions_args = zip(split_transition_times, split_time_deltas)
+        # apply different kernel method to each segment
+        return tf.concat(
+            [
+                self.kernels[i].state_offsets(*state_transitions_args)
+                for i, state_transitions_args in enumerate(split_state_transitions_args)
+            ],
+            axis=-2,
+        )
+
+    def state_means(self, time_points: tf.Tensor) -> tf.Tensor:
+        """
+        For each time point, return the state mean of the kernel active for that
+        time point.
+
+        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+        :return: The state mean at each time point ``batch_shape + [num_time_points, state_dim]``.
+        """
+        # state means for each time interval
+        state_means = [k.state_mean for k in self.kernels]
+        # counting time points falling in each interval
+        indices = self.split_time_indices(time_points)
+        y, idx, _ = tf.unique_with_counts(indices)
+        # tiling the state means accordingly
+        selected_state_means = tf.gather(state_means, y)
+        return tf.gather(selected_state_means, idx)

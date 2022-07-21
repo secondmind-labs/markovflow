@@ -8,9 +8,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.7.1
+#       jupytext_version: 1.12.0
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -128,11 +128,16 @@ change_points = np.linspace(np.min(time_points), np.max(time_points), num_change
 assert num_change_points == len(change_points)
 
 base = Matern52
+state_dim = 3
 variances = np.array([1.] * (num_change_points + 1))
 lengthscales = np.array([4.] * (num_change_points + 1))
+
 ks = [base(variance=variances[l],
-                  lengthscale=lengthscales[l])
+            lengthscale=lengthscales[l])
       for l in range(num_change_points + 1)]
+
+# Set state mean trainable
+[k.set_state_mean(tf.zeros(state_dim,), trainable=True) for k in ks]
 
 kernel = PiecewiseKernel(
     ks, tf.convert_to_tensor(change_points, dtype=default_float()))
@@ -176,6 +181,7 @@ set_trainable(s2vgp.dist_q, True)
 def loss(input_data):
     return -s2vgp.elbo(input_data)
 
+
 @tf.function
 def opt_step(input_data):
     natgrad_opt.minimize(lambda : loss(input_data), s2vgp.dist_q)
@@ -208,11 +214,11 @@ def plot_model(s2vgp):
 
 for i in range(max_iter):
     opt_step(input_data)
-    if i % 100 == 0:
+    if i % 10 == 0:
         print("Iteration:", i, ", Loss:", s2vgp.loss(input_data).numpy())
         fig = plot_model(s2vgp)
         plt.show()
-        
+
 print("Loss after optimisation: ", s2vgp.loss(input_data).numpy())
 
 # Save our trained hyperparamters (these will be used in Step 8)

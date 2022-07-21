@@ -14,23 +14,9 @@
 # limitations under the License.
 #
 """
-Package containing kernels.
+Package containing SDE classes and related functions.
 """
-from .constant import Constant
-from .kernel import Kernel
-from .latent_exp_generated import LatentExponentiallyGenerated
-from .matern import Matern12, Matern32, Matern52, OrnsteinUhlenbeck
-from .periodic import HarmonicOscillator
-from .piecewise_stationary import PiecewiseKernel
-from .sde_kernel import (
-    ConcatKernel,
-    FactorAnalysisKernel,
-    IndependentMultiOutput,
-    IndependentMultiOutputStack,
-    NonStationaryKernel,
-    Product,
-    SDEKernel,
-    StackKernel,
-    StationaryKernel,
-    Sum,
-)
+
+from .sde import SDE as SDE
+from .sde import OrnsteinUhlenbeckSDE as OrnsteinUhlenbeckSDE
+from .sde import DoubleWellSDE as DoubleWellSDE
