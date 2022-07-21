@@ -136,7 +136,8 @@ def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_pr
     }
 
     """Logging init"""
-    exp_name = "DW-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT) + "-" + str(random.randint(1, 100))
+    exp_name = "DW-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT) + "-" + str(random.randint(1,
+                                                                                                                 10000))
     wandb.init(project="VI-SDE", entity=uname, config=config, name=exp_name, group="DW")
 
 

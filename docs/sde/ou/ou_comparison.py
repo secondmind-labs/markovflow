@@ -79,7 +79,7 @@ def modify_time_grid(dt: float):
     """Modifying time grid."""
     global DT, TIME_GRID
     DT = dt
-    TIME_GRID = tf.cast(np.linspace(T0, T1, int((T1-T0)//DT) + 2), dtype=DTYPE).numpy()
+    TIME_GRID = tf.cast(np.linspace(T0, T1, int((T1 - T0) // DT) + 2), dtype=DTYPE).numpy()
 
 
 def plot_data():
@@ -138,12 +138,13 @@ def init_wandb(uname: str, log: bool = False, data_sites_lr: float = 0.5, ssm_pr
     }
 
     """Logging init"""
-    exp_name = "OU-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT) + "-" + str(random.randint(1, 100))
+    exp_name = "OU-" + config["seed"] + "-" + str(LEARN_PRIOR_SDE) + "-dt-" + str(DT) + "-" + str(random.randint(1,
+                                                                                                                 10000))
     wandb.init(project="VI-SDE", entity=uname, config=config, name=exp_name, group="OU")
 
 
 def gpr_taylor():
-    likelihood_gpr = Gaussian(NOISE_STDDEV**2)
+    likelihood_gpr = Gaussian(NOISE_STDDEV ** 2)
 
     kernel = OrnsteinUhlenbeck(decay=-1 * INITIAL_PRIOR_VALUE, diffusion=Q)
     gpflow.set_trainable(kernel.diffusion, False)
@@ -176,7 +177,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)  # Steady covariance
 
     # likelihood
-    likelihood_ssm = Gaussian(NOISE_STDDEV**2)
+    likelihood_ssm = Gaussian(NOISE_STDDEV ** 2)
 
     # model
     ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=prior_sde_ssm, grid=TIME_GRID, likelihood=likelihood_ssm,
@@ -185,7 +186,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
 
     ssm_model.initial_mean = tf.zeros_like(ssm_model.initial_mean)
     ssm_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, ssm_model.initial_chol_cov.shape))
-    ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item()**2 + 0 * ssm_model.fx_covs
+    ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
     ssm_model._linearize_prior()
 
     ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
@@ -201,7 +202,7 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
     initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)  # Steady covariance
 
     # likelihood
-    likelihood_vgp = Gaussian(NOISE_STDDEV**2)
+    likelihood_vgp = Gaussian(NOISE_STDDEV ** 2)
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=prior_sde_vgp, grid=TIME_GRID, likelihood=likelihood_vgp,
@@ -231,15 +232,17 @@ def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
     else:
         m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_model, NOISE_STDDEV)
 
-    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
-    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
-    """
-    Compare Posterior
-    """
+    if ssm_model is not None:
+        m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+        plot_posterior(m_ssm, s_std_ssm, TIME_GRID, "SDE-SSM")
+
+    if vgp_model is not None:
+        m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+        plot_posterior(m_vgp, s_std_vgp, TIME_GRID, "VGP")
+
     # plt.vlines(time_grid.reshape(-1), -2, 2, alpha=0.2, color="black")
     plot_posterior(m_gpr, s_std_gpr, TIME_GRID, "GPR")
-    plot_posterior(m_ssm, s_std_ssm, TIME_GRID, "SDE-SSM")
-    plot_posterior(m_vgp, s_std_vgp, TIME_GRID, "VGP")
+
     plt.legend()
 
     plt.savefig(os.path.join(OUTPUT_DIR, "posterior.svg"))
@@ -251,8 +254,10 @@ def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
 def plot_elbo(ssm_elbo, v_gp_elbo):
     """ELBO comparison"""
     plt.clf()
-    plt.plot(ssm_elbo, label="SDE-SSM")
-    plt.plot(v_gp_elbo, label="VGP")
+    if len(ssm_elbo) > 0:
+        plt.plot(ssm_elbo, label="SDE-SSM")
+    if len(v_gp_elbo) > 0:
+        plt.plot(v_gp_elbo, label="VGP")
     plt.title("ELBO")
     plt.legend()
     plt.savefig(os.path.join(OUTPUT_DIR, "elbo.svg"))
@@ -269,48 +274,49 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
         print("Test data is not available so slipping calculating NLPD!")
         return
 
-    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
-    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
-
-    """Calculate NLPD"""
     pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
-    ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1), (-1, 1, 1))
-    ssm_lpd = gaussian_log_predictive_density(mean=tf.gather(m_ssm, pred_idx, axis=0), chol_covariance=ssm_chol_covar,
-                                              x=tf.reshape(TEST_DATA[1], (-1,)))
-    ssm_nlpd = -1 * tf.reduce_mean(ssm_lpd).numpy().item()
-    print(f"SDE-SSM NLPD: {ssm_nlpd}")
 
-    vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
-    vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
-                                              x=tf.reshape(TEST_DATA[1], (-1,)))
-    vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
-    print(f"VGP NLPD: {vgp_nlpd}")
+    if ssm_model is not None:
+        m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+        ssm_chol_covar = tf.reshape(tf.gather(s_std_ssm, pred_idx, axis=1), (-1, 1, 1))
+        ssm_lpd = gaussian_log_predictive_density(mean=tf.gather(m_ssm, pred_idx, axis=0),
+                                                  chol_covariance=ssm_chol_covar,
+                                                  x=tf.reshape(TEST_DATA[1], (-1,)))
+        ssm_nlpd = -1 * tf.reduce_mean(ssm_lpd).numpy().item()
+        print(f"SDE-SSM NLPD: {ssm_nlpd}")
+
+    if vgp_model is not None:
+        m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+        vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
+        vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0),
+                                                  chol_covariance=vgp_chol_covar,
+                                                  x=tf.reshape(TEST_DATA[1], (-1,)))
+        vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
+        print(f"VGP NLPD: {vgp_nlpd}")
 
 
 def save_data(ssm_elbo, vgp_elbo):
-    """Save data into npz"""
-    m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
-    m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+    if ssm_model is not None:
+        m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
+        np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
+                 nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
 
-    """Save SDE-SSM data"""
-    np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
-             nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
+        np.savez(os.path.join(OUTPUT_DIR, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
+        np.savez(os.path.join(OUTPUT_DIR, "ssm_elbo.npz"), elbo=ssm_elbo)
 
-    np.savez(os.path.join(OUTPUT_DIR, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
-    np.savez(os.path.join(OUTPUT_DIR, "ssm_elbo.npz"), elbo=ssm_elbo)
+        if LEARN_PRIOR_SDE:
+            np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
 
-    if LEARN_PRIOR_SDE:
-        np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
+    if vgp_model is not None:
+        m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
+        np.savez(os.path.join(OUTPUT_DIR, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
+        np.savez(os.path.join(OUTPUT_DIR, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
+                 lambda_lagrange=vgp_model.lambda_lagrange.numpy())
 
-    "Save VGP data"
-    np.savez(os.path.join(OUTPUT_DIR, "vgp_A_b.npz"), A=vgp_model.A.numpy(), b=vgp_model.b.numpy())
-    np.savez(os.path.join(OUTPUT_DIR, "vgp_lagrange.npz"), psi_lagrange=vgp_model.psi_lagrange.numpy(),
-             lambda_lagrange=vgp_model.lambda_lagrange.numpy())
-
-    np.savez(os.path.join(OUTPUT_DIR, "vgp_inference.npz"), m=m_vgp, S=tf.square(s_std_vgp))
-    np.savez(os.path.join(OUTPUT_DIR, "vgp_elbo.npz"), elbo=vgp_elbo)
-    if LEARN_PRIOR_SDE:
-        np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)
+        np.savez(os.path.join(OUTPUT_DIR, "vgp_inference.npz"), m=m_vgp, S=tf.square(s_std_vgp))
+        np.savez(os.path.join(OUTPUT_DIR, "vgp_elbo.npz"), elbo=vgp_elbo)
+        if LEARN_PRIOR_SDE:
+            np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)
 
 
 def plot_prior_decay_learn_evolution():
@@ -344,16 +350,18 @@ def plot_elbo_bound():
         gpr_model.orig_kernel = kernel
         gpr_taylor_elbo_vals.append(gpr_model.classic_elbo().numpy().item())
 
-        ssm_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
-        # Steady covariance
-        ssm_model.initial_chol_cov = tf.linalg.cholesky((Q / (2 * decay_val)) + 0. * ssm_model.initial_chol_cov)
-        ssm_model._linearize_prior()  # To linearize the new prior
-        ssm_elbo_vals.append(ssm_model.classic_elbo())
+        if ssm_model is not None:
+            ssm_model.prior_sde = PriorOUSDE(-1 * decay_val, q=true_q)
+            # Steady covariance
+            ssm_model.initial_chol_cov = tf.linalg.cholesky((Q / (2 * decay_val)) + 0. * ssm_model.initial_chol_cov)
+            ssm_model._linearize_prior()  # To linearize the new prior
+            ssm_elbo_vals.append(ssm_model.classic_elbo())
 
-        vgp_model.prior_sde = PriorOUSDE(-1*decay_val, q=true_q)
-        # Steady covariance
-        vgp_model.p_initial_cov = (Q / (2 * decay_val)) + 0. * vgp_model.p_initial_cov
-        vgp_elbo_vals.append(vgp_model.elbo())
+        if vgp_model is not None:
+            vgp_model.prior_sde = PriorOUSDE(-1 * decay_val, q=true_q)
+            # Steady covariance
+            vgp_model.p_initial_cov = (Q / (2 * decay_val)) + 0. * vgp_model.p_initial_cov
+            vgp_elbo_vals.append(vgp_model.elbo())
 
     plt.clf()
     plt.subplots(1, 1, figsize=(5, 5))
@@ -376,42 +384,6 @@ def plot_elbo_bound():
              gpr_taylor_elbo=gpr_taylor_elbo_vals, decay_values=decay_value_range)
 
 
-def vgp_from_sdessm(sde_ssm_model: SDESSM):
-    """Load the posterior A and b value from SDE-SSM trained model and print ELBO and NLPD"""
-    A, b, post_ssm_params = sde_ssm_model.get_posterior_drift_params()
-
-    true_q = Q * tf.ones((1, 1), dtype=DTYPE)
-    # As prior OU SDE doesn't have a negative sign inside it.
-    prior_sde = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
-
-    likelihood = Gaussian(NOISE_STDDEV**2)
-    vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA, prior_sde=prior_sde, grid=TIME_GRID,
-                                    likelihood=likelihood)
-
-    # Steady covariance
-    initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)
-    vgp_model.p_initial_cov = tf.reshape(initial_cov, vgp_model.p_initial_cov.shape)
-    vgp_model.p_initial_mean = tf.zeros_like(vgp_model.p_initial_mean)
-
-    vgp_model.q_initial_mean = tf.reshape(post_ssm_params[4], vgp_model.q_initial_mean.shape)
-    vgp_model.q_initial_cov = tf.reshape(tf.math.square(post_ssm_params[2]), shape=vgp_model.q_initial_cov.shape)
-
-    # -1 because of how VGP is parameterized
-    vgp_model.A = -1 * tf.concat([A, -1 * tf.ones((1, 1, 1), dtype=A.dtype)], axis=0)
-    vgp_model.b = tf.concat([b, tf.zeros((1, 1), dtype=b.dtype)], axis=0)
-
-    print(f"VGP (SDE-SSM params) ELBO: {vgp_model.elbo()}")
-
-    if TEST_DATA is not None:
-        pred_idx = list((tf.where(TIME_GRID == TEST_DATA[0][..., None])[:, 1]).numpy())
-        m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
-        vgp_chol_covar = tf.reshape(tf.gather(s_std_vgp, pred_idx), (-1, 1, 1))
-        vgp_lpd = gaussian_log_predictive_density(mean=tf.gather(m_vgp, pred_idx, axis=0), chol_covariance=vgp_chol_covar,
-                                                  x=tf.reshape(TEST_DATA[1], (-1,)))
-        vgp_nlpd = -1 * tf.reduce_mean(vgp_lpd).numpy().item()
-        print(f"VGP (SDE-SSM params) NLPD: {vgp_nlpd}")
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run VGP and SDE-SSM for OU process')
 
@@ -422,11 +394,13 @@ if __name__ == '__main__':
                         help='Prior decay value to be used when learning the prior SDE.')
     parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
-    parser.add_argument('-data_sites_lr', type=float, default=0.5, help='Learning rate for data-sites.')
+    parser.add_argument('-data_sites_lr', type=float, default=0.5,
+                        help='Learning rate for data-sites. Set to 0 if not training.')
     parser.add_argument('-all_sites_lr', type=float, default=0.1, help='Learning rate for all-sites.')
     parser.add_argument('-prior_ssm_lr', type=float, default=0.01, help='Learning rate for prior learning in SSM.')
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
-    parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
+    parser.add_argument('-vgp_lr', type=float, default=0.01,
+                        help='Learning rate for VGP parameters. Set to 0 if not training.')
     parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
     parser.add_argument('-all_sites', type=bool, default=False,
                         help='Update all sites using cross-term or only data-sites')
@@ -462,14 +436,24 @@ if __name__ == '__main__':
     else:
         gpr_model = gpr_taylor()
 
-    ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
-                                                                     args.prior_ssm_lr)
-    if LEARN_PRIOR_SDE:
-        ssm_prior_decay_values = ssm_prior_prior_vals[0]
+    if args.data_sites_lr > 0.:
+        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
+                                                                         args.prior_ssm_lr)
+        if LEARN_PRIOR_SDE:
+            ssm_prior_decay_values = ssm_prior_prior_vals[0]
+    else:
+        ssm_model = None
+        ssm_elbo_vals = []
+        ssm_prior_decay_values = []
 
-    vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
-    if LEARN_PRIOR_SDE:
-        v_gp_prior_decay_values = vgp_prior_prior_vals[0]
+    if args.vgp_lr > 0.:
+        vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
+        if LEARN_PRIOR_SDE:
+            v_gp_prior_decay_values = vgp_prior_prior_vals[0]
+    else:
+        vgp_model = None
+        vgp_elbo_vals = []
+        v_gp_prior_decay_values = []
 
     compare_plot_posterior(gpr_model, ssm_model, vgp_model)
 
@@ -479,9 +463,8 @@ if __name__ == '__main__':
 
     save_data(ssm_elbo_vals, vgp_elbo_vals)
 
-    if LEARN_PRIOR_SDE:
-        plot_prior_decay_learn_evolution()
-    else:
-        plot_elbo_bound()
-
-        vgp_from_sdessm(ssm_model)
+    if ssm_model is not None and vgp_model is not None:
+        if LEARN_PRIOR_SDE:
+            plot_prior_decay_learn_evolution()
+        else:
+            plot_elbo_bound()
