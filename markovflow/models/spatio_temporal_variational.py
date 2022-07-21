@@ -73,7 +73,7 @@ class SparseSpatioTemporalKernel(IndependentMultiOutput):
         r"""
         Generate the emission matrix :math:`H`.
         This is the direct sum of the shared m child emission matrices H,
-        pre-multiplied by the Cholesky factor of the spatial kernel evaluated at Z.
+        pre-multiplied by the Cholesky factor of the spatial kernel evaluated at Zₛ.
             chol(Kₛ(Zₛ, Zₛ)) @ [H,..., H]
 
         :param time_points: The time points over which the emission model is defined, with shape
@@ -148,7 +148,7 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
 
     def space_time_predict_f(self, inputs):
         """
-        Predict marginal function values at `X`. Note the
+        Predict marginal function values at `inputs`. Note the
         time points should be sorted.
 
         :param inputs: Time point and associated spatial dimension to generate observations for,
@@ -247,7 +247,7 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
 
 class SpatioTemporalSparseVariational(SpatioTemporalBase):
     """
-    Model for Spatio-temporal GP regression using a factor kernel
+    Model for Variational Spatio-temporal GP regression using a factor kernel
     k_space_time((s,t),(s',t')) = k_time(t,t') * k_space(s,s')
 
     where k_time is a Markovian kernel.
@@ -268,7 +268,7 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
     where instead of fixed inducing variables u, they are now time dependent u(t)
     and follow a Markov chain.
 
-    for a fixed set of space points zₛ
+    for a fixed set of spatial inducing inputs zₛ
     p(x(zₛ, .)) is a continuous time process of state dimension Mₛd
     for a fixed time slice t, p(x(.,t)) ~ GP(0, kₛ)
 
@@ -281,7 +281,8 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
     where the multi-output temporal process q(x(zₛ, .)) is also sparse
     q(x(zₛ, .)) = q(x(zₛ, zₜ)) p(x(zₛ,.) |x(zₛ,  zₜ))
 
-    the marginal q(x(zₛ, zₜ)) is parameterized as a multivariate Gaussian distribution
+    the marginal q(x(zₛ, zₜ)) is a multivariate Gaussian distribution
+    parameterized as a state space model.
     """
 
     def __init__(
@@ -379,6 +380,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
 
     the marginal q(x(zₛ, zₜ)) is parameterized as the product
     q(x(zₛ, zₜ)) = p(x(zₛ, zₜ)) t(x(zₛ, zₜ))
+    where p(x(zₛ, zₜ)) is a state space model and t(x(zₛ, zₜ)) are sites.
     """
 
     def __init__(
@@ -419,9 +421,8 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat1 = Parameter(zeros1)
         self.nat2 = Parameter(zeros2)
 
-
     @property
-    def posterior(self):
+    def posterior(self) -> ConditionalProcess:
         """ Posterior object to predict outside of the training time points """
         return ConditionalProcess(
             posterior_dist=self.dist_q,
@@ -430,7 +431,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         )
 
     @property
-    def dist_q(self):
+    def dist_q(self) -> StateSpaceModel:
         """
         Computes the variational posterior distribution on the vector of inducing states
         """
@@ -467,13 +468,13 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         return post_ssm
 
     @property
-    def dist_p(self):
+    def dist_p(self) -> StateSpaceModel:
         """
         Computes the prior distribution on the vector of inducing states
         """
         return self._kernel.state_space_model(self._inducing_time)
 
-    def projection_inducing_states_to_observations(self, input_data):
+    def projection_inducing_states_to_observations(self, input_data: tf.Tensor) -> tf.Tensor:
         """
         Compute the projection matrix from of the conditional mean of f(x,t) | s(t)
         :param input_data: Time point and associated spatial dimension to generate observations for,
@@ -486,15 +487,15 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         P, _ = conditional_statistics(inputs_time, self._inducing_time, self._kernel)
         # projection to state space to observation space (spatial)
         A = self._kernel.state_to_space_conditional_projection(inputs)
-        return tf.einsum('ncs,nfc->nfs', P, A)
+        return tf.einsum("ncs,nfc->nfs", P, A)
 
-    def update_sites(self, input_data: Tuple[tf.Tensor, tf.Tensor]):
+    def update_sites(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> None:
         """
         Perform one joint update of the Gaussian sites
                 𝜽ₘ ← ρ𝜽ₘ + (1-ρ)𝐠ₘ
 
         Here 𝐠ₘ are the sum of the gradient of the variational expectation for each data point
-        indexed k, projected back to the site vₘ, through the conditional p(fₖ|vₘ)
+        indexed k, projected back to the site vₘ = [uₘ, uₘ₊₁], through the conditional p(fₖ|vₘ)
         :param input_data: A tuple of time points and observations
         """
         inputs, observations = input_data
@@ -542,7 +543,9 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         """
         return -self.elbo(input_data)
 
-    def local_objective_and_gradients(self, Fmu, Fvar, Y):
+    def local_objective_and_gradients(
+        self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor
+    ) -> tf.Tensor:
         """
         Returs the local_objective and its gradients wrt to the expectation parameters
         :param Fmu: means μ [..., latent_dim]
@@ -561,7 +564,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
 
         return local_obj, grads
 
-    def local_objective(self, Fmu, Fvar, Y):
+    def local_objective(self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor) -> tf.Tensor:
         """
         local loss in CVI
         :param Fmu: means [..., latent_dim]
