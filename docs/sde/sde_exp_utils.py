@@ -210,7 +210,7 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
     cvi_model = CVIGaussianProcess(input_data=input_data, kernel=kernel, likelihood=likelihood,
                                    learning_rate=sites_lr)
 
-    opt = tf.optimizers.Adam(lr=0.1)
+    opt = tf.optimizers.Adam(lr=0.01)
 
     prior_params = {}
     for i, param in enumerate(kernel.trainable_variables):
@@ -221,12 +221,12 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
 
     elbo_vals = [cvi_model.classic_elbo()]
-    while len(elbo_vals) < 10 or elbo_vals[-2] - elbo_vals[-1] > 1e-2:
+    while len(elbo_vals) < 10 or elbo_vals[-2] - elbo_vals[-1] > 1e-4:
         for _ in range(2):
             cvi_model.update_sites()
 
         if train:
-            for _ in range(5):
+            for _ in range(50):
                 opt_step()
 
             for i, param in enumerate(kernel.trainable_variables):
