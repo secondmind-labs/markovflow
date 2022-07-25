@@ -61,10 +61,10 @@ def plot_model(model):
     axarr[1].scatter(x=X_grid[..., 1:], y=X_grid[..., :1], c=mu_f.numpy())
 
     axarr[1].hlines(
-        model._inducing_space, xmin=time_points.min(), xmax=time_points.max(), colors="r"
+        model.inducing_space, xmin=time_points.min(), xmax=time_points.max(), colors="r"
     )
     axarr[1].vlines(
-        model._inducing_time, ymin=space_points.min(), ymax=space_points.max(), colors="k"
+        model.inducing_time, ymin=space_points.min(), ymax=space_points.max(), colors="k"
     )
 
     plt.savefig("spatio_temporal.png", dpi=300)

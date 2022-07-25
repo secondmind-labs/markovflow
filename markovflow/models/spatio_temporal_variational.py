@@ -178,17 +178,14 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         )
         return mean_f[..., None], var_f[..., None]
 
-    @abstractmethod
     def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
         """
-        Obtain a `Tensor` representing the loss, which can be used to train the model.
+        Return the loss, which is the negative evidence lower bound (ELBO).
 
-        :param input_data: A tuple of time points and observations containing the data at which
-            to calculate the loss for training the model.
-
-        :raises NotImplementedError: Must be implemented in derived classes.
+        :param input_data: A tuple of space-time points and observations containing the data
+            at which to calculate the loss for training the model.
         """
-        raise NotImplementedError()
+        return -self.elbo(input_data)
 
     @property
     def posterior(self) -> PosteriorProcess:
@@ -243,6 +240,27 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         X, Y = input_data
         f_mean, f_var = self.space_time_predict_f(X)
         return self._likelihood.predict_log_density(f_mean, f_var, Y)
+
+    @property
+    def kernel(self) -> SDEKernel:
+        """
+        Return the kernel of the GP.
+        """
+        return self._kernel
+
+    @property
+    def inducing_time(self) -> tf.Tensor:
+        """
+        Return the temporal inducing inputs of the model.
+        """
+        return self._inducing_time
+
+    @property
+    def inducing_space(self) -> tf.Tensor:
+        """
+        Return the spatial inducing inputs of the model.
+        """
+        return self._inducing_space
 
 
 class SpatioTemporalSparseVariational(SpatioTemporalBase):
@@ -314,9 +332,9 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
         self._dist_q = self.dist_p.create_trainable_copy()
 
         self._posterior = ConditionalProcess(
-            posterior_dist=self._dist_q,
-            kernel=self._kernel,
-            conditioning_time_points=self._inducing_time,
+            posterior_dist=self.dist_q,
+            kernel=self.kernel,
+            conditioning_time_points=self.inducing_time,
         )
 
     @property
@@ -326,15 +344,6 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
     @property
     def dist_p(self) -> StateSpaceModel:
         return self._dist_p
-
-    def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
-        """
-        Return the loss, which is the negative evidence lower bound (ELBO).
-
-        :param input_data: A tuple of space-time points and observations containing the data
-            at which to calculate the loss for training the model.
-        """
-        return -self.elbo(input_data)
 
     @property
     def posterior(self) -> PosteriorProcess:
@@ -421,14 +430,16 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat1 = Parameter(zeros1)
         self.nat2 = Parameter(zeros2)
 
-    @property
-    def posterior(self) -> ConditionalProcess:
-        """ Posterior object to predict outside of the training time points """
-        return ConditionalProcess(
+        self._posterior = ConditionalProcess(
             posterior_dist=self.dist_q,
             kernel=self.kernel,
-            conditioning_time_points=self._inducing_time,
+            conditioning_time_points=self.inducing_time,
         )
+
+    @property
+    def posterior(self) -> PosteriorProcess:
+        """ Posterior object to predict outside of the training time points """
+        return self._posterior
 
     @property
     def dist_q(self) -> StateSpaceModel:
@@ -534,15 +545,6 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat2.assign(new_nat2)
         self.nat1.assign(new_nat1)
 
-    def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
-        """
-        Obtain a `Tensor` representing the loss, which can be used to train the model.
-
-        :param input_data: A tuple of time points and observations containing the data at which
-            to calculate the loss for training the model.
-        """
-        return -self.elbo(input_data)
-
     def local_objective_and_gradients(
         self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor
     ) -> tf.Tensor:
@@ -573,24 +575,3 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         :return: local objective [...]
         """
         return self._likelihood.variational_expectations(Fmu, Fvar, Y)
-
-    @property
-    def kernel(self) -> SDEKernel:
-        """
-        Return the kernel of the GP.
-        """
-        return self._kernel
-
-    @property
-    def inducing_time(self) -> tf.Tensor:
-        """
-        Return the temporal inducing inputs of the model.
-        """
-        return self._inducing_time
-
-    @property
-    def inducing_space(self) -> tf.Tensor:
-        """
-        Return the spatial inducing inputs of the model.
-        """
-        return self._inducing_space
