@@ -433,6 +433,7 @@ if __name__ == '__main__':
 
     if LEARN_PRIOR_SDE:
         gpr_model, cvi_params = cvi_gpr()
+        print(f"Learnt CVI param : {cvi_params[-1]}")
     else:
         gpr_model = gpr_taylor()
 
