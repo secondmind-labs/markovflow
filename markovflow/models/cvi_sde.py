@@ -110,6 +110,8 @@ class SDESSM(CVIGaussianProcess):
 
         # Done this way because all sites are updated only after a once data-sites have converged
         self.do_update_all_sites = update_all_sites
+        if self.all_sites_lr <= 0:
+            self.do_update_all_sites = False
         self.update_all_sites = False
 
     def _store_prior_param_vals(self):

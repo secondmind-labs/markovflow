@@ -3,11 +3,12 @@ Script for common utility functions needed for SDE experiments.
 """
 
 import matplotlib.pyplot as plt
+from matplotlib.image import imread
 import numpy as np
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood
 from gpflow.utilities.bijectors import positive
-from scipy.linalg import solve_discrete_lyapunov, solve_continuous_lyapunov
+from scipy.linalg import solve_continuous_lyapunov
 
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE, DoubleWellSDE
 from markovflow.sde.sde_utils import euler_maruyama
@@ -306,3 +307,38 @@ def get_steady_state(A: tf.Tensor, b: tf.Tensor, Q: tf.Tensor) -> [tf.Tensor, tf
     steady_P = solve_continuous_lyapunov(A, Q)
 
     return steady_m, steady_P
+
+
+def bitmappify(ax, dpi=None):
+    """
+    Convert vector axes content to raster (bitmap) images
+    """
+    fig = ax.figure
+    # safe plot without axes
+    ax.set_axis_off()
+    fig.savefig('temp.png', dpi=dpi, transparent=False)
+    ax.set_axis_on()
+
+    # remember geometry
+    xl = ax.get_xlim()
+    yl = ax.get_ylim()
+    xb = ax.bbox._bbox.corners()[:, 0]
+    xb = (min(xb), max(xb))
+    yb = ax.bbox._bbox.corners()[:, 1]
+    yb = (min(yb), max(yb))
+
+    # compute coordinates to place bitmap image later
+    xb = (- xb[0] / (xb[1] - xb[0]), (1 - xb[0]) / (xb[1] - xb[0]))
+    xb = (xb[0] * (xl[1] - xl[0]) + xl[0], xb[1] * (xl[1] - xl[0]) + xl[0])
+    yb = (- yb[0] / (yb[1] - yb[0]), (1 - yb[0]) / (yb[1] - yb[0]))
+    yb = (yb[0] * (yl[1] - yl[0]) + yl[0], yb[1] * (yl[1] - yl[0]) + yl[0])
+
+    # replace the dots by the bitmap
+    del ax.collections[:]
+    del ax.lines[:]
+    ax.imshow(imread('temp.png'), origin='upper',
+              aspect='auto', extent=(xb[0], xb[1], yb[0], yb[1]), label='_nolegend_')
+
+    # reset view
+    ax.set_xlim(xl)
+    ax.set_ylim(yl)
