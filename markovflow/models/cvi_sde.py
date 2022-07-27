@@ -471,7 +471,7 @@ class SDESSM(CVIGaussianProcess):
 
         return k_l
 
-    def update_prior_sde(self, convergence_tol=1e-3):
+    def update_prior_sde(self, max_itr=1000, convergence_tol=1e-3):
 
         def dist_p() -> StateSpaceModel:
             fx_mus = self.fx_mus[:, :-1, :]
@@ -486,27 +486,25 @@ class SDESSM(CVIGaussianProcess):
             return self.kl(dist_p=dist_p()) + self.loss_lin(dist_p=dist_p())
             # return -1. * self.posterior_kalman.log_likelihood() + self.loss_lin()
 
-        self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
+        i = 0
+        while i < max_itr:
+            elbo_before = self.classic_elbo().numpy().item()
+            self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
+            # FIXME: ONLY FOR OU: Steady state covariance
+            if isinstance(self.prior_sde, PriorOUSDE):
+                self.initial_chol_cov = tf.linalg.cholesky(
+                    (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
 
-        # Check convergence
-        converged = True
-        for i, param in enumerate(self.prior_sde.trainable_variables):
-            old_val = self.prior_params[i][-1]
-            new_val = param.numpy().item()
+            # Linearize the prior
+            self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
+                                       tf.identity(self.fx_covs[:, :-1, :, :]))
+            self._linearize_prior()
+            elbo_after = self.classic_elbo().numpy().item()
 
-            diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
-
-            if diff_sq_norm < convergence_tol:
-                converged = converged & True
-            else:
-                converged = False
-
-        # FIXME: ONLY FOR OU: Steady state covariance
-        if isinstance(self.prior_sde, PriorOUSDE):
-            self.initial_chol_cov = tf.linalg.cholesky(
-                (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
-
-        return converged
+            if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
+                print("SSM: Learning; ELBO converged!!!")
+                break
+            i = i + 1
 
     def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
         """

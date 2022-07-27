@@ -1,7 +1,7 @@
 """
 Script for common utility functions needed for SDE experiments.
 """
-
+from copy import deepcopy
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
 import numpy as np
@@ -210,8 +210,7 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
                 train: bool = False, sites_lr: float = 0.9):
     cvi_model = CVIGaussianProcess(input_data=input_data, kernel=kernel, likelihood=likelihood,
                                    learning_rate=sites_lr)
-
-    opt = tf.optimizers.Adam(lr=0.01)
+    opt = tf.optimizers.Adam(lr=0.05)
 
     prior_params = {}
     for i, param in enumerate(kernel.trainable_variables):
@@ -222,19 +221,22 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
 
     elbo_vals = [cvi_model.classic_elbo()]
-    while len(elbo_vals) < 10 or elbo_vals[-2] - elbo_vals[-1] > 1e-4:
+    while len(elbo_vals) < 2 or elbo_vals[-2] < elbo_vals[-1]:
         for _ in range(2):
             cvi_model.update_sites()
 
         if train:
-            for _ in range(50):
+            learning_elbo = [cvi_model.classic_elbo().numpy().item()]
+            while len(learning_elbo) < 2 or learning_elbo[-2] < learning_elbo[-1]:
                 opt_step()
+                learning_elbo.append(cvi_model.classic_elbo().numpy().item())
 
             for i, param in enumerate(kernel.trainable_variables):
                 prior_params[i].append(positive().forward(param).numpy().item())
 
         elbo_vals.append(cvi_model.classic_elbo())
 
+    print(f"CVI-GPR ELBO values: {elbo_vals}")
     return cvi_model, prior_params
 
 

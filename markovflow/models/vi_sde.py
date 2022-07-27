@@ -323,7 +323,7 @@ class VariationalMarkovGP:
 
         return E.numpy().item()
 
-    def update_prior_sde(self, convergence_tol=1e-3):
+    def update_prior_sde(self, max_itr=1000, convergence_tol=1e-3):
         """
         Function to update the prior SDE.
         """
@@ -339,27 +339,21 @@ class VariationalMarkovGP:
 
             return KL_sde(self.prior_sde, A, b, m, S, self.dt) + self.KL_initial_state()
 
-        self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
+        i = 0
+        while i < max_itr:
+            elbo_before = self.elbo()
+            self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
+            # FIXME: Only for OU: Steady state covariance
+            if isinstance(self.prior_sde, PriorOUSDE):
+                self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(
+                    self.p_initial_cov)
 
-        # Check convergence
-        converged = True
-        for i, param in enumerate(self.prior_sde.trainable_variables):
-            old_val = self.prior_params[i][-1]
-            new_val = param.numpy().item()
+            elbo_after = self.elbo()
 
-            diff_sq_norm = tf.reduce_sum(tf.square(old_val - new_val))
-
-            if diff_sq_norm < convergence_tol:
-                converged = converged & True
-            else:
-                converged = False
-
-        # FIXME: Only for OU: Steady state covariance
-        if isinstance(self.prior_sde, PriorOUSDE):
-            self.p_initial_cov = (self.prior_sde.q / (2 * -1 * self.prior_sde.decay)) * tf.ones_like(
-                self.p_initial_cov)
-
-        return converged
+            if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
+                print("VGP: Learning; ELBO converged!!!")
+                break
+            i = i + 1
 
     def calculate_nlpd(self) -> float:
         """
