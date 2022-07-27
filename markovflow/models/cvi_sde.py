@@ -501,6 +501,12 @@ class SDESSM(CVIGaussianProcess):
             self._linearize_prior()
             elbo_after = self.classic_elbo().numpy().item()
 
+            self._store_prior_param_vals()
+
+            for k in self.prior_params.keys():
+                v = self.prior_params[k][-1]
+                wandb.log({"SSM-learning-" + str(k): v})
+
             if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
                 print("SSM: Learning; ELBO converged!!!")
                 break
@@ -645,16 +651,6 @@ class SDESSM(CVIGaussianProcess):
             elbo_vals = elbo_vals + inference_elbo
 
             self.update_prior_sde()
-
-            # Linearize the prior
-            self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
-                                       tf.identity(self.fx_covs[:, :-1, :, :]))
-            self._linearize_prior()
-            self._store_prior_param_vals()
-
-            for k in self.prior_params.keys():
-                v = self.prior_params[k][-1]
-                wandb.log({"SSM-learning-" + str(k): v})
 
             elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")

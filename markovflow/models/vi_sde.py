@@ -349,6 +349,11 @@ class VariationalMarkovGP:
                     self.p_initial_cov)
 
             elbo_after = self.elbo()
+            self._store_prior_param_vals()
+
+            for k in self.prior_params.keys():
+                v = self.prior_params[k][-1]
+                wandb.log({"VGP-learning-" + str(k): v})
 
             if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
                 print("VGP: Learning; ELBO converged!!!")
@@ -441,11 +446,6 @@ class VariationalMarkovGP:
                 prior_converged = False
                 while not prior_converged:
                     prior_converged = self.update_prior_sde()
-                    self._store_prior_param_vals()
-
-                    for k in self.prior_params.keys():
-                        v = self.prior_params[k][-1]
-                        wandb.log({"VGP-learning-" + str(k): v})
 
                 self.elbo_vals.append(self.elbo())
 
