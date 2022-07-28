@@ -443,9 +443,7 @@ class VariationalMarkovGP:
 
             print("VGP: Inference converged!!!")
             if update_prior:
-                prior_converged = False
-                while not prior_converged:
-                    prior_converged = self.update_prior_sde()
+                self.update_prior_sde()
 
                 self.elbo_vals.append(self.elbo())
 
