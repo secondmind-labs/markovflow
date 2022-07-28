@@ -186,7 +186,7 @@ def predict_cvi_gpr(model: CVIGaussianProcess, time_grid: np.ndarray, noise_stdd
 
 def predict_cvi_gpr_taylor(model: CVIGaussianProcessTaylorKernel, noise_stddev: np.ndarray) -> [np.ndarray, np.ndarray]:
     """
-    Predict mean and std-dev for CVI-GPR model.
+    Predict mean and std-dev for CVI-GPR (Taylor) model.
     """
     m, S = model.dist_q.marginals
     m = m.numpy().reshape(-1)
@@ -221,20 +221,30 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         opt.minimize(cvi_model.loss, cvi_model.kernel.trainable_variables)
 
     elbo_vals = [cvi_model.classic_elbo()]
-    while len(elbo_vals) < 2 or elbo_vals[-2] < elbo_vals[-1]:
+    while len(elbo_vals) < 2 or elbo_vals[-2] - elbo_vals[-1] < -1e-4:
+        best_sites_nat1 = cvi_model.sites.nat1.numpy()
+        best_sites_nat2 = cvi_model.sites.nat2.numpy()
         for _ in range(2):
             cvi_model.update_sites()
 
         if train:
             learning_elbo = [cvi_model.classic_elbo().numpy().item()]
-            while len(learning_elbo) < 2 or learning_elbo[-2] < learning_elbo[-1]:
+            while len(learning_elbo) < 2 or learning_elbo[-2] - learning_elbo[-1] < -1e-4:
                 opt_step()
                 learning_elbo.append(cvi_model.classic_elbo().numpy().item())
-
-            for i, param in enumerate(kernel.trainable_variables):
+            for i, param in enumerate(cvi_model.kernel.trainable_variables):
                 prior_params[i].append(positive().forward(param).numpy().item())
 
         elbo_vals.append(cvi_model.classic_elbo())
+
+    if elbo_vals[-1] < elbo_vals[-2]:
+        print("Need to go one step back!!!")
+        cvi_model.sites.nat1 = best_sites_nat1
+        cvi_model.sites.nat2 = best_sites_nat2
+        cvi_model.kernel._decay = prior_params[0][-2]
+        np.testing.assert_equal(cvi_model.classic_elbo(), elbo_vals[-2])
+        prior_params[0] = prior_params[0][:-1]  # Remove the last prior update
+        elbo_vals = elbo_vals[:-1]
 
     print(f"CVI-GPR ELBO values: {elbo_vals}")
     return cvi_model, prior_params
@@ -254,9 +264,19 @@ def get_cvi_gpr_taylor(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, ti
         prior_params[i] = [positive().forward(param).numpy().item()]
 
     elbo_vals = [cvi_model.classic_elbo()]
-    while len(elbo_vals) < 5 or (elbo_vals[-2] - elbo_vals[-1]) > 1e-4:
+    while len(elbo_vals) < 2 or (elbo_vals[-2] - elbo_vals[-1]) > 1e-4:
+        best_sites_nat1 = cvi_model.sites.nat1.numpy()
+        best_sites_nat2 = cvi_model.sites.nat2.numpy()
         cvi_model.update_sites()
         elbo_vals.append(cvi_model.classic_elbo())
+
+    if elbo_vals[-1] < elbo_vals[-2]:
+        print("Need to go one step back!!!")
+        cvi_model.sites.nat1 = best_sites_nat1
+        cvi_model.sites.nat2 = best_sites_nat2
+        np.testing.assert_equal(cvi_model.classic_elbo(), elbo_vals[-2])
+        prior_params[0] = prior_params[0][:-1]  # Remove the last prior update
+        elbo_vals = elbo_vals[:-1]
 
     return cvi_model, prior_params, elbo_vals
 

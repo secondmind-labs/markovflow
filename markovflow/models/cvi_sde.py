@@ -605,39 +605,41 @@ class SDESSM(CVIGaussianProcess):
         elbo_vals = []
         i = 0
         lin_interval = 2
-        while i < max_itr:
-            sites_converged = False
-            elbo_before = self.classic_elbo().numpy().item()
-            while not sites_converged:
-                if i % lin_interval == 0:
-                    self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
-                                               tf.identity(self.fx_covs[:, :-1, :, :]))
-                    self._linearize_prior()
+        sites_converged = False
+        # while i < max_itr:
+        #     sites_converged = False
+        #     elbo_before = self.classic_elbo().numpy().item()
+        while not sites_converged:
+            if i % lin_interval == 0:
+                self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
+                                           tf.identity(self.fx_covs[:, :-1, :, :]))
+                self._linearize_prior()
 
-                sites_converged = self.update_sites()
+            sites_converged = self.update_sites()
 
-                elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {elbo_vals[-1]}!!!")
-                wandb.log({"SSM-ELBO": elbo_vals[-1]})
-                wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+            elbo_vals.append(self.classic_elbo().numpy().item())
+            print(f"SSM: ELBO {elbo_vals[-1]}!!!")
+            wandb.log({"SSM-ELBO": elbo_vals[-1]})
+            wandb.log({"SSM-NLPD": self.calculate_nlpd()})
 
-                if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
-                    print("SSM: Site updates; ELBO decreasing!!! Decaying LR!")
-                    self.data_sites_lr = self.data_sites_lr / 2
-                    if self.do_update_all_sites:
-                        self.update_all_sites = True
-                        self.all_sites_lr = self.all_sites_lr / 2
-
-            if self.do_update_all_sites:
-                self.update_all_sites = True
-
-            print(f"SSM: Sites Converged!!!")
-            elbo_after = self.classic_elbo().numpy().item()
-
-            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
-                print("SSM: ELBO converged!!!")
+            if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
+                print("SSM: Site updates; ELBO decreasing!!! Decaying LR!")
+                self.data_sites_lr = self.data_sites_lr / 2
+                if self.do_update_all_sites:
+                    self.update_all_sites = True
+                    self.all_sites_lr = self.all_sites_lr / 2
                 break
-            i = i + 1
+
+        if self.do_update_all_sites:
+            self.update_all_sites = True
+
+        print(f"SSM: Sites Converged!!!")
+            # elbo_after = self.classic_elbo().numpy().item()
+            #
+            # if tf.math.abs(elbo_before - elbo_after) < 1e-4:
+            #     print("SSM: ELBO converged!!!")
+            #     break
+            # i = i + 1
 
         return elbo_vals
 
