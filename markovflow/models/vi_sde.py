@@ -427,6 +427,8 @@ class VariationalMarkovGP:
                         self.elbo_vals.append(self.elbo())
                         print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
 
+            wandb.log({"VGP-E-Step": self.elbo_vals[-1]})
+
             if update_initial_statistics:
                 self.update_initial_statistics()
                 self.elbo_vals.append(self.elbo())
@@ -448,6 +450,7 @@ class VariationalMarkovGP:
                 self.elbo_vals.append(self.elbo())
 
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+                wandb.log({"VGP-M-Step": self.elbo_vals[-1]})
 
                 print("VGP: Learning converged!!!")
 
@@ -475,6 +478,8 @@ class VariationalMarkovGP:
                 self.update_initial_statistics()
                 self.elbo_vals.append(self.elbo())
                 print(f"VGP: ELBO {self.elbo_vals[-1]}")
+
+            wandb.log({"VGP-E-Step": self.elbo_vals[-1]})
 
     def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
             max_itr: int = 100) -> [list, dict]:

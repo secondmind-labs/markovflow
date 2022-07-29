@@ -630,6 +630,8 @@ class SDESSM(CVIGaussianProcess):
                     self.all_sites_lr = self.all_sites_lr / 2
                 break
 
+        wandb.log({"SSM-E-Step": elbo_vals[-1]})
+
         if self.do_update_all_sites:
             self.update_all_sites = True
 
@@ -657,6 +659,7 @@ class SDESSM(CVIGaussianProcess):
             elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")
             wandb.log({"SSM-ELBO": elbo_vals[-1]})
+            wandb.log({"SSM-M-Step": elbo_vals[-1]})
 
             elbo_after = self.classic_elbo().numpy().item()
 
@@ -695,6 +698,7 @@ class SDESSM(CVIGaussianProcess):
                 self.elbo_vals.append(self.classic_elbo().numpy().item())
                 print(f"SSM: ELBO {self.elbo_vals[-1]};!!!")
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
+                wandb.log({"SSM-E-Step": self.elbo_vals[-1]})
 
         return self.elbo_vals, self.prior_params
 
