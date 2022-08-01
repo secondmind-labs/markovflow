@@ -189,7 +189,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
     ssm_model._linearize_prior()
 
-    ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
+    ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE, max_itr=1)
 
     return ssm_model, ssm_elbo, ssm_prior_prior_vals
 
