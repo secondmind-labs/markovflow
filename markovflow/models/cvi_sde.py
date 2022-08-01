@@ -648,6 +648,12 @@ class SDESSM(CVIGaussianProcess):
         """Perform inference and learning"""
         elbo_vals = []
         i = 0
+
+        # Initialize M-step data
+        for k in self.prior_params.keys():
+            v = self.prior_params[k][-1]
+            wandb.log({"SSM-M-Step-" + str(k): v})
+
         while i < max_itr:
             elbo_before = self.classic_elbo().numpy().item()
             inference_elbo = self.inference_only(max_itr)
@@ -658,7 +664,10 @@ class SDESSM(CVIGaussianProcess):
             elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")
             wandb.log({"SSM-ELBO": elbo_vals[-1]})
-            wandb.log({"SSM-M-Step": elbo_vals[-1]})
+
+            for k in self.prior_params.keys():
+                v = self.prior_params[k][-1]
+                wandb.log({"SSM-M-Step-" + str(k): v})
 
             elbo_after = self.classic_elbo().numpy().item()
 
