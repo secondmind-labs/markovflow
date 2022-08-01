@@ -248,16 +248,18 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
 
 def compare_learnt_drift():
     x = np.linspace(-2, 2, 40).reshape((-1, 1))
+    plt.subplots(1, 1, figsize=(5, 5))
+    plt.clf()
 
     true_drift = TRUE_DW_SDE.drift(x, None)
-    sde_ssm_learnt_drift = PRIOR_SDESSM_SDE.drift(x, None)
-    vgp_learnt_drift = PRIOR_VGP_SDE.drift(x, None)
+    if PRIOR_SDESSM_SDE is not None:
+        sde_ssm_learnt_drift = PRIOR_SDESSM_SDE.drift(x, None)
+        plt.plot(x, sde_ssm_learnt_drift, label="SDE-SSM", color="blue")
 
-    plt.subplots(1, 1, figsize=(5, 5))
+    if PRIOR_VGP_SDE is not None:
+        vgp_learnt_drift = PRIOR_VGP_SDE.drift(x, None)
+        plt.plot(x, vgp_learnt_drift, label="VGP", color="green")
 
-    plt.clf()
-    plt.plot(x, sde_ssm_learnt_drift, label="SDE-SSM", color="blue")
-    plt.plot(x, vgp_learnt_drift, label="VGP", color="green")
     plt.plot(x, true_drift, label="True drift", color="black")
     plt.xlim([-2, 2])
     plt.ylim([-2, 2])
