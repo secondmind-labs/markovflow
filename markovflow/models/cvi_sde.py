@@ -104,9 +104,11 @@ class SDESSM(CVIGaussianProcess):
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
 
+        self.m_step_data = {}
         self.prior_params = {}
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
+            self.m_step_data[i] = [param.numpy().item()]
 
         # Done this way because all sites are updated only after a once data-sites have converged
         self.do_update_all_sites = update_all_sites
@@ -667,6 +669,7 @@ class SDESSM(CVIGaussianProcess):
 
             for k in self.prior_params.keys():
                 v = self.prior_params[k][-1]
+                self.m_step_data[k].append(v)
                 wandb.log({"SSM-M-Step-" + str(k): v})
 
             elbo_after = self.classic_elbo().numpy().item()
@@ -708,5 +711,5 @@ class SDESSM(CVIGaussianProcess):
                 wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
                 wandb.log({"SSM-E-Step": self.elbo_vals[-1]})
 
-        return self.elbo_vals, self.prior_params
+        return self.elbo_vals, self.prior_params, self.m_step_data
 

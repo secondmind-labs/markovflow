@@ -160,9 +160,9 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     ssm_model.fx_mus = ssm_model.initial_mean + 0. * ssm_model.fx_mus
     ssm_model.fx_covs = 1. + 0. * ssm_model.fx_covs
 
-    ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
+    ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
-    return ssm_model, ssm_elbo, ssm_prior_prior_vals
+    return ssm_model, ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data
 
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
@@ -182,9 +182,9 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
     vgp_model.p_initial_mean = OBSERVATION_DATA[1][0] + 0. * vgp_model.p_initial_mean
     vgp_model.p_initial_cov = 0.5 + 0. * vgp_model.p_initial_cov
 
-    v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
+    v_gp_elbo, v_gp_prior_vals, vgp_m_step_data = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
-    return vgp_model, v_gp_elbo, v_gp_prior_vals
+    return vgp_model, v_gp_elbo, v_gp_prior_vals, vgp_m_step_data
 
 
 def compare_plot_posterior(ssm_model, vgp_model):
@@ -273,7 +273,7 @@ def compare_learnt_drift():
     plt.show()
 
 
-def save_data(ssm_elbo, vgp_elbo):
+def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
     if ssm_model is not None:
         m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
         np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
@@ -287,6 +287,7 @@ def save_data(ssm_elbo, vgp_elbo):
 
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), a=ssm_prior_a_values, c=ssm_prior_c_values)
+            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data)
 
         np.savez(os.path.join(OUTPUT_DIR, "ssm_linearization_path.npz"), fx_mus=ssm_model.linearization_pnts[0],
                  fx_covs=ssm_model.linearization_pnts[1])
@@ -303,6 +304,7 @@ def save_data(ssm_elbo, vgp_elbo):
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), a=vgp_prior_a_values,
                      c=vgp_prior_c_values)
+            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), vals=vgp_m_step_data)
 
 
 if __name__ == '__main__':
@@ -350,8 +352,9 @@ if __name__ == '__main__':
     init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
 
+    ssm_m_step_data = None
     if args.data_sites_lr > 0.:
-        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
+        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals, ssm_m_step_data = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
                                                                          args.prior_ssm_lr)
         if LEARN_PRIOR_SDE:
             ssm_prior_a_values = ssm_prior_prior_vals[0]
@@ -362,8 +365,10 @@ if __name__ == '__main__':
         ssm_elbo_vals = []
         ssm_prior_decay_values = []
 
+    vgp_m_step_data = None
     if args.vgp_lr > 0.:
-        vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
+        vgp_model, vgp_elbo_vals, vgp_prior_prior_vals, vgp_m_step_data = perform_vgp(args.vgp_lr, args.prior_vgp_lr,
+                                                                                      args.vgp_x0_lr)
         if LEARN_PRIOR_SDE:
             vgp_prior_a_values = vgp_prior_prior_vals[0]
             vgp_prior_c_values = vgp_prior_prior_vals[1]
@@ -380,7 +385,7 @@ if __name__ == '__main__':
 
     calculate_nlpd(ssm_model, vgp_model)
 
-    save_data(ssm_elbo_vals, vgp_elbo_vals)
+    save_data(ssm_elbo_vals, vgp_elbo_vals, vgp_m_step_data, ssm_m_step_data)
 
     if LEARN_PRIOR_SDE:
         compare_learnt_drift()

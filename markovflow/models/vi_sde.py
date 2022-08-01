@@ -109,9 +109,11 @@ class VariationalMarkovGP:
         self.elbo_vals = []
         self.dist_q_ssm = None
 
+        self.m_step_data = {}
         self.prior_params = {}
         for i, param in enumerate(self.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
+            self.m_step_data[i] = [param.numpy().item()]
 
     def _store_prior_param_vals(self):
         """Update the list storing the prior sde parameter values"""
@@ -450,7 +452,11 @@ class VariationalMarkovGP:
                 self.elbo_vals.append(self.elbo())
 
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
-                wandb.log({"VGP-M-Step": self.elbo_vals[-1]})
+
+                for k in self.prior_params.keys():
+                    v = self.prior_params[k][-1]
+                    self.m_step_data[k].append(v)
+                    wandb.log({"VGP-M-Step-" + str(k): v})
 
                 print("VGP: Learning converged!!!")
 
@@ -488,4 +494,4 @@ class VariationalMarkovGP:
         """
         self.run_inference_till_convergence(update_prior, update_initial_statistics, max_itr)
 
-        return self.elbo_vals, self.prior_params
+        return self.elbo_vals, self.prior_params, self.m_step_data

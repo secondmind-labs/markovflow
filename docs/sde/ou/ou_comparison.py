@@ -189,9 +189,9 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
     ssm_model._linearize_prior()
 
-    ssm_elbo, ssm_prior_prior_vals = ssm_model.run(update_prior=LEARN_PRIOR_SDE, max_itr=1)
+    ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data = ssm_model.run(update_prior=LEARN_PRIOR_SDE, max_itr=1)
 
-    return ssm_model, ssm_elbo, ssm_prior_prior_vals
+    return ssm_model, ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data
 
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
@@ -215,9 +215,9 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
 
     vgp_model.A = -1 * INITIAL_PRIOR_VALUE + 0. * vgp_model.A
 
-    v_gp_elbo, v_gp_prior_vals = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
+    v_gp_elbo, v_gp_prior_vals, v_gp_m_step_data = vgp_model.run(update_prior=LEARN_PRIOR_SDE)
 
-    return vgp_model, v_gp_elbo, v_gp_prior_vals
+    return vgp_model, v_gp_elbo, v_gp_prior_vals, v_gp_m_step_data
 
 
 def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
@@ -295,7 +295,7 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
         print(f"VGP NLPD: {vgp_nlpd}")
 
 
-def save_data(ssm_elbo, vgp_elbo):
+def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
     if ssm_model is not None:
         m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
         np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
@@ -306,6 +306,7 @@ def save_data(ssm_elbo, vgp_elbo):
 
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
+            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data)
 
     if vgp_model is not None:
         m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
@@ -317,6 +318,7 @@ def save_data(ssm_elbo, vgp_elbo):
         np.savez(os.path.join(OUTPUT_DIR, "vgp_elbo.npz"), elbo=vgp_elbo)
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)
+            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), vals=vgp_m_step_data)
 
 
 def plot_prior_decay_learn_evolution():
@@ -437,9 +439,11 @@ if __name__ == '__main__':
     else:
         gpr_model = gpr_taylor()
 
+    ssm_m_step_data = None
     if args.data_sites_lr > 0.:
-        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals = perform_sde_ssm(args.data_sites_lr, args.all_sites_lr,
-                                                                         args.prior_ssm_lr)
+        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals, ssm_m_step_data = perform_sde_ssm(args.data_sites_lr,
+                                                                                          args.all_sites_lr,
+                                                                                          args.prior_ssm_lr)
         if LEARN_PRIOR_SDE:
             ssm_prior_decay_values = ssm_prior_prior_vals[0]
     else:
@@ -447,8 +451,10 @@ if __name__ == '__main__':
         ssm_elbo_vals = []
         ssm_prior_decay_values = []
 
+    vgp_m_step_data = None
     if args.vgp_lr > 0.:
-        vgp_model, vgp_elbo_vals, vgp_prior_prior_vals = perform_vgp(args.vgp_lr, args.prior_vgp_lr, args.vgp_x0_lr)
+        vgp_model, vgp_elbo_vals, vgp_prior_prior_vals, vgp_m_step_data = perform_vgp(args.vgp_lr, args.prior_vgp_lr,
+                                                                                      args.vgp_x0_lr)
         if LEARN_PRIOR_SDE:
             v_gp_prior_decay_values = vgp_prior_prior_vals[0]
     else:
@@ -462,7 +468,7 @@ if __name__ == '__main__':
 
     calculate_nlpd(ssm_model, vgp_model)
 
-    save_data(ssm_elbo_vals, vgp_elbo_vals)
+    save_data(ssm_elbo_vals, vgp_elbo_vals, vgp_m_step_data, ssm_m_step_data)
 
     if ssm_model is not None and vgp_model is not None:
         if LEARN_PRIOR_SDE:
