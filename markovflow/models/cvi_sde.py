@@ -651,11 +651,6 @@ class SDESSM(CVIGaussianProcess):
         elbo_vals = []
         i = 0
 
-        # Initialize M-step data
-        for k in self.prior_params.keys():
-            v = self.prior_params[k][-1]
-            wandb.log({"SSM-M-Step-" + str(k): v})
-
         while i < max_itr:
             elbo_before = self.classic_elbo().numpy().item()
             inference_elbo = self.inference_only(max_itr)

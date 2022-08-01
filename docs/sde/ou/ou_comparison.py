@@ -189,7 +189,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
     ssm_model._linearize_prior()
 
-    ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data = ssm_model.run(update_prior=LEARN_PRIOR_SDE, max_itr=1)
+    ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
 
     return ssm_model, ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data
 
@@ -306,7 +306,7 @@ def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
 
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
-            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data)
+            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data[0])
 
     if vgp_model is not None:
         m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
@@ -318,7 +318,7 @@ def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
         np.savez(os.path.join(OUTPUT_DIR, "vgp_elbo.npz"), elbo=vgp_elbo)
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), decay=v_gp_prior_decay_values)
-            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), vals=vgp_m_step_data)
+            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), vals=vgp_m_step_data[0])
 
 
 def plot_prior_decay_learn_evolution():

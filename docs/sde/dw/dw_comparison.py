@@ -287,7 +287,7 @@ def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
 
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), a=ssm_prior_a_values, c=ssm_prior_c_values)
-            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data)
+            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), a=ssm_m_step_data[0], c=ssm_m_step_data[1])
 
         np.savez(os.path.join(OUTPUT_DIR, "ssm_linearization_path.npz"), fx_mus=ssm_model.linearization_pnts[0],
                  fx_covs=ssm_model.linearization_pnts[1])
@@ -304,7 +304,7 @@ def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
         if LEARN_PRIOR_SDE:
             np.savez(os.path.join(OUTPUT_DIR, "vgp_learnt_sde.npz"), a=vgp_prior_a_values,
                      c=vgp_prior_c_values)
-            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), vals=vgp_m_step_data)
+            np.savez(os.path.join(OUTPUT_DIR, "vgp_m_step.npz"), a=vgp_m_step_data[0], c=vgp_m_step_data[1])
 
 
 if __name__ == '__main__':
