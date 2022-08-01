@@ -66,7 +66,7 @@ class VariationalMarkovGP:
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
                  lr: float = 0.5, prior_params_lr: float = 0.01, test_data: [tf.Tensor, tf.Tensor] = None,
-                 initial_state_lr: float = 0.01):
+                 initial_state_lr: float = 0.01, convergence_tol: float = 1e-2):
         """
         Initialize the model.
 
@@ -108,6 +108,7 @@ class VariationalMarkovGP:
 
         self.elbo_vals = []
         self.dist_q_ssm = None
+        self.convergence_tol = convergence_tol
 
         self.m_step_data = {}
         self.prior_params = {}
@@ -156,7 +157,7 @@ class VariationalMarkovGP:
 
         return dE_dm/self.dt, dE_dS/self.dt  # Due to Reimann sum
 
-    def update_initial_statistics(self, convergence_tol=1e-4):
+    def update_initial_statistics(self):
         """
         Update the initial statistics.
         """
@@ -172,7 +173,7 @@ class VariationalMarkovGP:
         self.q_initial_mean = (1 - self.x_lr) * self.q_initial_mean + self.x_lr * q_initial_mean
         self.q_initial_cov = (1 - self.x_lr) * self.q_initial_cov + self.x_lr * q_initial_cov
 
-        if (q_mean_diff_sq_norm < convergence_tol) & (q_cov_diff_sq_norm < convergence_tol):
+        if (q_mean_diff_sq_norm < self.convergence_tol) & (q_cov_diff_sq_norm < self.convergence_tol):
             has_converged = True
         else:
             has_converged = False
@@ -255,7 +256,7 @@ class VariationalMarkovGP:
 
         return local_obj, grads
 
-    def update_param(self, m: tf.Tensor, S: tf.Tensor, convergence_tol: float = 1e-4):
+    def update_param(self, m: tf.Tensor, S: tf.Tensor):
         """
         Update the params A(t) and b(t).
 
@@ -280,7 +281,7 @@ class VariationalMarkovGP:
         self.A = (1 - self.q_lr) * self.A + self.q_lr * A_tilde[..., None]
         self.b = (1 - self.q_lr) * self.b + self.q_lr * b_tilde
 
-        if (A_diff_sq_norm < convergence_tol) & (b_diff_sq_norm < convergence_tol):
+        if (A_diff_sq_norm < self.convergence_tol) & (b_diff_sq_norm < self.convergence_tol):
             has_converged = True
         else:
             has_converged = False
@@ -325,7 +326,7 @@ class VariationalMarkovGP:
 
         return E.numpy().item()
 
-    def update_prior_sde(self, max_itr=1000, convergence_tol=1e-3):
+    def update_prior_sde(self, max_itr=500):
         """
         Function to update the prior SDE.
         """
@@ -357,7 +358,7 @@ class VariationalMarkovGP:
                 v = self.prior_params[k][-1]
                 wandb.log({"VGP-learning-" + str(k): v})
 
-            if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("VGP: Learning; ELBO converged!!!")
                 break
             i = i + 1
@@ -401,7 +402,7 @@ class VariationalMarkovGP:
         wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
         i = 0
-        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > 1e-4:
+        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > self.convergence_tol:
 
             q_converged = False
             q_loop_itr = 0
@@ -413,7 +414,7 @@ class VariationalMarkovGP:
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
                 wandb.log({"VGP-NLPD": self.calculate_nlpd()})
 
-                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
+                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < self.convergence_tol:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 
@@ -475,7 +476,7 @@ class VariationalMarkovGP:
                 self.elbo_vals.append(self.elbo())
                 wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
 
-                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < 1e-4:
+                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < self.convergence_tol:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 

@@ -55,7 +55,8 @@ class SDESSM(CVIGaussianProcess):
             prior_params_lr: float = 0.01,
             test_data: Tuple[tf.Tensor, tf.Tensor] = None,
             update_all_sites: bool = False,
-            all_sites_lr=0.1
+            all_sites_lr=0.1,
+            convergence_tol: float = 1e-2
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
@@ -98,6 +99,7 @@ class SDESSM(CVIGaussianProcess):
         self.all_sites_lr = all_sites_lr
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_params_lr)
         self.elbo_vals = []
+        self.convergence_tol = convergence_tol
 
         self.dist_p_ssm = None
 
@@ -314,7 +316,7 @@ class SDESSM(CVIGaussianProcess):
 
         return val
 
-    def update_sites(self, convergence_tol=1e-4) -> bool:
+    def update_sites(self) -> bool:
         """
         Perform one joint update of the Gaussian sites. That is:
 
@@ -336,7 +338,7 @@ class SDESSM(CVIGaussianProcess):
         data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
         data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
 
-        data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
+        data_site_converged = (data_nat1_sq_norm < self.convergence_tol) & (data_nat2_sq_norm < self.convergence_tol)
 
         if self.update_all_sites:
             # Linearization gradient for updating the overall sites
@@ -353,7 +355,7 @@ class SDESSM(CVIGaussianProcess):
             sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
             sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
 
-            all_site_converged = (sites_nat1_sq_norm < convergence_tol) & (sites_nat2_sq_norm < convergence_tol)
+            all_site_converged = (sites_nat1_sq_norm < self.convergence_tol) & (sites_nat2_sq_norm < self.convergence_tol)
 
             self.sites_nat2 = new_nat2
             self.sites_nat1 = new_nat1
@@ -473,7 +475,7 @@ class SDESSM(CVIGaussianProcess):
 
         return k_l
 
-    def update_prior_sde(self, max_itr=1000, convergence_tol=1e-4):
+    def update_prior_sde(self, max_itr=500):
 
         def dist_p() -> StateSpaceModel:
             fx_mus = self.fx_mus[:, :-1, :]
@@ -509,7 +511,7 @@ class SDESSM(CVIGaussianProcess):
                 v = self.prior_params[k][-1]
                 wandb.log({"SSM-learning-" + str(k): v})
 
-            if tf.math.abs(elbo_before - elbo_after) < convergence_tol:
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("SSM: Learning; ELBO converged!!!")
                 break
             i = i + 1
@@ -639,7 +641,7 @@ class SDESSM(CVIGaussianProcess):
             print(f"SSM: Sites Converged!!!")
             elbo_after = self.classic_elbo().numpy().item()
 
-            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("SSM: ELBO converged!!!")
                 break
             i = i + 1
@@ -673,7 +675,7 @@ class SDESSM(CVIGaussianProcess):
                 print("SSM: ELBO increasing! Decaying LR!")
                 self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
 
-            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("SSM: ELBO converged!!!")
                 break
             i = i + 1
@@ -691,7 +693,7 @@ class SDESSM(CVIGaussianProcess):
             inf_elbo_vals = self.inference_only(max_itr)
             self.elbo_vals = self.elbo_vals + inf_elbo_vals
 
-            return self.elbo_vals, self.prior_params
+            return self.elbo_vals, self.prior_params, self.m_step_data
         else:
             learning_elbo_vals = self.inference_and_learning(max_itr)
             self.elbo_vals = self.elbo_vals + learning_elbo_vals
