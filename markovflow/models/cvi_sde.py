@@ -476,7 +476,7 @@ class SDESSM(CVIGaussianProcess):
         return k_l
 
     def update_prior_sde(self, max_itr=500):
-
+        elbo_vals = []
         def dist_p() -> StateSpaceModel:
             fx_mus = self.fx_mus[:, :-1, :]
             fx_covs = self.fx_covs[:, :-1, :, :]
@@ -504,17 +504,20 @@ class SDESSM(CVIGaussianProcess):
                                        tf.identity(self.fx_covs[:, :-1, :, :]))
             self._linearize_prior()
             elbo_after = self.classic_elbo().numpy().item()
-
+            elbo_vals.append(elbo_after)
             self._store_prior_param_vals()
 
             for k in self.prior_params.keys():
                 v = self.prior_params[k][-1]
                 wandb.log({"SSM-learning-" + str(k): v})
+                print(f"SSM-learning-{str(k)} : {v}")
 
             if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("SSM: Learning; ELBO converged!!!")
                 break
             i = i + 1
+
+        return elbo_vals
 
     def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
         """
@@ -602,49 +605,44 @@ class SDESSM(CVIGaussianProcess):
 
         return nlpd.numpy().item()
 
-    def inference_only(self, max_itr: int = 50) -> list:
+    def inference_only(self) -> list:
         """
         Perform inference only and not learning.
         """
         elbo_vals = []
+        # lin_interval = 2
         i = 0
-        lin_interval = 2
-        while i < max_itr:
-            sites_converged = False
-            elbo_before = self.classic_elbo().numpy().item()
-            while not sites_converged:
-                if i % lin_interval == 0:
-                    self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
-                                               tf.identity(self.fx_covs[:, :-1, :, :]))
-                    self._linearize_prior()
 
-                sites_converged = self.update_sites()
+        sites_converged = False
+        while not sites_converged:
+            # if i % lin_interval == 0:
+            self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
+                                       tf.identity(self.fx_covs[:, :-1, :, :]))
+            self._linearize_prior()
 
-                elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {elbo_vals[-1]}!!!")
-                wandb.log({"SSM-ELBO": elbo_vals[-1]})
-                wandb.log({"SSM-NLPD": self.calculate_nlpd()})
+            sites_converged = self.update_sites()
 
-                if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
-                    print("SSM: Site updates; ELBO decreasing!!! Decaying LR!")
-                    self.data_sites_lr = self.data_sites_lr / 2
-                    if self.do_update_all_sites:
-                        self.update_all_sites = True
-                        self.all_sites_lr = self.all_sites_lr / 2
-                    break
+            elbo_vals.append(self.classic_elbo().numpy().item())
+            print(f"SSM: ELBO {elbo_vals[-1]}!!!")
+            wandb.log({"SSM-ELBO": elbo_vals[-1]})
+            wandb.log({"SSM-NLPD": self.calculate_nlpd()})
 
-            wandb.log({"SSM-E-Step": elbo_vals[-1]})
-
-            if self.do_update_all_sites:
-                self.update_all_sites = True
-
-            print(f"SSM: Sites Converged!!!")
-            elbo_after = self.classic_elbo().numpy().item()
-
-            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
-                print("SSM: ELBO converged!!!")
+            if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
+                print("SSM: Site updates; ELBO decreasing!!! Decaying LR!")
+                self.data_sites_lr = self.data_sites_lr / 2
+                if self.do_update_all_sites:
+                    self.update_all_sites = True
+                    self.all_sites_lr = self.all_sites_lr / 2
                 break
             i = i + 1
+
+            if i == 20:  # After 20 iterations update all sites as well
+                if self.do_update_all_sites:
+                    self.update_all_sites = True
+
+        wandb.log({"SSM-E-Step": elbo_vals[-1]})
+
+        print(f"SSM: Sites Converged!!!")
 
         return elbo_vals
 
@@ -655,10 +653,11 @@ class SDESSM(CVIGaussianProcess):
 
         while i < max_itr:
             elbo_before = self.classic_elbo().numpy().item()
-            inference_elbo = self.inference_only(max_itr)
+            inference_elbo = self.inference_only()
             elbo_vals = elbo_vals + inference_elbo
 
-            self.update_prior_sde()
+            learn_elbo_vals = self.update_prior_sde()
+            elbo_vals = elbo_vals + learn_elbo_vals
 
             elbo_vals.append(self.classic_elbo().numpy().item())
             print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")
@@ -690,7 +689,7 @@ class SDESSM(CVIGaussianProcess):
         wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
 
         if not update_prior:
-            inf_elbo_vals = self.inference_only(max_itr)
+            inf_elbo_vals = self.inference_only()
             self.elbo_vals = self.elbo_vals + inf_elbo_vals
 
             return self.elbo_vals, self.prior_params, self.m_step_data

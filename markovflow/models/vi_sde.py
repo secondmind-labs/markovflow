@@ -330,6 +330,7 @@ class VariationalMarkovGP:
         """
         Function to update the prior SDE.
         """
+        elbo_vals = []
         def func():
             m, S = self.forward_pass
 
@@ -353,15 +354,19 @@ class VariationalMarkovGP:
 
             elbo_after = self.elbo()
             self._store_prior_param_vals()
+            elbo_vals.append(elbo_after)
 
             for k in self.prior_params.keys():
                 v = self.prior_params[k][-1]
                 wandb.log({"VGP-learning-" + str(k): v})
+                print(f"VGP-learning-{str(k)} : {v}")
 
             if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("VGP: Learning; ELBO converged!!!")
                 break
             i = i + 1
+
+        return elbo_vals
 
     def calculate_nlpd(self) -> float:
         """
@@ -392,33 +397,30 @@ class VariationalMarkovGP:
 
         return converged
 
-    def run_inference_till_convergence(self, update_prior: bool, update_initial_statistics: bool = True,
-                                       max_itr: int = 50):
+    def inference_only(self, update_initial_statistics: bool = True, max_itr: int = 50):
         """
         Run inference till convergence
         """
-        self.elbo_vals.append(self.elbo())
-        print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
-        wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+        elbo_vals = []
 
+        q_converged = False
+        q_loop_itr = 0
         i = 0
-        while len(self.elbo_vals) < 2 or tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) > self.convergence_tol:
-
-            q_converged = False
-            q_loop_itr = 0
+        while i < max_itr:  # Need this loop as x0 is initialized outside the inside loop and it affects convergence
+            elbo_before = self.elbo()
             while not q_converged:
                 q_converged = self.run_single_inference()
 
-                self.elbo_vals.append(self.elbo())
-                print(f"VGP - q loop: ELBO {self.elbo_vals[-1]}")
-                wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+                elbo_vals.append(self.elbo())
+                print(f"VGP - q loop: ELBO {elbo_vals[-1]}")
+                wandb.log({"VGP-ELBO": elbo_vals[-1]})
                 wandb.log({"VGP-NLPD": self.calculate_nlpd()})
 
-                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < self.convergence_tol:
+                if len(elbo_vals) > 1 and tf.math.abs(elbo_vals[-2] - elbo_vals[-1]) < self.convergence_tol:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 
-                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
                     print("VGP: q loop ELBO decreasing!!! Decaying LR!")
                     self.q_lr = self.q_lr / 2
 
@@ -427,72 +429,97 @@ class VariationalMarkovGP:
                 if q_loop_itr % 20 == 0:
                     if update_initial_statistics:
                         self.update_initial_statistics()
-                        self.elbo_vals.append(self.elbo())
-                        print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
+                        elbo_vals.append(self.elbo())
+                        print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
 
-            wandb.log({"VGP-E-Step": self.elbo_vals[-1]})
+            wandb.log({"VGP-E-Step": elbo_vals[-1]})
 
             if update_initial_statistics:
                 self.update_initial_statistics()
-                self.elbo_vals.append(self.elbo())
-                print(f"VGP - x0 loop: ELBO {self.elbo_vals[-1]}")
-                if self.elbo_vals[-2] > self.elbo_vals[-1]:
+                elbo_vals.append(self.elbo())
+                print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
+                if elbo_vals[-2] > elbo_vals[-1]:
                     print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
                     self.x_lr = self.x_lr / 2
 
-            print("VGP: q converged!!!")
-
-            print("VGP: X0 converged!!!")
-            print(f"VGP: ELBO {self.elbo_vals[-1]}")
-            wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
-
-            print("VGP: Inference converged!!!")
-            if update_prior:
-                self.update_prior_sde()
-
-                self.elbo_vals.append(self.elbo())
-
-                wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
-
-                for k in self.prior_params.keys():
-                    v = self.prior_params[k][-1]
-                    self.m_step_data[k].append(v)
-                    wandb.log({"VGP-M-Step-" + str(k): v})
-
-                print("VGP: Learning converged!!!")
-
-            i = i + 1
-            if max_itr == i:
-                print("VGP: Reached maximum iterations!!!")
+            elbo_after = self.elbo()
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
+                print("VGP: ELBO converged!!!")
                 break
 
-        # One final update for the updated prior
-        if update_prior:
+            i = i + 1
+
+        print("VGP: Inference converged!!!")
+
+        return elbo_vals
+
+    def inference_and_learning(self, update_initial_statistics: bool = True, max_itr: int = 500):
+        """
+        Inference and learning
+        """
+        i = 0
+        elbo_vals = []
+
+        while i < max_itr:
+            elbo_before = self.elbo()
+            inf_elbo_vals = self.inference_only(update_initial_statistics)
+            elbo_vals = elbo_vals + inf_elbo_vals
+
+            learn_elbo_vals = self.update_prior_sde()
+            elbo_vals = elbo_vals + learn_elbo_vals
+
+            for k in self.prior_params.keys():
+                v = self.prior_params[k][-1]
+                self.m_step_data[k].append(v)
+                wandb.log({"VGP-M-Step-" + str(k): v})
+
+            elbo_after = self.elbo()
+            if elbo_before > elbo_after:
+                print("VGP: ELBO increasing! Decaying LR!")
+                self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
+
+            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
+                print("VGP: ELBO converged!!!")
+                break
+
+            i = i + 1
+
+        print("VGP: Learning converged!!!")
+
+        return elbo_vals
+
+    def run(self, update_prior: bool = False, update_initial_statistics: bool = True) -> [list, dict]:
+        """
+        Run inference and (if required) update prior till convergence.
+        """
+        self.elbo_vals.append(self.elbo())
+        print(f"VGP: Starting ELBO {self.elbo_vals[-1]}")
+        wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+
+        if not update_prior:
+            inf_elbo_vals = self.inference_only(update_initial_statistics)
+            self.elbo_vals = self.elbo_vals + inf_elbo_vals
+        else:
+            inf_learn_elbo = self.inference_and_learning(update_initial_statistics)
+
             print("VGP: Performing last inference step!!!")
             q_converged = False
             while not q_converged:
                 q_converged = self.run_single_inference()
 
-                self.elbo_vals.append(self.elbo())
-                wandb.log({"VGP-ELBO": self.elbo_vals[-1]})
+                inf_learn_elbo.append(self.elbo())
+                wandb.log({"VGP-ELBO": inf_learn_elbo[-1]})
 
-                if tf.math.abs(self.elbo_vals[-2] - self.elbo_vals[-1]) < self.convergence_tol:
+                if tf.math.abs(inf_learn_elbo[-2] - inf_learn_elbo[-1]) < self.convergence_tol:
                     print("VGP: Breaking q loop as ELBO converged!!!")
                     break
 
             if update_initial_statistics:
                 print("VGP: Performing last x0 update step!!!")
                 self.update_initial_statistics()
-                self.elbo_vals.append(self.elbo())
-                print(f"VGP: ELBO {self.elbo_vals[-1]}")
+                inf_learn_elbo.append(self.elbo())
+                print(f"VGP: ELBO {inf_learn_elbo[-1]}")
 
-            wandb.log({"VGP-E-Step": self.elbo_vals[-1]})
-
-    def run(self, update_prior: bool = False, update_initial_statistics: bool = True,
-            max_itr: int = 100) -> [list, dict]:
-        """
-        Run inference and (if required) update prior till convergence.
-        """
-        self.run_inference_till_convergence(update_prior, update_initial_statistics, max_itr)
+            self.elbo_vals = self.elbo_vals + inf_learn_elbo
 
         return self.elbo_vals, self.prior_params, self.m_step_data

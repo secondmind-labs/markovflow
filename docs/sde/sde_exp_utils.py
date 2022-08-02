@@ -242,7 +242,7 @@ def get_cvi_gpr(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, likelihoo
         cvi_model.sites.nat1 = best_sites_nat1
         cvi_model.sites.nat2 = best_sites_nat2
         cvi_model.kernel._decay = prior_params[0][-2]
-        np.testing.assert_equal(cvi_model.classic_elbo(), elbo_vals[-2])
+        np.testing.assert_array_almost_equal(cvi_model.classic_elbo(), elbo_vals[-2], decimal=4)
         prior_params[0] = prior_params[0][:-1]  # Remove the last prior update
         elbo_vals = elbo_vals[:-1]
 
@@ -274,7 +274,7 @@ def get_cvi_gpr_taylor(input_data: [tf.Tensor, tf.Tensor], kernel: SDEKernel, ti
         print("Need to go one step back!!!")
         cvi_model.sites.nat1 = best_sites_nat1
         cvi_model.sites.nat2 = best_sites_nat2
-        np.testing.assert_equal(cvi_model.classic_elbo(), elbo_vals[-2])
+        np.testing.assert_array_almost_equal(cvi_model.classic_elbo(), elbo_vals[-2], decimal=4)
         prior_params[0] = prior_params[0][:-1]  # Remove the last prior update
         elbo_vals = elbo_vals[:-1]
 
