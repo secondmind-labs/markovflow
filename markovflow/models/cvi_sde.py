@@ -492,7 +492,7 @@ class SDESSM(CVIGaussianProcess):
 
         i = 0
         while i < max_itr:
-            elbo_before = self.classic_elbo().numpy().item()
+            # elbo_before = self.classic_elbo().numpy().item()
             self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
             # FIXME: ONLY FOR OU: Steady state covariance
             if isinstance(self.prior_sde, PriorOUSDE):
@@ -512,7 +512,19 @@ class SDESSM(CVIGaussianProcess):
                 wandb.log({"SSM-learning-" + str(k): v})
                 print(f"SSM-learning-{str(k)} : {v}")
 
-            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
+            converged = True
+            for i, param in enumerate(self.prior_sde.trainable_variables):
+                old_val = self.prior_params[i][-1]
+                new_val = param.numpy().item()
+
+                diff = tf.reduce_sum(tf.math.abs(old_val - new_val))
+
+                if diff < 1e-4:
+                    converged = converged & True
+                else:
+                    converged = False
+
+            if converged:
                 print("SSM: Learning; ELBO converged!!!")
                 break
             i = i + 1
@@ -610,11 +622,11 @@ class SDESSM(CVIGaussianProcess):
         Perform inference only and not learning.
         """
         elbo_vals = []
-        sites_converged = False
-
         max_itr = 50
         i = 0
         while i < max_itr:
+            elbo_before = self.classic_elbo().numpy().item()
+            sites_converged = False
             while not sites_converged:
                 sites_converged = self.update_sites()
 
@@ -631,11 +643,11 @@ class SDESSM(CVIGaussianProcess):
                         self.all_sites_lr = self.all_sites_lr / 2
                     break
 
-            elbo_before = self.classic_elbo().numpy().item()
             self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
                                        tf.identity(self.fx_covs[:, :-1, :, :]))
             self._linearize_prior()
             elbo_after = self.classic_elbo().numpy().item()
+
             if tf.math.abs(elbo_before - elbo_after) < 1e-4:
                 break
 

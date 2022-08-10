@@ -345,7 +345,7 @@ class VariationalMarkovGP:
 
         i = 0
         while i < max_itr:
-            elbo_before = self.elbo()
+            # elbo_before = self.elbo()
             self.prior_sde_optimizer.minimize(func, self.prior_sde.trainable_variables)
             # FIXME: Only for OU: Steady state covariance
             if isinstance(self.prior_sde, PriorOUSDE):
@@ -361,7 +361,19 @@ class VariationalMarkovGP:
                 wandb.log({"VGP-learning-" + str(k): v})
                 print(f"VGP-learning-{str(k)} : {v}")
 
-            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
+            converged = True
+            for i, param in enumerate(self.prior_sde.trainable_variables):
+                old_val = self.prior_params[i][-1]
+                new_val = param.numpy().item()
+
+                diff = tf.reduce_sum(tf.math.abs(old_val - new_val))
+
+                if diff < 1e-4:
+                    converged = converged & True
+                else:
+                    converged = False
+
+            if converged:  #  tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
                 print("VGP: Learning; ELBO converged!!!")
                 break
             i = i + 1
