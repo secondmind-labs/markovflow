@@ -514,8 +514,8 @@ class SDESSM(CVIGaussianProcess):
 
             converged = True
             for i, param in enumerate(self.prior_sde.trainable_variables):
-                old_val = self.prior_params[i][-1]
-                new_val = param.numpy().item()
+                old_val = self.prior_params[i][-2]
+                new_val = self.prior_params[i][-1]
 
                 diff = tf.reduce_sum(tf.math.abs(old_val - new_val))
 
