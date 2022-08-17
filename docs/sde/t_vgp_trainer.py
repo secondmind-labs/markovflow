@@ -14,22 +14,22 @@ class tVGPTrainer:
     def __init__(self, observation_data, likelihood, time_grid, prior_sde, data_sites_lr: float = 0.5,
                  all_sites_lr: float = 0.1, prior_sde_lr: float = 0.1, test_data: Tuple[tf.Tensor, tf.Tensor] = None,
                  update_all_sites: bool = False):
-        self.ssm_model = SDESSM(input_data=observation_data, prior_sde=prior_sde, grid=time_grid,
+        self.tvgp_model = SDESSM(input_data=observation_data, prior_sde=prior_sde, grid=time_grid,
                                 likelihood=likelihood, learning_rate=data_sites_lr, all_sites_lr=all_sites_lr)
 
         # Initialize the initial statistics of the model
         # FIXME: Find a better way
         if isinstance(prior_sde, PriorOUSDE):
             initial_cov = prior_sde.q / (2 * -1 * prior_sde.decay)  # Steady covariance
-            self.ssm_model.initial_mean = tf.zeros_like(self.ssm_model.initial_mean)
-            self.ssm_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, self.ssm_model.initial_chol_cov.shape))
-            self.ssm_model.fx_covs = self.ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * self.ssm_model.fx_covs
-            self.ssm_model._linearize_prior()
+            self.tvgp_model.initial_mean = tf.zeros_like(self.tvgp_model.initial_mean)
+            self.tvgp_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, self.tvgp_model.initial_chol_cov.shape))
+            self.tvgp_model.fx_covs = self.tvgp_model.initial_chol_cov.numpy().item() ** 2 + 0 * self.tvgp_model.fx_covs
+            self.tvgp_model._linearize_prior()
         else:
-            self.ssm_model.initial_mean = observation_data[1][0] + 0. * self.ssm_model.initial_mean
-            self.ssm_model.initial_chol_cov = 0.5 ** (1 / 2) + 0. * self.ssm_model.initial_chol_cov
-            self.ssm_model.fx_mus = self.ssm_model.initial_mean + 0. * self.ssm_model.fx_mus
-            self.ssm_model.fx_covs = 1. + 0. * self.ssm_model.fx_covs
+            self.tvgp_model.initial_mean = observation_data[1][0] + 0. * self.tvgp_model.initial_mean
+            self.tvgp_model.initial_chol_cov = 0.5 ** (1 / 2) + 0. * self.tvgp_model.initial_chol_cov
+            self.tvgp_model.fx_mus = self.tvgp_model.initial_mean + 0. * self.tvgp_model.fx_mus
+            self.tvgp_model.fx_covs = 1. + 0. * self.tvgp_model.fx_covs
 
         self.update_all_sites = update_all_sites
         self.test_data = test_data
@@ -37,13 +37,13 @@ class tVGPTrainer:
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_sde_lr)
         self.m_step_data = {}
         self.prior_params = {}
-        for i, param in enumerate(self.ssm_model.prior_sde.trainable_variables):
+        for i, param in enumerate(self.tvgp_model.prior_sde.trainable_variables):
             self.prior_params[i] = [param.numpy().item()]
             self.m_step_data[i] = [param.numpy().item()]
 
     def _store_prior_param_vals(self):
         """Update the list storing the prior sde parameter values"""
-        for i, param in enumerate(self.ssm_model.prior_sde.trainable_variables):
+        for i, param in enumerate(self.tvgp_model.prior_sde.trainable_variables):
             self.prior_params[i].append(param.numpy().item())
 
     def calculate_nlpd(self) -> float:
@@ -53,13 +53,13 @@ class tVGPTrainer:
         if self.test_data is None:
             return 0.
 
-        if not isinstance(self.ssm_model.likelihood, Gaussian):
+        if not isinstance(self.tvgp_model.likelihood, Gaussian):
             raise Exception("NLPD for non-Gaussian likelihood is not supported!")
 
-        m, S = self.ssm_model.dist_q.marginals
-        s_std = tf.linalg.cholesky(S + self.ssm_model.likelihood.variance)
+        m, S = self.tvgp_model.dist_q.marginals
+        s_std = tf.linalg.cholesky(S + self.tvgp_model.likelihood.variance)
 
-        pred_idx = list((tf.where(self.ssm_model.grid == self.test_data[0][..., None])[:, 1]).numpy())
+        pred_idx = list((tf.where(self.tvgp_model.grid == self.test_data[0][..., None])[:, 1]).numpy())
         s_std = tf.reshape(tf.gather(s_std, pred_idx, axis=1), (-1, 1, 1))
         lpd = gaussian_log_predictive_density(mean=tf.gather(m, pred_idx, axis=1), chol_covariance=s_std,
                                               x=tf.reshape(self.test_data[1], (-1,)))
@@ -67,36 +67,42 @@ class tVGPTrainer:
 
         return nlpd.numpy().item()
 
-    def single_e_step(self) -> list:
+    def single_e_step(self, max_itr: int = 500) -> list:
         """
         Perform inference.
         """
         elbo_vals = []
-        max_itr = 50
         i = 0
         while i < max_itr:
-            elbo_before = self.ssm_model.classic_elbo().numpy().item()
+            elbo_before = self.tvgp_model.classic_elbo().numpy().item()
 
-            self.ssm_model.update_sites(update_all_sites=self.update_all_sites)
-            elbo_vals.append(self.ssm_model.classic_elbo().numpy().item())
+            self.tvgp_model.update_sites(update_all_sites=self.update_all_sites)
+
+            # print(self.tvgp_model.data_sites.nat1.numpy()[0])
+            # print(self.tvgp_model.observations[0] / self.tvgp_model.likelihood.variance)
+
+            elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
 
             print(f"t-VGP: ELBO {elbo_vals[-1]}!!!")
             wandb.log({"t-VGP-ELBO": elbo_vals[-1]})
             wandb.log({"t-VGP-NLPD": self.calculate_nlpd()})
 
-            self.ssm_model.linearization_pnts = (tf.identity(self.ssm_model.fx_mus[:, :-1, :]),
-                                                 tf.identity(self.ssm_model.fx_covs[:, :-1, :, :]))
-            self.ssm_model._linearize_prior()
+            self.tvgp_model.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
+                                                 tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
+            self.tvgp_model._linearize_prior()
 
-            elbo_after = self.ssm_model.classic_elbo().numpy().item()
+            elbo_after = self.tvgp_model.classic_elbo().numpy().item()
             if tf.math.abs(elbo_before - elbo_after) < 1e-4:
                 break
 
             i = i + 1
 
+        if i == max_itr:
+            print("t-VGP: maximum iterations reached!!!")
+
         wandb.log({"t-VGP-E-Step": elbo_vals[-1]})
 
-        print(f"t-VGP: Sites Converged!!!")
+        print("t-VGP: Sites Converged!!!")
 
         return elbo_vals
 
@@ -104,34 +110,34 @@ class tVGPTrainer:
         elbo_vals = []
 
         def dist_p() -> StateSpaceModel:
-            fx_mus = self.ssm_model.fx_mus[:, :-1, :]
-            fx_covs = self.ssm_model.fx_covs[:, :-1, :, :]
+            fx_mus = self.tvgp_model.fx_mus[:, :-1, :]
+            fx_covs = self.tvgp_model.fx_covs[:, :-1, :, :]
 
-            return linearize_sde(sde=self.ssm_model.prior_sde, transition_times=self.ssm_model.time_points,
-                                 q_mean=fx_mus, q_covar=fx_covs, initial_mean=self.ssm_model.initial_mean,
-                                 initial_chol_covariance=self.ssm_model.initial_chol_cov,
+            return linearize_sde(sde=self.tvgp_model.prior_sde, transition_times=self.tvgp_model.time_points,
+                                 q_mean=fx_mus, q_covar=fx_covs, initial_mean=self.tvgp_model.initial_mean,
+                                 initial_chol_covariance=self.tvgp_model.initial_chol_cov,
                                  )
 
         def loss():
-            return self.ssm_model.kl(dist_p=dist_p()) + self.ssm_model.loss_lin(dist_p=dist_p())
+            return self.tvgp_model.kl(dist_p=dist_p()) + self.tvgp_model.loss_lin(dist_p=dist_p())
             # return -1. * self.posterior_kalman.log_likelihood() + self.loss_lin()
 
         i = 0
         while i < max_itr:
-            elbo_before = self.ssm_model.classic_elbo().numpy().item()
-            self.prior_sde_optimizer.minimize(loss, self.ssm_model.prior_sde.trainable_variables)
+            elbo_before = self.tvgp_model.classic_elbo().numpy().item()
+            self.prior_sde_optimizer.minimize(loss, self.tvgp_model.prior_sde.trainable_variables)
 
             # FIXME: ONLY FOR OU: Steady state covariance
-            if isinstance(self.ssm_model.prior_sde, PriorOUSDE):
-                self.ssm_model.initial_chol_cov = tf.linalg.cholesky(
-                    (self.ssm_model.prior_sde.q / (2 * (-1 * self.ssm_model.prior_sde.decay))) * tf.ones_like(self.ssm_model.initial_chol_cov))
+            if isinstance(self.tvgp_model.prior_sde, PriorOUSDE):
+                self.tvgp_model.initial_chol_cov = tf.linalg.cholesky(
+                    (self.tvgp_model.prior_sde.q / (2 * (-1 * self.tvgp_model.prior_sde.decay))) * tf.ones_like(self.tvgp_model.initial_chol_cov))
 
             # Linearize the prior
-            self.linearization_pnts = (tf.identity(self.ssm_model.fx_mus[:, :-1, :]),
-                                       tf.identity(self.ssm_model.fx_covs[:, :-1, :, :]))
-            self.ssm_model._linearize_prior()
+            self.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
+                                       tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
+            self.tvgp_model._linearize_prior()
 
-            elbo_after = self.ssm_model.classic_elbo().numpy().item()
+            elbo_after = self.tvgp_model.classic_elbo().numpy().item()
             elbo_vals.append(elbo_after)
             self._store_prior_param_vals()
 
@@ -143,7 +149,7 @@ class tVGPTrainer:
 
             # Check convergence
             converged = True
-            for i, param in enumerate(self.ssm_model.prior_sde.trainable_variables):
+            for i, param in enumerate(self.tvgp_model.prior_sde.trainable_variables):
                 old_val = self.prior_params[i][-2]
                 new_val = self.prior_params[i][-1]
 
@@ -172,14 +178,14 @@ class tVGPTrainer:
         i = 0
 
         while i < max_itr:
-            elbo_before = self.ssm_model.classic_elbo().numpy().item()
+            elbo_before = self.tvgp_model.classic_elbo().numpy().item()
             inference_elbo = self.single_e_step()
             elbo_vals = elbo_vals + inference_elbo
 
             learn_elbo_vals = self.update_prior_sde()
             elbo_vals = elbo_vals + learn_elbo_vals
 
-            elbo_vals.append(self.ssm_model.classic_elbo().numpy().item())
+            elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
             print(f"t-VGP: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")
             wandb.log({"t-VGP-ELBO": elbo_vals[-1]})
 
@@ -188,7 +194,7 @@ class tVGPTrainer:
                 self.m_step_data[k].append(v)
                 wandb.log({"t-VGP-M-Step-" + str(k): v})
 
-            elbo_after = self.ssm_model.classic_elbo().numpy().item()
+            elbo_after = self.tvgp_model.classic_elbo().numpy().item()
 
             if elbo_before > elbo_after:
                 print("t-VGP: ELBO increasing! Decaying LR!")
@@ -205,7 +211,7 @@ class tVGPTrainer:
         """
         Run inference and (if required) update prior till convergence.
         """
-        self.elbo_vals.append(self.ssm_model.classic_elbo().numpy().item())
+        self.elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
         print(f"t-VGP: Starting ELBO {self.elbo_vals[-1]};")
         wandb.log({"t-VGP-ELBO": self.elbo_vals[-1]})
 
@@ -223,8 +229,8 @@ class tVGPTrainer:
             print("Performing last update sites!!!")
             sites_converged = False
             while not sites_converged:
-                sites_converged = self.ssm_model.update_sites()
-                self.elbo_vals.append(self.ssm_model.classic_elbo().numpy().item())
+                sites_converged = self.tvgp_model.update_sites()
+                self.elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
 
                 print(f"t-VGP: ELBO {self.elbo_vals[-1]};!!!")
                 wandb.log({"t-VGP-ELBO": self.elbo_vals[-1]})
