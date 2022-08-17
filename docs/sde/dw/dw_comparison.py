@@ -158,7 +158,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
 
     ssm_elbo, ssm_prior_vals, ssm_m_step_data = t_vgp_trainer.run(update_prior=LEARN_PRIOR_SDE)
 
-    return t_vgp_trainer.ssm_model, ssm_elbo, ssm_prior_vals, ssm_m_step_data
+    return t_vgp_trainer.tvgp_model, ssm_elbo, ssm_prior_vals, ssm_m_step_data
 
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):
