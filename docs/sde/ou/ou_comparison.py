@@ -29,6 +29,7 @@ from markovflow.sde.sde_utils import gaussian_log_predictive_density
 
 from docs.sde.sde_exp_utils import predict_vgp, predict_ssm, plot_observations, plot_posterior, get_cvi_gpr_taylor, \
     predict_cvi_gpr_taylor, get_cvi_gpr, predict_cvi_gpr
+from docs.sde.t_vgp_trainer import tVGPTrainer
 
 DTYPE = default_float()
 plt.rcParams["figure.figsize"] = [15, 5]
@@ -174,24 +175,18 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
     # As prior OU SDE doesn't have a negative sign inside it.
     prior_sde_ssm = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
-    initial_cov = Q / (2 * -1 * INITIAL_PRIOR_VALUE)  # Steady covariance
 
     # likelihood
     likelihood_ssm = Gaussian(NOISE_STDDEV ** 2)
 
-    # model
-    ssm_model = SDESSM(input_data=OBSERVATION_DATA, prior_sde=prior_sde_ssm, grid=TIME_GRID, likelihood=likelihood_ssm,
-                       learning_rate=data_sites_lr, prior_params_lr=prior_lr, test_data=TEST_DATA,
-                       update_all_sites=UPDATE_ALL_SITES, all_sites_lr=all_sites_lr)
+    t_vgp_trainer = tVGPTrainer(observation_data=OBSERVATION_DATA, likelihood=likelihood_ssm, time_grid=TIME_GRID,
+                                prior_sde=prior_sde_ssm, data_sites_lr=data_sites_lr,
+                                all_sites_lr=all_sites_lr, prior_sde_lr=prior_lr, test_data=TEST_DATA,
+                                update_all_sites=UPDATE_ALL_SITES)
 
-    ssm_model.initial_mean = tf.zeros_like(ssm_model.initial_mean)
-    ssm_model.initial_chol_cov = tf.linalg.cholesky(tf.reshape(initial_cov, ssm_model.initial_chol_cov.shape))
-    ssm_model.fx_covs = ssm_model.initial_chol_cov.numpy().item() ** 2 + 0 * ssm_model.fx_covs
-    ssm_model._linearize_prior()
+    ssm_elbo, ssm_prior_vals, ssm_m_step_data = t_vgp_trainer.run(update_prior=LEARN_PRIOR_SDE)
 
-    ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data = ssm_model.run(update_prior=LEARN_PRIOR_SDE)
-
-    return ssm_model, ssm_elbo, ssm_prior_prior_vals, ssm_m_step_data
+    return t_vgp_trainer.ssm_model, ssm_elbo, ssm_prior_vals, ssm_m_step_data
 
 
 def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.01):

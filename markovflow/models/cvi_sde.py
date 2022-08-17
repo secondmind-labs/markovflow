@@ -17,12 +17,10 @@
 from typing import Optional, Tuple
 
 import tensorflow as tf
-from gpflow.likelihoods import Likelihood, Gaussian
+from gpflow.likelihoods import Likelihood
 from gpflow.base import Parameter
 from gpflow import default_float
-from markovflow.sde.sde import PriorOUSDE
 import wandb
-from tensorflow_probability import distributions
 from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
@@ -36,7 +34,6 @@ from markovflow.kalman_filter import KalmanFilterWithSites
 from markovflow.sde.sde_utils import KL_sde
 from markovflow.ssm_natgrad import naturals_to_ssm_params
 from markovflow.models.variational_cvi import back_project_nats
-from markovflow.sde.sde_utils import gaussian_log_predictive_density
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
@@ -52,11 +49,8 @@ class SDESSM(CVIGaussianProcess):
             likelihood: Likelihood,
             mean_function: Optional[MeanFunction] = None,
             learning_rate=0.1,
-            prior_params_lr: float = 0.01,
             test_data: Tuple[tf.Tensor, tf.Tensor] = None,
-            update_all_sites: bool = False,
             all_sites_lr=0.1,
-            convergence_tol: float = 1e-2
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
@@ -97,31 +91,12 @@ class SDESSM(CVIGaussianProcess):
 
         self.data_sites_lr = learning_rate
         self.all_sites_lr = all_sites_lr
-        self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_params_lr)
         self.elbo_vals = []
-        self.convergence_tol = convergence_tol
 
         self.dist_p_ssm = None
 
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
-
-        self.m_step_data = {}
-        self.prior_params = {}
-        for i, param in enumerate(self.prior_sde.trainable_variables):
-            self.prior_params[i] = [param.numpy().item()]
-            self.m_step_data[i] = [param.numpy().item()]
-
-        # Done this way because all sites are updated only after a once data-sites have converged
-        self.do_update_all_sites = update_all_sites
-        if self.all_sites_lr <= 0:
-            self.do_update_all_sites = False
-        self.update_all_sites = False
-
-    def _store_prior_param_vals(self):
-        """Update the list storing the prior sde parameter values"""
-        for i, param in enumerate(self.prior_sde.trainable_variables):
-            self.prior_params[i].append(param.numpy().item())
 
     def _linearize_prior(self):
         """
@@ -316,7 +291,7 @@ class SDESSM(CVIGaussianProcess):
 
         return val
 
-    def update_sites(self) -> bool:
+    def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4) -> bool:
         """
         Perform one joint update of the Gaussian sites. That is:
 
@@ -338,9 +313,9 @@ class SDESSM(CVIGaussianProcess):
         data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
         data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
 
-        data_site_converged = (data_nat1_sq_norm < self.convergence_tol) & (data_nat2_sq_norm < self.convergence_tol)
+        data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
 
-        if self.update_all_sites:
+        if update_all_sites:
             # Linearization gradient for updating the overall sites
             _, grads0, grads1 = self.grad_linearization_diff()
             # we don't have the gradient for the last state (m[-1, S[-1]])
@@ -355,7 +330,7 @@ class SDESSM(CVIGaussianProcess):
             sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
             sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
 
-            all_site_converged = (sites_nat1_sq_norm < self.convergence_tol) & (sites_nat2_sq_norm < self.convergence_tol)
+            all_site_converged = (sites_nat1_sq_norm < convergence_tol) & (sites_nat2_sq_norm < convergence_tol)
 
             self.sites_nat2 = new_nat2
             self.sites_nat1 = new_nat1
@@ -475,62 +450,6 @@ class SDESSM(CVIGaussianProcess):
 
         return k_l
 
-    def update_prior_sde(self, max_itr=500):
-        elbo_vals = []
-        def dist_p() -> StateSpaceModel:
-            fx_mus = self.fx_mus[:, :-1, :]
-            fx_covs = self.fx_covs[:, :-1, :, :]
-
-            return linearize_sde(sde=self.prior_sde, transition_times=self.time_points, q_mean=fx_mus,
-                                 q_covar=fx_covs, initial_mean=self.initial_mean,
-                                 initial_chol_covariance=self.initial_chol_cov,
-                                 )
-
-        def loss():
-            return self.kl(dist_p=dist_p()) + self.loss_lin(dist_p=dist_p())
-            # return -1. * self.posterior_kalman.log_likelihood() + self.loss_lin()
-
-        i = 0
-        while i < max_itr:
-            # elbo_before = self.classic_elbo().numpy().item()
-            self.prior_sde_optimizer.minimize(loss, self.prior_sde.trainable_variables)
-            # FIXME: ONLY FOR OU: Steady state covariance
-            if isinstance(self.prior_sde, PriorOUSDE):
-                self.initial_chol_cov = tf.linalg.cholesky(
-                    (self.prior_sde.q / (2 * (-1 * self.prior_sde.decay))) * tf.ones_like(self.initial_chol_cov))
-
-            # Linearize the prior
-            self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
-                                       tf.identity(self.fx_covs[:, :-1, :, :]))
-            self._linearize_prior()
-            elbo_after = self.classic_elbo().numpy().item()
-            elbo_vals.append(elbo_after)
-            self._store_prior_param_vals()
-
-            for k in self.prior_params.keys():
-                v = self.prior_params[k][-1]
-                wandb.log({"SSM-learning-" + str(k): v})
-                print(f"SSM-learning-{str(k)} : {v}")
-
-            converged = True
-            for i, param in enumerate(self.prior_sde.trainable_variables):
-                old_val = self.prior_params[i][-2]
-                new_val = self.prior_params[i][-1]
-
-                diff = tf.reduce_sum(tf.math.abs(old_val - new_val))
-
-                if diff < 1e-4:
-                    converged = converged & True
-                else:
-                    converged = False
-
-            if converged:
-                print("SSM: Learning; ELBO converged!!!")
-                break
-            i = i + 1
-
-        return elbo_vals
-
     def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
         """
         1/2 * \E_{q}[||f_P - f_l||^2_{\Sigma^{-1}}]
@@ -597,130 +516,3 @@ class SDESSM(CVIGaussianProcess):
         # print(f"SSM-VE : {ve_fx}")
 
         return ve_fx - kl_fx - lin_loss - cross_term_val
-
-    def calculate_nlpd(self) -> float:
-        """
-            Calculate NLPD on the test set
-            FIXME: Only in case of Gaussian
-        """
-        if self.test_data is None:
-            return 0.
-
-        m, S = self.dist_q.marginals
-        s_std = tf.linalg.cholesky(S + self.likelihood.variance)
-
-        pred_idx = list((tf.where(self.grid == self.test_data[0][..., None])[:, 1]).numpy())
-        s_std = tf.reshape(tf.gather(s_std, pred_idx, axis=1), (-1, 1, 1))
-        lpd = gaussian_log_predictive_density(mean=tf.gather(m, pred_idx, axis=1), chol_covariance=s_std,
-                                              x=tf.reshape(self.test_data[1], (-1,)))
-        nlpd = -1 * tf.reduce_mean(lpd)
-
-        return nlpd.numpy().item()
-
-    def inference_only(self) -> list:
-        """
-        Perform inference only and not learning.
-        """
-        elbo_vals = []
-        max_itr = 50
-        i = 0
-        while i < max_itr:
-            elbo_before = self.classic_elbo().numpy().item()
-            sites_converged = False
-            while not sites_converged:
-                sites_converged = self.update_sites()
-
-                elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {elbo_vals[-1]}!!!")
-                wandb.log({"SSM-ELBO": elbo_vals[-1]})
-                wandb.log({"SSM-NLPD": self.calculate_nlpd()})
-
-                if len(elbo_vals) > 1 and elbo_vals[-2] > elbo_vals[-1]:
-                    print("SSM: Site updates; ELBO decreasing!!! Decaying LR!")
-                    self.data_sites_lr = self.data_sites_lr / 2
-                    if self.do_update_all_sites:
-                        self.update_all_sites = True
-                        self.all_sites_lr = self.all_sites_lr / 2
-                    break
-
-            self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]),
-                                       tf.identity(self.fx_covs[:, :-1, :, :]))
-            self._linearize_prior()
-            elbo_after = self.classic_elbo().numpy().item()
-
-            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
-                break
-
-            if self.do_update_all_sites:
-                self.update_all_sites = True
-            i = i + 1
-
-        wandb.log({"SSM-E-Step": elbo_vals[-1]})
-
-        print(f"SSM: Sites Converged!!!")
-
-        return elbo_vals
-
-    def inference_and_learning(self, max_itr: int = 50):
-        """Perform inference and learning"""
-        elbo_vals = []
-        i = 0
-
-        while i < max_itr:
-            elbo_before = self.classic_elbo().numpy().item()
-            inference_elbo = self.inference_only()
-            elbo_vals = elbo_vals + inference_elbo
-
-            learn_elbo_vals = self.update_prior_sde()
-            elbo_vals = elbo_vals + learn_elbo_vals
-
-            elbo_vals.append(self.classic_elbo().numpy().item())
-            print(f"SSM: Prior SDE (learnt and) re-linearized: ELBO {elbo_vals[-1]};!!!")
-            wandb.log({"SSM-ELBO": elbo_vals[-1]})
-
-            for k in self.prior_params.keys():
-                v = self.prior_params[k][-1]
-                self.m_step_data[k].append(v)
-                wandb.log({"SSM-M-Step-" + str(k): v})
-
-            elbo_after = self.classic_elbo().numpy().item()
-
-            if elbo_before > elbo_after:
-                print("SSM: ELBO increasing! Decaying LR!")
-                self.prior_sde_optimizer.learning_rate = self.prior_sde_optimizer.learning_rate / 2
-
-            if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
-                print("SSM: ELBO converged!!!")
-                break
-            i = i + 1
-        return elbo_vals
-
-    def run(self, update_prior: bool = False, max_itr: int = 50) -> [list, dict]:
-        """
-        Run inference and (if required) update prior till convergence.
-        """
-        self.elbo_vals.append(self.classic_elbo().numpy().item())
-        print(f"SSM: Starting ELBO {self.elbo_vals[-1]};")
-        wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
-
-        if not update_prior:
-            inf_elbo_vals = self.inference_only()
-            self.elbo_vals = self.elbo_vals + inf_elbo_vals
-
-            return self.elbo_vals, self.prior_params, self.m_step_data
-        else:
-            learning_elbo_vals = self.inference_and_learning(max_itr)
-            self.elbo_vals = self.elbo_vals + learning_elbo_vals
-
-            # One last site update for the updated prior
-            print("Performing last update sites!!!")
-            sites_converged = False
-            while not sites_converged:
-                sites_converged = self.update_sites()
-                self.elbo_vals.append(self.classic_elbo().numpy().item())
-                print(f"SSM: ELBO {self.elbo_vals[-1]};!!!")
-                wandb.log({"SSM-ELBO": self.elbo_vals[-1]})
-                wandb.log({"SSM-E-Step": self.elbo_vals[-1]})
-
-        return self.elbo_vals, self.prior_params, self.m_step_data
-
