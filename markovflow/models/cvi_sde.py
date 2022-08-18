@@ -207,7 +207,7 @@ class SDESSM(CVIGaussianProcess):
         q_mean = tf.squeeze(m, axis=0)[:-1]
         q_covar = tf.squeeze(S, axis=0)[:-1]
 
-        # convert from state transitons of the SSM to SDE P's drift and offset
+        # convert from state transitions of the SSM to SDE P's drift and offset
         A = tf.squeeze(dist_p.state_transitions, axis=0)
         b = tf.squeeze(dist_p.state_offsets, axis=0)
         A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / (self.grid[1] - self.grid[0])
@@ -507,12 +507,12 @@ class SDESSM(CVIGaussianProcess):
 
         cross_term_val = self.cross_term(dist_q=dist_q)
 
-        wandb.log({"SSM-KL": kl_fx})
-        wandb.log({"SSM-VE": ve_fx})
-        wandb.log({"SSM-Lin-Loss": lin_loss})
-        wandb.log({"SSM-cross-term": cross_term_val})
+        wandb.log({"t-VGP-KL": kl_fx})
+        wandb.log({"t-VGP-VE": ve_fx})
+        wandb.log({"t-VGP-Lin-Loss": lin_loss})
+        wandb.log({"t-VGP-cross-term": cross_term_val})
 
-        # print(f"SSM-KL : {kl_fx + lin_loss + cross_term_val}")
-        # print(f"SSM-VE : {ve_fx}")
+        # print(f"t-VGP-KL : {kl_fx + lin_loss + cross_term_val}")
+        # print(f"t-VGP-VE : {ve_fx}")
 
         return ve_fx - kl_fx - lin_loss - cross_term_val

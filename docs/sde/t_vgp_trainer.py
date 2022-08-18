@@ -95,6 +95,10 @@ class tVGPTrainer:
             if tf.math.abs(elbo_before - elbo_after) < 1e-4:
                 break
 
+            if elbo_before > elbo_after:
+                print("ELBO decreasing! Decaying lr!")
+                self.tvgp_model.all_sites_lr = self.tvgp_model.all_sites_lr / 2
+
             i = i + 1
 
         if i == max_itr:
