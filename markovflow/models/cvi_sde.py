@@ -149,7 +149,7 @@ class SDESSM(CVIGaussianProcess):
         return self.grid
 
     @property
-    def dist_q(self) -> StateSpaceModel:
+    def dist_q_v2(self) -> StateSpaceModel:
         """
         Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
         the posterior process indexed at the time points.
@@ -182,7 +182,13 @@ class SDESSM(CVIGaussianProcess):
             initial_mean=post_ssm_params[4],
         )
 
-    # return self.posterior_kalman.posterior_state_space_model()
+    @property
+    def dist_q(self) -> StateSpaceModel:
+        """
+        Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
+        the posterior process indexed at the time points.
+        """
+        return self.posterior_kalman.posterior_state_space_model()
 
     def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
         """

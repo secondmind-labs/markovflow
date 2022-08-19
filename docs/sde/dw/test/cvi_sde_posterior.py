@@ -42,10 +42,10 @@ if __name__ == '__main__':
     t_vgp_model = SDESSM(prior_sde=sde_p, grid=t, input_data=observations, likelihood=likelihood, learning_rate=0.9)
     t_vgp_model.update_sites()
 
-    kf_ssm = t_vgp_model.posterior_kalman.posterior_state_space_model()
+    kf_ssm = t_vgp_model.dist_q
 
-    np.testing.assert_allclose(t_vgp_model.dist_q.marginal_means, kf_ssm.marginal_means)
-    np.testing.assert_allclose(t_vgp_model.dist_q.marginal_covariances, kf_ssm.marginal_covariances)
+    np.testing.assert_allclose(t_vgp_model.dist_q_v2.marginal_means, kf_ssm.marginal_means)
+    np.testing.assert_allclose(t_vgp_model.dist_q_v2.marginal_covariances, kf_ssm.marginal_covariances)
 
-    np.testing.assert_allclose(t_vgp_model.dist_q.state_transitions, kf_ssm.state_transitions)
-    np.testing.assert_allclose(t_vgp_model.dist_q.state_offsets, kf_ssm.state_offsets)
+    np.testing.assert_allclose(t_vgp_model.dist_q_v2.state_transitions, kf_ssm.state_transitions)
+    np.testing.assert_allclose(t_vgp_model.dist_q_v2.state_offsets, kf_ssm.state_offsets)
