@@ -154,7 +154,35 @@ class SDESSM(CVIGaussianProcess):
         Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
         the posterior process indexed at the time points.
         """
-        return self.posterior_kalman.posterior_state_space_model()
+        sites = self.sites
+        prec = self.dist_p_ssm._build_precision()
+
+        # [..., num_transitions + 1, state_dim, state_dim]
+        prec_diag = prec.block_diagonal
+        # [..., num_transitions, state_dim, state_dim]
+        prec_subdiag = prec.block_sub_diagonal
+
+        H = self.generate_emission_model(self.time_points).emission_matrix
+
+        bp_nat1, bp_nat2 = back_project_nats(sites.nat1, sites.nat2[..., 0], H)
+
+        # conjugate update of the natural parameter: post_nat = prior_nat + lik_nat
+        theta_diag = -0.5 * prec_diag + bp_nat2
+        theta_subdiag = -prec_subdiag
+
+        post_ssm_params = naturals_to_ssm_params(
+            theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
+        )
+
+        return StateSpaceModel(
+            state_transitions=post_ssm_params[0],
+            state_offsets=post_ssm_params[1],
+            chol_initial_covariance=post_ssm_params[2],
+            chol_process_covariances=post_ssm_params[3],
+            initial_mean=post_ssm_params[4],
+        )
+
+    # return self.posterior_kalman.posterior_state_space_model()
 
     def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
         """
@@ -351,37 +379,6 @@ class SDESSM(CVIGaussianProcess):
         self.fx_mus, self.fx_covs = dist_q.marginals
 
         return has_converged
-
-    def get_posterior_drift_params(self):
-        """
-        Get the drift parameters of the posterior:
-            f(x_t) = A_t x_t + b_t
-        """
-        sites = self.posterior_kalman.sites
-
-        prec = self.dist_p_ssm._build_precision()
-
-        # [..., num_transitions + 1, state_dim, state_dim]
-        prec_diag = prec.block_diagonal
-        # [..., num_transitions, state_dim, state_dim]
-        prec_subdiag = prec.block_sub_diagonal
-
-        H = self.generate_emission_model(self.time_points).emission_matrix
-
-        bp_nat1, bp_nat2 = back_project_nats(sites.nat1, sites.nat2[..., 0], H)
-
-        # conjugate update of the natural parameter: post_nat = prior_nat + lik_nat
-        theta_diag = -0.5 * prec_diag + bp_nat2
-        theta_subdiag = -prec_subdiag
-
-        post_ssm_params = naturals_to_ssm_params(
-            theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
-        )
-
-        A = (tf.reshape(post_ssm_params[0], (-1, 1, 1)) - tf.eye(self.state_dim, dtype=post_ssm_params[0].dtype)) / (self.grid[1] - self.grid[0])
-        b = tf.reshape(post_ssm_params[1], (-1, 1)) / (self.grid[1] - self.grid[0])
-
-        return A, b, post_ssm_params
 
     def kl(self, dist_p: StateSpaceModel) -> tf.Tensor:
         r"""
