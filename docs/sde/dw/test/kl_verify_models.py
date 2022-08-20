@@ -87,6 +87,10 @@ if __name__ == '__main__':
     m = m.numpy().reshape(-1)
     S_std = np.sqrt(S.numpy()).reshape(-1)
 
+    m_vgp, S_vgp = vgp_model.forward_pass
+    m_vgp = m_vgp.numpy().reshape(-1)
+    S_std_vgp = np.sqrt(S_vgp.numpy()).reshape(-1)
+
     plt.subplots(1, 1, figsize=(15, 5))
     plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
     plt.fill_between(
@@ -97,6 +101,17 @@ if __name__ == '__main__':
         facecolor=(0, 0, 0, 0.),
         linestyle='dashed'
     )
-    plt.plot(t.numpy().reshape(-1), m.reshape(-1))
-    plt.savefig("test_posterior.png")
+    plt.fill_between(
+        t,
+        y1=(m_vgp.reshape(-1) - 2 * S_std_vgp.reshape(-1)).reshape(-1, ),
+        y2=(m_vgp.reshape(-1) + 2 * S_std_vgp.reshape(-1)).reshape(-1, ),
+        edgecolor="blue",
+        facecolor=(0, 0, 0, 0.)
+    )
+
+    plt.plot(t.numpy().reshape(-1), m.reshape(-1), color="black", linestyle="dashed", label="t-VGP")
+    plt.plot(t.numpy().reshape(-1), m_vgp.reshape(-1), color="blue", alpha=0.5, label="VGP")
+
+    plt.legend()
+    plt.savefig("test_posterior.svg")
     plt.show()

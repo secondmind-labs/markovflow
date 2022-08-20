@@ -24,3 +24,6 @@ output/
 data/
 wandb/
 .ipynb_checkpoints/
+*.svg
+*.png
+*.pdf
