@@ -26,7 +26,7 @@ np.random.seed(33)
 def setup():
     t0 = 0
     t1 = 10
-    dt = 0.001
+    dt = 0.0001
     noise_var = 0.01
 
     # Define q
@@ -87,6 +87,7 @@ if __name__ == '__main__':
     m = m.numpy().reshape(-1)
     S_std = np.sqrt(S.numpy()).reshape(-1)
 
+    plt.subplots(1, 1, figsize=(15, 5))
     plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
     plt.fill_between(
         t,
