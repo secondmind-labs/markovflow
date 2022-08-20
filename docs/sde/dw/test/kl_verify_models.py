@@ -9,21 +9,25 @@ import tensorflow as tf
 import numpy as np
 from gpflow.config import default_float
 from gpflow.likelihoods import Gaussian
+import matplotlib.pyplot as plt
 
 from docs.sde.sde_exp_utils import generate_dw_data
 from markovflow.sde.sde import PriorDoubleWellSDE
-from markovflow.state_space_model import StateSpaceModel
 from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
 
 DTYPE = default_float()
 wandb.init()
 
+tf.random.set_seed(33)
+np.random.seed(33)
+
 
 def setup():
     t0 = 0
     t1 = 10
     dt = 0.001
+    noise_var = 0.01
 
     # Define q
     q = tf.ones((1, 1), dtype=DTYPE)
@@ -34,10 +38,10 @@ def setup():
     # Generate observations.
     # Observations and likelihoods are not really required but need to pass them
     obs_val, obs_t, _, t, _, _, _ = generate_dw_data(q=q, x0=1., t0=t0, t1=t1, simulation_dt=dt,
-                                                     noise_stddev=1., n_observations=20, dtype=DTYPE)
+                                                     noise_stddev=np.sqrt(noise_var), n_observations=20, dtype=DTYPE)
     obs_val = tf.reshape(obs_val, (-1, 1))
     observations = (obs_t, obs_val)
-    likelihood = Gaussian()
+    likelihood = Gaussian(variance=noise_var)
 
     return sde_p, observations, t, likelihood, dt
 
@@ -46,7 +50,8 @@ if __name__ == '__main__':
 
     sde_p, observations, t, likelihood, dt = setup()
     t_vgp_model = SDESSM(prior_sde=sde_p, grid=t, input_data=observations, likelihood=likelihood, learning_rate=0.9)
-    t_vgp_model.update_sites()
+    for _ in range(10):
+        t_vgp_model.update_sites()
     print(f"t-VGP model : {t_vgp_model.classic_elbo()}")
 
     # Get drift parameters from q posterior SSM
@@ -77,3 +82,20 @@ if __name__ == '__main__':
                                          vgp_model.forward_pass[1].numpy().reshape(-1), decimal=4)
 
     print(f"VGP model : {vgp_model.elbo()}")
+
+    m, S = t_vgp_model.dist_q.marginals
+    m = m.numpy().reshape(-1)
+    S_std = np.sqrt(S.numpy()).reshape(-1)
+
+    plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
+    plt.fill_between(
+        t,
+        y1=(m.reshape(-1) - 2 * S_std.reshape(-1)).reshape(-1, ),
+        y2=(m.reshape(-1) + 2 * S_std.reshape(-1)).reshape(-1, ),
+        edgecolor="black",
+        facecolor=(0, 0, 0, 0.),
+        linestyle='dashed'
+    )
+    plt.plot(t.numpy().reshape(-1), m.reshape(-1))
+    plt.savefig("test_posterior.png")
+    plt.show()
