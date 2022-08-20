@@ -13,8 +13,10 @@ import matplotlib.pyplot as plt
 
 from docs.sde.sde_exp_utils import generate_dw_data
 from markovflow.sde.sde import PriorDoubleWellSDE
-from markovflow.models.cvi_sde import SDESSM
 from markovflow.models.vi_sde import VariationalMarkovGP
+
+from docs.sde.t_vgp_trainer import tVGPTrainer
+
 
 DTYPE = default_float()
 wandb.init()
@@ -25,8 +27,8 @@ np.random.seed(33)
 
 def setup():
     t0 = 0
-    t1 = 10
-    dt = 0.0001
+    t1 = 5
+    dt = 0.01
     noise_var = 0.01
 
     # Define q
@@ -49,11 +51,13 @@ def setup():
 if __name__ == '__main__':
 
     sde_p, observations, t, likelihood, dt = setup()
-    t_vgp_model = SDESSM(prior_sde=sde_p, grid=t, input_data=observations, likelihood=likelihood, learning_rate=0.9)
-    for _ in range(10):
-        t_vgp_model.update_sites()
-    print(f"t-VGP model : {t_vgp_model.classic_elbo()}")
 
+    t_vgp_trainer = tVGPTrainer(observations, likelihood, t, sde_p, data_sites_lr=0.9, all_sites_lr=0.1,
+                                update_all_sites=True)
+    t_vgp_elbo_vals, _, _ = t_vgp_trainer.run(update_prior=False)
+    print(f"t-VGP model : {t_vgp_elbo_vals[-1]}")
+
+    t_vgp_model = t_vgp_trainer.tvgp_model
     # Get drift parameters from q posterior SSM
     q_A = (tf.reshape(t_vgp_model.dist_q.state_transitions, (-1, 1, 1)) - tf.eye(1, dtype=t_vgp_model.dist_q.state_transitions.dtype)) / dt
     q_b = tf.reshape(t_vgp_model.dist_q.state_offsets, (-1, 1)) / dt
@@ -62,26 +66,18 @@ if __name__ == '__main__':
     dist_q_Q = tf.square(t_vgp_model.dist_q.cholesky_process_covariances) / dt
     print(dist_q_Q)
 
-    vgp_model = VariationalMarkovGP(observations, sde_p, t, likelihood)
+    vgp_model = VariationalMarkovGP(observations, sde_p, t, likelihood, lr=0.5, initial_state_lr=0.1,
+                                    convergence_tol=1e-4)
 
-    # Initialize VGP model's posterior same as t-VGP
-    vgp_model.p_initial_cov = tf.reshape(tf.square(t_vgp_model.initial_chol_cov), vgp_model.p_initial_cov.shape)
-    vgp_model.p_initial_mean = t_vgp_model.initial_mean + tf.zeros_like(vgp_model.p_initial_mean)
-    vgp_model.q_initial_mean = tf.reshape(t_vgp_model.dist_q.initial_mean, vgp_model.q_initial_mean.shape)
-    vgp_model.q_initial_cov = tf.reshape(t_vgp_model.dist_q.initial_covariance, shape=vgp_model.q_initial_cov.shape)
+    # Initialize VGP model
+    vgp_model.q_initial_cov = 1. + 0. * vgp_model.q_initial_cov
+    vgp_model.q_initial_mean = observations[1][0] + 0. * vgp_model.q_initial_mean
+    vgp_model.p_initial_mean = observations[1][0] + 0. * vgp_model.p_initial_mean
+    vgp_model.p_initial_cov = 0.5 + 0. * vgp_model.p_initial_cov
 
-    # -1 because of how VGP is parameterized
-    vgp_model.A = -1 * tf.concat([q_A, tf.ones((1, 1, 1), dtype=q_A.dtype)], axis=0)
-    vgp_model.b = tf.concat([q_b, tf.zeros((1, 1), dtype=q_b.dtype)], axis=0)
+    vgp_elbo_vals, _, _ = vgp_model.run(update_prior=False, update_initial_statistics=True)
 
-    # Test for means and covariances of the posterior of VGP and t-VGP
-    np.testing.assert_array_almost_equal(t_vgp_model.dist_q.marginal_means.numpy().reshape(-1),
-                                         vgp_model.forward_pass[0].numpy().reshape(-1), decimal=4)
-
-    np.testing.assert_array_almost_equal(t_vgp_model.dist_q.marginal_covariances.numpy().reshape(-1),
-                                         vgp_model.forward_pass[1].numpy().reshape(-1), decimal=4)
-
-    print(f"VGP model : {vgp_model.elbo()}")
+    print(f"VGP model : {vgp_elbo_vals[-1]}")
 
     m, S = t_vgp_model.dist_q.marginals
     m = m.numpy().reshape(-1)
@@ -113,5 +109,5 @@ if __name__ == '__main__':
     plt.plot(t.numpy().reshape(-1), m_vgp.reshape(-1), color="blue", alpha=0.5, label="VGP")
 
     plt.legend()
-    plt.savefig("test_posterior.png")
+    plt.savefig("test_posterior_inference.png")
     plt.show()
