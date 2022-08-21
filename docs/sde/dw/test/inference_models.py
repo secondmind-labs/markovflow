@@ -27,15 +27,12 @@ np.random.seed(33)
 
 def setup():
     t0 = 0
-    t1 = 5
-    dt = 0.01
+    t1 = 10
+    dt = 0.001
     noise_var = 0.01
 
     # Define q
     q = tf.ones((1, 1), dtype=DTYPE)
-
-    # DW non-linear SDE, p
-    sde_p = PriorDoubleWellSDE(q=q)
 
     # Generate observations.
     # Observations and likelihoods are not really required but need to pass them
@@ -44,6 +41,9 @@ def setup():
     obs_val = tf.reshape(obs_val, (-1, 1))
     observations = (obs_t, obs_val)
     likelihood = Gaussian(variance=noise_var)
+
+    # DW non-linear SDE, p
+    sde_p = PriorDoubleWellSDE(q=q, initial_a_val=3.0, initial_c_val=1.0)
 
     return sde_p, observations, t, likelihood, dt
 
@@ -58,15 +58,19 @@ if __name__ == '__main__':
     print(f"t-VGP model : {t_vgp_elbo_vals[-1]}")
 
     t_vgp_model = t_vgp_trainer.tvgp_model
-    # Get drift parameters from q posterior SSM
-    q_A = (tf.reshape(t_vgp_model.dist_q.state_transitions, (-1, 1, 1)) - tf.eye(1, dtype=t_vgp_model.dist_q.state_transitions.dtype)) / dt
-    q_b = tf.reshape(t_vgp_model.dist_q.state_offsets, (-1, 1)) / dt
+
+    data_sites_nat1 = t_vgp_model.data_sites.nat1
+    data_sites_nat2 = t_vgp_model.data_sites.nat2
+    noise_var = likelihood.variance
+    np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), observations[1] / noise_var)
+    np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
+                                         data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 
     # Compare Q of the posterior SSM, should be equal/ close to true q.
     dist_q_Q = tf.square(t_vgp_model.dist_q.cholesky_process_covariances) / dt
     print(dist_q_Q)
 
-    vgp_model = VariationalMarkovGP(observations, sde_p, t, likelihood, lr=0.5, initial_state_lr=0.1,
+    vgp_model = VariationalMarkovGP(observations, sde_p, t, likelihood, lr=0.5, initial_state_lr=0.05,
                                     convergence_tol=1e-4)
 
     # Initialize VGP model

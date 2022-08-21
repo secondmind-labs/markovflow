@@ -409,7 +409,7 @@ class VariationalMarkovGP:
 
         return converged
 
-    def inference_only(self, update_initial_statistics: bool = True, max_itr: int = 50):
+    def inference_only(self, update_initial_statistics: bool = True, max_itr: int = 500):
         """
         Run inference till convergence
         """
@@ -447,12 +447,13 @@ class VariationalMarkovGP:
             wandb.log({"VGP-E-Step": elbo_vals[-1]})
 
             if update_initial_statistics:
-                self.update_initial_statistics()
-                elbo_vals.append(self.elbo())
-                print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
-                if elbo_vals[-2] > elbo_vals[-1]:
-                    print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
-                    self.x_lr = self.x_lr / 2
+                for _ in range(3):
+                    self.update_initial_statistics()
+                    elbo_vals.append(self.elbo())
+                    print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
+                    if elbo_vals[-2] > elbo_vals[-1]:
+                        print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
+                        self.x_lr = self.x_lr / 2
 
             elbo_after = self.elbo()
             if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
