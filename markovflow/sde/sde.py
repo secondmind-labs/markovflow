@@ -387,3 +387,90 @@ class PriorDoubleWellSDE(SDE):
         """
         assert x.shape[-1] == self.state_dim
         return tf.linalg.cholesky(self.q)
+
+
+class StepWellSDE(SDE):
+    """
+    Prior SDE best suited for the Double-well SDE represented by
+    ..math:: dx(t) = f(x(t)) dt + dB(t),
+    where f(x(t)) = a * x(t) * (c - x(t)^2) and the spectral density of the Brownian motion is specified by q.
+
+    Here, a, c are the Parameters to be learnt.
+    """
+    def __init__(self, q: tf.Tensor = tf.ones((1, 1))):
+        """
+        Initialize the SDE.
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(StepWellSDE, self).__init__(state_dim=q.shape[0])
+        self.q = q
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Drift of the process.
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        x_shp = x.shape
+        x = tf.reshape(x, (-1, 1))
+
+        idx_less = tf.where(x <= 0.)[:, 0]
+        idx_grtr = tf.where(x > 0.)[:, 0]
+
+        # x = -1 * .5 * (x - 2)
+        x = -1 * .5 * x
+
+        if idx_less.shape != (0,):
+            x = tf.tensor_scatter_nd_add(x, tf.reshape(idx_less, (-1, 1)), -1 * tf.ones((idx_less.shape[0], 1), dtype=x.dtype))
+        if idx_grtr.shape != (0,):
+            x = tf.tensor_scatter_nd_add(x, tf.reshape(idx_grtr, (-1, 1)), tf.ones((idx_grtr.shape[0], 1), dtype=x.dtype))
+
+        x = tf.reshape(x, x_shp)
+        return x
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+        """
+        Diffusion of the process.
+        ..math:: l(x(t), t) = sqrt(q)
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.linalg.cholesky(self.q)
+
+    def gradient_drift(self, x: tf.Tensor, t: tf.Tensor = tf.zeros((1, 1))) -> tf.Tensor:
+        """
+        Calculates the gradient of the drift wrt the states x(t).
+
+        :param x: states with shape (num_states, state_dim).
+        :param t: time of states with shape (num_states, 1), defaults to zero.
+
+        :return: the gradient of the SDE drift with shape (num_states, state_dim).
+        """
+        return -1 * 0.5 * tf.ones_like(x)
+
+    def expected_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+        Calculates the Expectation of the drift under the provided Gaussian over states.
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+
+        return self.drift(q_mean, t=None)
+
+    def expected_gradient_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
+        """
+         Calculates the Expectation of the gradient of the drift under the provided Gaussian over states
+
+        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).
+        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).
+
+        :return: the expectation value with shape (n_batch, num_states, state_dim).
+        """
+        return -1 * 0.5 * tf.ones_like(q_mean)
