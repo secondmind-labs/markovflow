@@ -87,9 +87,22 @@ class tVGPTrainer:
             wandb.log({"t-VGP-ELBO": elbo_vals[-1]})
             wandb.log({"t-VGP-NLPD": self.calculate_nlpd()})
 
-            self.tvgp_model.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
-                                                 tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
-            self.tvgp_model._linearize_prior()
+            lin_converged = False
+            while not lin_converged:
+                lin_before_elbo = self.tvgp_model.classic_elbo().numpy().item()
+                print(f"t-VGP: ELBO before linearization {lin_before_elbo}!!!")
+
+                self.tvgp_model.fx_mus, self.tvgp_model.fx_covs = self.tvgp_model.dist_q.marginals
+
+                self.tvgp_model.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
+                                                      tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
+                self.tvgp_model._linearize_prior()
+
+                lin_after_elbo = self.tvgp_model.classic_elbo().numpy().item()
+                print(f"t-VGP: ELBO after linearization {lin_after_elbo}!!!")
+
+                if tf.math.abs(lin_before_elbo - lin_after_elbo) < 1e-4:
+                    lin_converged = True
 
             elbo_after = self.tvgp_model.classic_elbo().numpy().item()
             if tf.math.abs(elbo_before - elbo_after) < 1e-4:
