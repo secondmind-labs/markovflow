@@ -447,8 +447,9 @@ class VariationalMarkovGP:
             wandb.log({"VGP-E-Step": elbo_vals[-1]})
 
             if update_initial_statistics:
-                for _ in range(3):
-                    self.update_initial_statistics()
+                x0_converged = False
+                while not x0_converged:
+                    x0_converged = self.update_initial_statistics()
                     elbo_vals.append(self.elbo())
                     print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
                     if elbo_vals[-2] > elbo_vals[-1]:
