@@ -447,14 +447,20 @@ class VariationalMarkovGP:
             wandb.log({"VGP-E-Step": elbo_vals[-1]})
 
             if update_initial_statistics:
-                x0_converged = False
-                while not x0_converged:
-                    x0_converged = self.update_initial_statistics()
+                max_itr = 50
+                j = 0
+                while j < max_itr:
+                    self.update_initial_statistics()
                     elbo_vals.append(self.elbo())
                     print(f"VGP - x0 loop: ELBO {elbo_vals[-1]}")
                     if elbo_vals[-2] > elbo_vals[-1]:
                         print("VGP: x0 loop ELBO decreasing!!! Decaying LR!")
                         self.x_lr = self.x_lr / 2
+
+                    if tf.math.abs(elbo_vals[-2] - elbo_vals[-1]) < 1e-4:
+                        break
+
+                    j = j + 1
 
             elbo_after = self.elbo()
             if tf.math.abs(elbo_before - elbo_after) < self.convergence_tol:
