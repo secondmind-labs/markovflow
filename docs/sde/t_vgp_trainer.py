@@ -1,6 +1,7 @@
 from typing import Tuple
 import wandb
 import tensorflow as tf
+import numpy as np
 from gpflow.likelihoods import Gaussian
 
 from markovflow.state_space_model import StateSpaceModel
@@ -67,69 +68,112 @@ class tVGPTrainer:
 
         return nlpd.numpy().item()
 
+    def _linearize_till_convergence(self):
+        lin_converged = False
+        min_itr = 5
+        i = 0
+        elbo_lin_vals = []
+
+        while not lin_converged:
+            lin_before_elbo = self.tvgp_model.classic_elbo().numpy().item()
+            print(f"t-VGP: ELBO before linearization {lin_before_elbo}!!!")
+
+            # Compute Posterior
+            self.tvgp_model.fx_mus, self.tvgp_model.fx_covs = self.tvgp_model.dist_q.marginals
+
+            # Re-linearize
+            self.tvgp_model.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
+                                                  tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
+            self.tvgp_model._linearize_prior()
+
+            lin_after_elbo = self.tvgp_model.classic_elbo().numpy().item()
+            print(f"t-VGP: ELBO after linearization {lin_after_elbo}!!!")
+
+            elbo_lin_vals.append(lin_after_elbo)
+
+            if lin_before_elbo > lin_after_elbo:
+                print("ELBO decreasing!!!")
+                if i > min_itr:
+                    break
+
+            diff = tf.math.abs(lin_before_elbo - lin_after_elbo)
+            print(f"ELBO diff : {diff} \n\n")
+
+            if diff < 1e-4:
+                lin_converged = True
+
+            i = i + 1
+
+        return elbo_lin_vals
+
     def single_e_step(self, max_itr: int = 500) -> list:
         """
         Perform inference.
         """
+
+        assert isinstance(self.tvgp_model.likelihood, Gaussian)
+
         elbo_vals = []
-        i = 0
-        while i < max_itr:
-            elbo_before = self.tvgp_model.classic_elbo().numpy().item()
 
-            self.tvgp_model.update_sites(update_all_sites=self.update_all_sites)
+        # First update data-sites with LR=1 and asser the value
+        self.tvgp_model.data_sites_lr = 1.0
+        self.tvgp_model.update_sites(update_all_sites=False)
+        elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
 
-            # print(self.tvgp_model.data_sites.nat1.numpy()[0])
-            # print(self.tvgp_model.observations[0] / self.tvgp_model.likelihood.variance)
+        # assert
+        data_sites_nat1 = self.tvgp_model.data_sites.nat1
+        data_sites_nat2 = self.tvgp_model.data_sites.nat2
+        noise_var = self.tvgp_model.likelihood.variance
+        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations[1] / noise_var)
+        np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
+                                             data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 
-            elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
+        for _ in range(5):
+            elbo_before_loop = self.tvgp_model.classic_elbo().numpy().item()
+            # Linearize the prior and compute posterior till convergence
+            elbo_vals = elbo_vals + self._linearize_till_convergence()
 
-            print(f"t-VGP: ELBO {elbo_vals[-1]}!!!")
-            wandb.log({"t-VGP-ELBO": elbo_vals[-1]})
-            wandb.log({"t-VGP-NLPD": self.calculate_nlpd()})
+            # Update all sites now
+            self.tvgp_model.all_sites_lr = 0.1
+            self.tvgp_model.update_all_sites = True
 
-            lin_converged = False
-            max_lin_itr = 20
-            j = 0
-            while not lin_converged:
-                lin_before_elbo = self.tvgp_model.classic_elbo().numpy().item()
-                print(f"t-VGP: ELBO before linearization {lin_before_elbo}!!!")
+            all_sites_converged = False
+            while not all_sites_converged:
+                before_elbo = self.tvgp_model.classic_elbo().numpy().item()
+                print(f"t-VGP: ELBO before {before_elbo}!!!")
 
-                self.tvgp_model.fx_mus, self.tvgp_model.fx_covs = self.tvgp_model.dist_q.marginals
+                self.tvgp_model.update_sites(update_all_sites=True)
 
-                self.tvgp_model.linearization_pnts = (tf.identity(self.tvgp_model.fx_mus[:, :-1, :]),
-                                                      tf.identity(self.tvgp_model.fx_covs[:, :-1, :, :]))
-                self.tvgp_model._linearize_prior()
+                after_elbo = self.tvgp_model.classic_elbo().numpy().item()
+                print(f"t-VGP: ELBO after {after_elbo}!!!")
 
-                lin_after_elbo = self.tvgp_model.classic_elbo().numpy().item()
-                print(f"t-VGP: ELBO after linearization {lin_after_elbo}!!!")
-
-                if lin_before_elbo > lin_after_elbo:
+                elbo_vals.append(after_elbo)
+                if before_elbo > after_elbo:
+                    print("ELBO decreasing!!!")
                     break
 
-                if tf.math.abs(lin_before_elbo - lin_after_elbo) < 1e-4:
-                    lin_converged = True
+                diff = tf.math.abs(before_elbo - after_elbo)
+                print(f"ELBO diff : {diff} \n\n")
 
-                j = j + 1
+                if diff < 1e-4:
+                    all_sites_converged = True
 
-                if j == max_lin_itr:
-                    break
-                
-            elbo_after = self.tvgp_model.classic_elbo().numpy().item()
-            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
+            elbo_after_loop = self.tvgp_model.classic_elbo().numpy().item()
+
+            if tf.math.abs(elbo_after_loop - elbo_before_loop) < 1e-4:
                 break
-
-            if elbo_before > elbo_after:
-                print("ELBO decreasing! Decaying lr!")
-                self.tvgp_model.all_sites_lr = self.tvgp_model.all_sites_lr / 2
-
-            i = i + 1
-
-        if i == max_itr:
-            print("t-VGP: maximum iterations reached!!!")
 
         wandb.log({"t-VGP-E-Step": elbo_vals[-1]})
 
         print("t-VGP: Sites Converged!!!")
+
+        # assert last time for confirmation
+        data_sites_nat1 = self.tvgp_model.data_sites.nat1
+        data_sites_nat2 = self.tvgp_model.data_sites.nat2
+        noise_var = self.tvgp_model.likelihood.variance
+        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations[1] / noise_var)
+        np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
+                                             data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 
         return elbo_vals
 
