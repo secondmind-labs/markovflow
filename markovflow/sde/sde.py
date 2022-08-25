@@ -404,6 +404,7 @@ class StepWellSDE(SDE):
         """
         super(StepWellSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
+        self.a = -1 * 2.0
 
     def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
         """
@@ -420,7 +421,7 @@ class StepWellSDE(SDE):
         idx_grtr = tf.where(x > 0.)[:, 0]
 
         # x = -1 * .5 * (x - 2)
-        x = -1 * .5 * x
+        x = self.a * x
 
         if idx_less.shape != (0,):
             x = tf.tensor_scatter_nd_add(x, tf.reshape(idx_less, (-1, 1)), -1 * tf.ones((idx_less.shape[0], 1), dtype=x.dtype))
@@ -450,7 +451,7 @@ class StepWellSDE(SDE):
 
         :return: the gradient of the SDE drift with shape (num_states, state_dim).
         """
-        return -1 * 0.5 * tf.ones_like(x)
+        return self.a * tf.ones_like(x)
 
     def expected_drift(self, q_mean: tf.Tensor, q_covar: tf.Tensor) -> tf.Tensor:
         """
@@ -473,4 +474,4 @@ class StepWellSDE(SDE):
 
         :return: the expectation value with shape (n_batch, num_states, state_dim).
         """
-        return -1 * 0.5 * tf.ones_like(q_mean)
+        return self.a * tf.ones_like(q_mean)

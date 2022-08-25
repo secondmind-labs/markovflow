@@ -124,7 +124,7 @@ class tVGPTrainer:
         data_sites_nat1 = self.tvgp_model.data_sites.nat1
         data_sites_nat2 = self.tvgp_model.data_sites.nat2
         noise_var = self.tvgp_model.likelihood.variance
-        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations[1] / noise_var)
+        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
         np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
                                              data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 
@@ -171,7 +171,7 @@ class tVGPTrainer:
         data_sites_nat1 = self.tvgp_model.data_sites.nat1
         data_sites_nat2 = self.tvgp_model.data_sites.nat2
         noise_var = self.tvgp_model.likelihood.variance
-        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations[1] / noise_var)
+        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
         np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
                                              data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 
