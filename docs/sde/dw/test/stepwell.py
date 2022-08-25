@@ -27,12 +27,13 @@ np.random.seed(720)
 
 def setup():
     t0 = 0
-    t1 = 200
-    dt = 0.01
-    noise_var = 0.01
+    t1 = 20
+    dt = 0.001
+    noise_var = 0.001
+    n_observations = 30
 
     # Define q
-    q = tf.ones((1, 1), dtype=DTYPE)
+    q = 1.5 * tf.ones((1, 1), dtype=DTYPE)
 
     # Generate observations.
     sde = StepWellSDE(q=q)
@@ -43,7 +44,6 @@ def setup():
     time_grid = tf.cast(np.linspace(t0, t1, int((t1 - t0) // dt) + 2), dtype=DTYPE)
 
     # Observation at every even place
-    n_observations = 30
     observation_idx = list(tf.cast(np.linspace(2, time_grid.shape[0] - 2, n_observations), dtype=tf.int32))
     obs_t = tf.gather(time_grid, observation_idx)
 

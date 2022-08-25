@@ -416,10 +416,10 @@ class VariationalMarkovGP:
         elbo_vals = []
 
         q_converged = False
-        q_loop_itr = 0
         i = 0
         while i < max_itr:  # Need this loop as x0 is initialized outside the inside loop and it affects convergence
             elbo_before = self.elbo()
+            q_loop_itr = 0
             while not q_converged:
                 q_converged = self.run_single_inference()
 
