@@ -130,7 +130,7 @@ if __name__ == '__main__':
     plt.plot(t.numpy().reshape(-1), m_all_sites.reshape(-1), color="black", linestyle="dashed", label="t-VGP (All sites)")
 
     plt.legend()
-    plt.savefig("stepwell_posterior.png")
+    plt.savefig("stepwell_posterior.svg")
     plt.show()
 
     # Linearized prior
@@ -151,10 +151,10 @@ if __name__ == '__main__':
     )
     plt.hlines(2, 0, 10, linestyles="dashed")
 
-    plt.plot(lin_m.reshape(-1), color="black", linestyle="dashed")
+    plt.plot(t.numpy().reshape(-1), lin_m.reshape(-1), color="black", linestyle="dashed")
 
     plt.legend()
-    plt.savefig("stepwell_lin_prior.png")
+    plt.savefig("stepwell_lin_prior.svg")
     plt.show()
 
     b = t_vgp_model_all_sites.dist_p_ssm.state_offsets / dt
@@ -166,5 +166,5 @@ if __name__ == '__main__':
     c = -b/A
     plt.clf()
     plt.plot(c)
-    plt.savefig("stepwell_c.png")
+    plt.savefig("stepwell_c.svg")
     plt.show()
