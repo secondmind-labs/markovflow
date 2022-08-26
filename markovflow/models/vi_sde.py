@@ -66,7 +66,7 @@ class VariationalMarkovGP:
     """
     def __init__(self, input_data: [tf.Tensor, tf.Tensor], prior_sde: SDE, grid: tf.Tensor, likelihood: Likelihood,
                  lr: float = 0.5, prior_params_lr: float = 0.01, test_data: [tf.Tensor, tf.Tensor] = None,
-                 initial_state_lr: float = 0.01, convergence_tol: float = 1e-2):
+                 initial_state_lr: float = 0.01, convergence_tol: float = 1e-2, jump_condition: bool = True):
         """
         Initialize the model.
 
@@ -109,6 +109,7 @@ class VariationalMarkovGP:
         self.elbo_vals = []
         self.dist_q_ssm = None
         self.convergence_tol = convergence_tol
+        self.jump_condition = jump_condition
 
         self.m_step_data = {}
         self.prior_params = {}
@@ -214,6 +215,9 @@ class VariationalMarkovGP:
         dEdm, dEdS = self.grad_E_sde(m, S)
 
         d_obs_m, d_obs_S = self._jump_conditions(m, S)
+        if not self.jump_condition:
+            d_obs_m = tf.zeros_like(d_obs_m)
+            d_obs_S = tf.zeros_like(d_obs_S)
 
         lambda_lagrange = np.zeros_like(self.lambda_lagrange)
         psi_lagrange = np.zeros_like(self.psi_lagrange)

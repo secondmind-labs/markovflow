@@ -49,6 +49,7 @@ TRUE_DW_SDE = None
 PRIOR_VGP_SDE = None
 PRIOR_SDESSM_SDE = None
 UPDATE_ALL_SITES = False
+CONDITION_DATA = True
 INITIAL_A = 1.
 INITIAL_C = .5
 
@@ -154,7 +155,7 @@ def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior
     t_vgp_trainer = tVGPTrainer(observation_data=OBSERVATION_DATA, likelihood=likelihood_ssm, time_grid=TIME_GRID,
                                 prior_sde=PRIOR_SDESSM_SDE, data_sites_lr=data_sites_lr,
                                 all_sites_lr=all_sites_lr, prior_sde_lr=prior_lr, test_data=TEST_DATA,
-                                update_all_sites=UPDATE_ALL_SITES)
+                                update_all_sites=UPDATE_ALL_SITES, update_data_sites=CONDITION_DATA)
 
     ssm_elbo, ssm_prior_vals, ssm_m_step_data = t_vgp_trainer.run(update_prior=LEARN_PRIOR_SDE)
 
@@ -171,7 +172,8 @@ def perform_vgp(vgp_lr: float = 0.01, prior_lr: float = 0.01, x0_lr: float = 0.0
 
     vgp_model = VariationalMarkovGP(input_data=OBSERVATION_DATA,
                                     prior_sde=PRIOR_VGP_SDE, grid=TIME_GRID, likelihood=likelihood_vgp,
-                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr)
+                                    lr=vgp_lr, prior_params_lr=prior_lr, test_data=TEST_DATA, initial_state_lr=x0_lr,
+                                    jump_condition=CONDITION_DATA)
 
     vgp_model.q_initial_cov = 0.5 + 0. * vgp_model.q_initial_cov
     vgp_model.q_initial_mean = OBSERVATION_DATA[1][0] + 0. * vgp_model.q_initial_mean
@@ -322,6 +324,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', type=float, default=1., help='Initial value of A for the prior double-well SDE')
     parser.add_argument('-c', type=float, default=.5, help='Initial value of C for the prior double-well SDE')
     parser.add_argument('-o', type=str, default=None, help='Output directory name')
+    parser.add_argument('-condition_data', type=bool, default=True, help='Condition on the observations')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
@@ -347,6 +350,8 @@ if __name__ == '__main__':
 
     init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
+
+    CONDITION_DATA = args.condition_data
 
     ssm_m_step_data = None
     if args.data_sites_lr > 0.:

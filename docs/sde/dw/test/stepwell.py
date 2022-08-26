@@ -57,8 +57,10 @@ def setup():
     observations = (obs_t, obs_val)
     likelihood = Gaussian(variance=noise_var)
 
+    plt.clf()
     plt.subplots(1, 1, figsize=(15, 5))
     plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
+    plt.savefig("stepwell.svg")
     plt.show()
 
     return sde, observations, time_grid, likelihood, dt
@@ -105,6 +107,7 @@ if __name__ == '__main__':
     S_all_sites_std = np.sqrt(S_all_sites.numpy()).reshape(-1)
 
     # Plotting
+    plt.clf()
     plt.subplots(1, 1, figsize=(15, 5))
     plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
     plt.fill_between(
@@ -127,7 +130,7 @@ if __name__ == '__main__':
     plt.plot(t.numpy().reshape(-1), m_all_sites.reshape(-1), color="black", linestyle="dashed", label="t-VGP (All sites)")
 
     plt.legend()
-    plt.savefig("test_stepwell_posterior.png")
+    plt.savefig("stepwell_posterior.png")
     plt.show()
 
     # Linearized prior
@@ -136,8 +139,8 @@ if __name__ == '__main__':
     lin_S_std = np.sqrt(lin_S.numpy()).reshape(-1)
 
     # Plotting
+    plt.clf()
     plt.subplots(1, 1, figsize=(15, 5))
-    plt.scatter(observations[0].numpy().reshape(-1), observations[1].numpy().reshape(-1))
     plt.fill_between(
         t,
         y1=(lin_m.reshape(-1) - 2 * lin_S_std.reshape(-1)).reshape(-1, ),
@@ -148,10 +151,10 @@ if __name__ == '__main__':
     )
     plt.hlines(2, 0, 10, linestyles="dashed")
 
-    plt.plot(t.numpy().reshape(-1), lin_m.reshape(-1), color="black", linestyle="dashed")
+    plt.plot(lin_m.reshape(-1), color="black", linestyle="dashed")
 
     plt.legend()
-    plt.savefig("test_stepwell_lin_prior.png")
+    plt.savefig("stepwell_lin_prior.png")
     plt.show()
 
     b = t_vgp_model_all_sites.dist_p_ssm.state_offsets / dt
@@ -161,6 +164,7 @@ if __name__ == '__main__':
     b = b.numpy().reshape(-1)
 
     c = -b/A
+    plt.clf()
     plt.plot(c)
-    plt.savefig("c.png")
+    plt.savefig("stepwell_c.png")
     plt.show()

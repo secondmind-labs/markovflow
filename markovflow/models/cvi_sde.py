@@ -325,7 +325,7 @@ class SDESSM(CVIGaussianProcess):
 
         return val
 
-    def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4) -> bool:
+    def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4, update_data_sites: bool = True) -> bool:
         """
         Perform one joint update of the Gaussian sites. That is:
 
@@ -336,18 +336,20 @@ class SDESSM(CVIGaussianProcess):
         fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), indices)
         fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), indices)
 
-        # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
-        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
+        data_site_converged = True
+        if update_data_sites:
+            # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
+            _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
 
-        # update
-        new_data_nat1 = (1 - self.data_sites_lr) * self.data_sites.nat1 + self.data_sites_lr * grads[0]
-        new_data_nat2 = (1 - self.data_sites_lr) * self.data_sites.nat2 + self.data_sites_lr * grads[1][..., None]
+            # update
+            new_data_nat1 = (1 - self.data_sites_lr) * self.data_sites.nat1 + self.data_sites_lr * grads[0]
+            new_data_nat2 = (1 - self.data_sites_lr) * self.data_sites.nat2 + self.data_sites_lr * grads[1][..., None]
 
-        # Check for convergence.
-        data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
-        data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
+            # Check for convergence.
+            data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
+            data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
 
-        data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
+            data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
 
         if update_all_sites:
             # Linearization gradient for updating the overall sites
@@ -377,8 +379,9 @@ class SDESSM(CVIGaussianProcess):
             has_converged = False
 
         # Assign new values
-        self.data_sites.nat2.assign(new_data_nat2)
-        self.data_sites.nat1.assign(new_data_nat1)
+        if update_data_sites:
+            self.data_sites.nat2.assign(new_data_nat2)
+            self.data_sites.nat1.assign(new_data_nat1)
 
         # Done this way as dist_q -> dist_p_ssm -> fx_mus, fx_covs
         dist_q = self.dist_q

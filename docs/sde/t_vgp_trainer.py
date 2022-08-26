@@ -14,7 +14,7 @@ from markovflow.sde.sde import PriorOUSDE
 class tVGPTrainer:
     def __init__(self, observation_data, likelihood, time_grid, prior_sde, data_sites_lr: float = 0.5,
                  all_sites_lr: float = 0.1, prior_sde_lr: float = 0.1, test_data: Tuple[tf.Tensor, tf.Tensor] = None,
-                 update_all_sites: bool = False):
+                 update_all_sites: bool = False, update_data_sites: bool = True):
         self.tvgp_model = SDESSM(input_data=observation_data, prior_sde=prior_sde, grid=time_grid,
                                 likelihood=likelihood, learning_rate=data_sites_lr, all_sites_lr=all_sites_lr)
 
@@ -33,6 +33,7 @@ class tVGPTrainer:
             self.tvgp_model.fx_covs = 1. + 0. * self.tvgp_model.fx_covs
 
         self.update_all_sites = update_all_sites
+        self.update_data_sites = update_data_sites
         self.test_data = test_data
         self.elbo_vals = []
         self.prior_sde_optimizer = tf.optimizers.SGD(lr=prior_sde_lr)
@@ -111,69 +112,59 @@ class tVGPTrainer:
         Perform inference.
         """
 
-        assert isinstance(self.tvgp_model.likelihood, Gaussian)
-
         elbo_vals = []
+        i = 0
+        while i < max_itr:
+            elbo_before = self.tvgp_model.classic_elbo().numpy().item()
 
-        # First update data-sites with LR=1 and asser the value
-        self.tvgp_model.data_sites_lr = 1.0
-        self.tvgp_model.update_sites(update_all_sites=False)
-        elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
+            sites_converged = False
+            sites_itr = 0
+            max_sites_itr = 50
+            print("t-VGP: Updating sites...")
+            while not sites_converged:
+                sites_converged = self.tvgp_model.update_sites(update_all_sites=self.update_all_sites,
+                                                               update_data_sites=self.update_data_sites)
+                elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
+                print(f"t-VGP: ELBO = {elbo_vals[-1]}")
 
-        # assert
-        data_sites_nat1 = self.tvgp_model.data_sites.nat1
-        data_sites_nat2 = self.tvgp_model.data_sites.nat2
-        noise_var = self.tvgp_model.likelihood.variance
-        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
-        np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
-                                             data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
+                if sites_itr == max_sites_itr:
+                    break
+                sites_itr = sites_itr + 1
 
-        for _ in range(5):
-            elbo_before_loop = self.tvgp_model.classic_elbo().numpy().item()
-            # Linearize the prior and compute posterior till convergence
+            print("t-VGP: Sites converged! Linearizing...")
+            # Linearize till convergence
             elbo_vals = elbo_vals + self._linearize_till_convergence()
 
-            # Update all sites now
-            self.tvgp_model.all_sites_lr = 0.1
-            self.tvgp_model.update_all_sites = True
+            elbo_after = self.tvgp_model.classic_elbo().numpy().item()
 
-            all_sites_converged = False
-            while not all_sites_converged:
-                before_elbo = self.tvgp_model.classic_elbo().numpy().item()
-                print(f"t-VGP: ELBO before {before_elbo}!!!")
-
-                self.tvgp_model.update_sites(update_all_sites=True)
-
-                after_elbo = self.tvgp_model.classic_elbo().numpy().item()
-                print(f"t-VGP: ELBO after {after_elbo}!!!")
-
-                elbo_vals.append(after_elbo)
-                if before_elbo > after_elbo:
-                    print("ELBO decreasing!!!")
-                    break
-
-                diff = tf.math.abs(before_elbo - after_elbo)
-                print(f"ELBO diff : {diff} \n\n")
-
-                if diff < 1e-4:
-                    all_sites_converged = True
-
-            elbo_after_loop = self.tvgp_model.classic_elbo().numpy().item()
-
-            if tf.math.abs(elbo_after_loop - elbo_before_loop) < 1e-4:
+            if tf.math.abs(elbo_before - elbo_after) < 1e-4:
+                print("t-VGP: ELBO converged!")
                 break
 
-        wandb.log({"t-VGP-E-Step": elbo_vals[-1]})
+            if elbo_after < elbo_before:
+                print(f"t-VGP: ELBO decreasing! Decaying sites LR!")
+                self.tvgp_model.all_sites_lr = self.tvgp_model.all_sites_lr / 10
+                self.tvgp_model.data_sites_lr = self.tvgp_model.data_sites_lr / 10
 
-        print("t-VGP: Sites Converged!!!")
+            i = i + 1
 
-        # assert last time for confirmation
-        data_sites_nat1 = self.tvgp_model.data_sites.nat1
-        data_sites_nat2 = self.tvgp_model.data_sites.nat2
-        noise_var = self.tvgp_model.likelihood.variance
-        np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
-        np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
-                                             data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
+        # If Gaussian then do site update with LR=1 and assert the values.
+        if self.update_data_sites and isinstance(self.tvgp_model.likelihood, Gaussian):
+            old_lr = self.tvgp_model.data_sites_lr
+            self.tvgp_model.data_sites_lr = 1.0
+            self.tvgp_model.update_sites(update_all_sites=False,
+                                         update_data_sites=self.update_data_sites)
+            self.tvgp_model.data_sites_lr = old_lr
+
+            # assert
+            data_sites_nat1 = self.tvgp_model.data_sites.nat1
+            data_sites_nat2 = self.tvgp_model.data_sites.nat2
+            noise_var = self.tvgp_model.likelihood.variance
+            np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
+            np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
+                                                 data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
+
+        print("t-VGP: Converged!!!")
 
         return elbo_vals
 
