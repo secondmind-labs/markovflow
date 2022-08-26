@@ -27,3 +27,4 @@ wandb/
 *.svg
 *.png
 *.pdf
+fig/
