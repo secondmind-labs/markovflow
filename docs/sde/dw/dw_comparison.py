@@ -310,8 +310,8 @@ if __name__ == '__main__':
 
     parser.add_argument('-dir', '--data_dir', type=str, help='Data directory of the OU data.', required=True)
     parser.add_argument('-wandb_username', type=str, help='Wandb username to be used for logging', default="")
-    parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
-    parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
+    parser.add_argument('-l', '--learn_prior_sde', choices=('True', 'False'), default='False', help='Train Prior SDE or not.')
+    parser.add_argument('-log', choices=('True', 'False'), default='False', help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
     parser.add_argument('-data_sites_lr', type=float, default=0.5, help='Learning rate for data-sites.')
     parser.add_argument('-all_sites_lr', type=float, default=0.1, help='Learning rate for all-sites.')
@@ -319,22 +319,22 @@ if __name__ == '__main__':
     parser.add_argument('-prior_vgp_lr', type=float, default=0.01, help='Learning rate for prior learning in VGP.')
     parser.add_argument('-vgp_lr', type=float, default=0.01, help='Learning rate for VGP parameters.')
     parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
-    parser.add_argument('-all_sites', type=bool, default=False,
+    parser.add_argument('-all_sites', choices=('True', 'False'), default='False',
                         help='Update all sites using cross-term or only data-sites')
     parser.add_argument('-a', type=float, default=1., help='Initial value of A for the prior double-well SDE')
     parser.add_argument('-c', type=float, default=.5, help='Initial value of C for the prior double-well SDE')
     parser.add_argument('-o', type=str, default=None, help='Output directory name')
-    parser.add_argument('-condition_data', type=bool, default=True, help='Condition on the observations')
+    parser.add_argument('-condition_data', choices=('True', 'False'), default='True', help='Condition on the observations')
 
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
     args = parser.parse_args()
 
-    LEARN_PRIOR_SDE = args.learn_prior_sde
+    LEARN_PRIOR_SDE = args.learn_prior_sde == 'True'
     INITIAL_A = args.a
     INITIAL_C = args.c
 
-    UPDATE_ALL_SITES = args.all_sites
+    UPDATE_ALL_SITES = args.all_sites == 'True'
 
     load_data(args.data_dir)
 
@@ -348,10 +348,11 @@ if __name__ == '__main__':
     assert TIME_GRID[-1] == T1
     assert TIME_GRID[1] - TIME_GRID[0] == DT
 
-    init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+    log = args.log == 'True'
+    init_wandb(args.wandb_username, log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
 
-    CONDITION_DATA = args.condition_data
+    CONDITION_DATA = args.condition_data == 'True'
 
     ssm_m_step_data = None
     if args.data_sites_lr > 0.:

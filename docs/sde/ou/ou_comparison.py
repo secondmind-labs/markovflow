@@ -386,10 +386,10 @@ if __name__ == '__main__':
 
     parser.add_argument('-dir', '--data_dir', type=str, help='Data directory of the OU data.', required=True)
     parser.add_argument('-wandb_username', type=str, help='Wandb username to be used for logging', default="")
-    parser.add_argument('-l', '--learn_prior_sde', type=bool, default=False, help='Train Prior SDE or not.')
+    parser.add_argument('-l', '--learn_prior_sde', choices=('True', 'False'), default='False', help='Train Prior SDE or not.')
     parser.add_argument('-d', '--prior_decay', type=float, default=-1.,
                         help='Prior decay value to be used when learning the prior SDE.')
-    parser.add_argument('-log', type=bool, default=False, help='Whether to log in wandb or not')
+    parser.add_argument('-log', choices=('True', 'False'), default='False', help='Whether to log in wandb or not')
     parser.add_argument('-dt', type=float, default=0., help='Modify dt for time-grid.')
     parser.add_argument('-data_sites_lr', type=float, default=0.5,
                         help='Learning rate for data-sites. Set to 0 if not training.')
@@ -399,7 +399,7 @@ if __name__ == '__main__':
     parser.add_argument('-vgp_lr', type=float, default=0.01,
                         help='Learning rate for VGP parameters. Set to 0 if not training.')
     parser.add_argument('-vgp_x0_lr', type=float, default=0.01, help='Learning rate for VGP initial state.')
-    parser.add_argument('-all_sites', type=bool, default=False,
+    parser.add_argument('-all_sites', choices=('True', 'False'), default='False',
                         help='Update all sites using cross-term or only data-sites')
     parser.add_argument('-o', type=str, default=None, help='Output directory name')
 
@@ -407,9 +407,9 @@ if __name__ == '__main__':
     print(f"Noise std-dev is {NOISE_STDDEV}")
 
     args = parser.parse_args()
-    LEARN_PRIOR_SDE = args.learn_prior_sde
+    LEARN_PRIOR_SDE = args.learn_prior_sde == 'True'
 
-    UPDATE_ALL_SITES = args.all_sites
+    UPDATE_ALL_SITES = args.all_sites == 'True'
 
     load_data(args.data_dir)
 
@@ -423,6 +423,7 @@ if __name__ == '__main__':
 
     set_output_dir(args.o)
 
+    log = args.log == 'True'
     init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
 
