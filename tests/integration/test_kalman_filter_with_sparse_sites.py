@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
-from gpflow.config import default_float
 import pytest
+from gpflow.config import default_float
 
 from markovflow.kernels.matern import Matern12
 from markovflow.mean_function import LinearMeanFunction
@@ -13,8 +13,7 @@ from markovflow.likelihoods import MultivariateGaussian
 @pytest.fixture(name="kalman_gpr_setup")
 def _setup(batch_shape):
     """
-    FIXME:  1. Mean function doesn't work
-            2. Use batch
+    FIXME: Currently batch_shape isn't used.
     """
     time_grid = np.arange(0.0, 1.0, 0.01)
     time_points = time_grid[::10]
@@ -30,14 +29,15 @@ def _setup(batch_shape):
     gpr_model = GaussianProcessRegression(
             input_data=input_data,
             kernel=kernel,
-            # mean_function=LinearMeanFunction(1.1),
+            mean_function=LinearMeanFunction(1.1),
             chol_obs_covariance=tf.constant([[np.sqrt(observation_covariance)]], dtype=default_float()),
         )
 
     prior_ssm = kernel.state_space_model(time_grid)
-    # prior_ssm._b_s = 1.1 * tf.ones_like(prior_ssm.state_offsets)
     emission_model = kernel.generate_emission_model(time_grid)
     observations_idx = tf.where(tf.equal(time_grid[..., None], time_points))[:, 0][..., None]
+
+    observations -= gpr_model.mean_function(time_points)
 
     nat1 = observations / observation_covariance
     nat1 = tf.scatter_nd(observations_idx, nat1, time_grid[..., None].shape)
