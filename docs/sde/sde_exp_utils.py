@@ -13,7 +13,7 @@ from scipy.linalg import solve_continuous_lyapunov
 from markovflow.sde.sde import OrnsteinUhlenbeckSDE, DoubleWellSDE
 from markovflow.sde.sde_utils import euler_maruyama
 from markovflow.models.vi_sde import VariationalMarkovGP
-from markovflow.models.cvi_sde import SDESSM
+from markovflow.models.cvi_sde import tVGP
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
 from markovflow.models.variational_cvi import CVIGaussianProcess, CVIGaussianProcessTaylorKernel
 from markovflow.kernels import SDEKernel
@@ -160,7 +160,7 @@ def predict_vgp(model: VariationalMarkovGP, noise_stddev: np.ndarray) -> (np.nda
     return m, S_std
 
 
-def predict_ssm(model: SDESSM, noise_stddev: np.ndarray) -> (np.ndarray, np.ndarray):
+def predict_ssm(model: tVGP, noise_stddev: np.ndarray) -> (np.ndarray, np.ndarray):
     """
     Predict mean and std-dev for SSM model.
     """

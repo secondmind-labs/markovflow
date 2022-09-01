@@ -30,14 +30,14 @@ from markovflow.sde.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
-from markovflow.kalman_filter import KalmanFilterWithSites
+from markovflow.kalman_filter import KalmanFilterWithSparseSites
 from markovflow.sde.sde_utils import KL_sde
 from markovflow.ssm_natgrad import naturals_to_ssm_params
 from markovflow.models.variational_cvi import back_project_nats
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
-class SDESSM(CVIGaussianProcess):
+class tVGP:
     """
     """
 
@@ -65,29 +65,26 @@ class SDESSM(CVIGaussianProcess):
         :param learning_rate: The learning rate of the algorithm.
         :param test_data: Test data used to calculate NLPD if not None.
         """
-        # TODO: check passing of kernel=None
-        super().__init__(
-            input_data=input_data, kernel=None, likelihood=likelihood, mean_function=mean_function,
-            learning_rate=learning_rate, initialize_sites=False
-        )
+        super().__init__()
 
+        self._likelihood = likelihood
         self.grid = grid
         self.prior_sde = prior_sde
 
-        # initialize data sites
-        self.observations_time_points = self._time_points
-        self.data_sites = UnivariateGaussianSitesNat(
-            nat1=Parameter(tf.zeros_like(self.observations)),
-            nat2=Parameter(tf.ones_like(self.observations)[..., None] * -1e-20),
-            log_norm=Parameter(tf.zeros_like(self.observations)),
-        )
+        self._observations_time_points = input_data[0]
+        self._observations = input_data[1]
+
         self.output_dim = 1
         self.state_dim = 1
         self.test_data = test_data
 
         self._initialize_mean_statistic()
-        self.sites_nat2 = tf.ones_like(self.grid, dtype=self.observations.dtype)[..., None, None] * -1e-18
-        self.sites_nat1 = tf.zeros_like(self.grid)[..., None]
+
+        self.data_sites = UnivariateGaussianSitesNat(
+            nat1=Parameter(tf.zeros_like(self._observations_time_points)[..., None]),
+            nat2=Parameter(tf.ones_like(self._observations_time_points)[..., None, None] * -1e-10),
+            log_norm=Parameter(tf.zeros_like(self._observations_time_points)[..., None]),
+        )
 
         self.data_sites_lr = learning_rate
         self.all_sites_lr = all_sites_lr
@@ -97,6 +94,9 @@ class SDESSM(CVIGaussianProcess):
 
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
+
+        self.obs_sites_indices = tf.where(tf.equal(self.grid[..., None], self._observations_time_points))[:, 0][..., None]
+        self.dt = self.grid[1] - self.grid[0]
 
     def _linearize_prior(self):
         """
@@ -113,31 +113,12 @@ class SDESSM(CVIGaussianProcess):
     def _initialize_mean_statistic(self):
         """Simulate initial mean from the prior SDE."""
 
-        self.initial_mean = tf.zeros((1, self.state_dim), dtype=self.observations.dtype)
+        self.initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
         self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
 
-        self.fx_mus = tf.ones((1, self.grid.shape[0], self.state_dim), dtype=self.observations.dtype)
+        self.fx_mus = tf.ones((1, self.grid.shape[0], self.state_dim), dtype=self._observations.dtype)
 
         self.fx_covs = 0.5 * tf.ones_like(self.fx_mus[..., None])
-
-    @property
-    def sites(self) -> UnivariateGaussianSitesNat:
-        """
-        Sites over a finer grid where at the observation timepoints the parameters are replaced by that
-        of the data sites.
-        """
-        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
-
-        nat1 = tf.tensor_scatter_nd_add(self.sites_nat1, indices, self.data_sites.nat1)
-        nat2 = tf.tensor_scatter_nd_add(self.sites_nat2, indices, self.data_sites.nat2)
-
-        log_norm = tf.scatter_nd(indices, self.data_sites.log_norm, self.grid[..., None].shape)
-
-        return UnivariateGaussianSitesNat(
-            nat1=Parameter(nat1),
-            nat2=Parameter(nat2),
-            log_norm=Parameter(log_norm),
-        )
 
     @property
     def time_points(self) -> tf.Tensor:
@@ -147,40 +128,6 @@ class SDESSM(CVIGaussianProcess):
         :return: A tensor with shape ``batch_shape + [grid_size]``.
         """
         return self.grid
-
-    @property
-    def dist_q_v2(self) -> StateSpaceModel:
-        """
-        Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of
-        the posterior process indexed at the time points.
-        """
-        sites = self.sites
-        prec = self.dist_p_ssm._build_precision()
-
-        # [..., num_transitions + 1, state_dim, state_dim]
-        prec_diag = prec.block_diagonal
-        # [..., num_transitions, state_dim, state_dim]
-        prec_subdiag = prec.block_sub_diagonal
-
-        H = self.generate_emission_model(self.time_points).emission_matrix
-
-        bp_nat1, bp_nat2 = back_project_nats(sites.nat1, sites.nat2[..., 0], H)
-
-        # conjugate update of the natural parameter: post_nat = prior_nat + lik_nat
-        theta_diag = -0.5 * prec_diag + bp_nat2
-        theta_subdiag = -prec_subdiag
-
-        post_ssm_params = naturals_to_ssm_params(
-            theta_linear=bp_nat1, theta_diag=theta_diag, theta_subdiag=theta_subdiag
-        )
-
-        return StateSpaceModel(
-            state_transitions=post_ssm_params[0],
-            state_offsets=post_ssm_params[1],
-            chol_initial_covariance=post_ssm_params[2],
-            chol_process_covariances=post_ssm_params[3],
-            initial_mean=post_ssm_params[4],
-        )
 
     @property
     def dist_q(self) -> StateSpaceModel:
@@ -220,13 +167,47 @@ class SDESSM(CVIGaussianProcess):
         return EmissionModel(tf.tile(emission_matrix, repetitions))
 
     @property
-    def posterior_kalman(self) -> KalmanFilterWithSites:
+    def posterior_kalman(self) -> KalmanFilterWithSparseSites:
         """Build the Kalman filter object from the prior state space models and the sites."""
-        return KalmanFilterWithSites(
+        return KalmanFilterWithSparseSites(
             state_space_model=self.dist_p_ssm,
             emission_model=self.generate_emission_model(tf.reshape(self.time_points, (-1))),
-            sites=self.sites,
+            sites=self.data_sites,
+            time_grid=self.grid,
+            observations_idx=self.obs_sites_indices,
+            observations=self._observations
         )
+
+    def local_objective(self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor) -> tf.Tensor:
+        """
+        Calculate local loss in CVI.
+
+        :param Fmu: Means with shape ``[..., latent_dim]``.
+        :param Fvar: Variances with shape ``[..., latent_dim]``.
+        :param Y: Observations with shape ``[..., observation_dim]``.
+        :return: A local objective with shape ``[...]``.
+        """
+        return self._likelihood.variational_expectations(Fmu, Fvar, Y)
+
+    def local_objective_and_gradients(self, Fmu: tf.Tensor, Fvar: tf.Tensor) -> tf.Tensor:
+        """
+        Return the local objective and its gradients with regard to the expectation parameters.
+
+        :param Fmu: Means :math:`μ` with shape ``[..., latent_dim]``.
+        :param Fvar: Variances :math:`σ²` with shape ``[..., latent_dim]``.
+        :return: A local objective and gradient with regard to :math:`[μ, σ² + μ²]`.
+        """
+        with tf.GradientTape() as g:
+            g.watch([Fmu, Fvar])
+            local_obj = tf.reduce_sum(
+                input_tensor=self.local_objective(Fmu, Fvar, self._observations)
+            )
+        grads = g.gradient(local_obj, [Fmu, Fvar])
+        # turn into gradient wrt μ, σ² + μ²
+        grads = gradient_transformation_mean_var_to_expectation((Fmu, Fvar), grads)
+
+        return local_obj, grads
+
 
     def grad_linearization_diff(self) -> [tf.Tensor, tf.Tensor]:
         """
@@ -244,15 +225,15 @@ class SDESSM(CVIGaussianProcess):
         # convert from state transitions of the SSM to SDE P's drift and offset
         A = tf.squeeze(dist_p.state_transitions, axis=0)
         b = tf.squeeze(dist_p.state_offsets, axis=0)
-        A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / (self.grid[1] - self.grid[0])
-        b = b / (self.grid[1] - self.grid[0])
+        A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / self.dt
+        b = b / self.dt
 
         A = tf.stop_gradient(A)
         b = tf.stop_gradient(b)
 
         with tf.GradientTape(persistent=True) as g:
             g.watch([q_mean, q_covar])
-            val = -1 * KL_sde(self.prior_sde, -1 * A, b, q_mean, q_covar, dt=(self.grid[1] - self.grid[0]))
+            val = -1 * KL_sde(self.prior_sde, -1 * A, b, q_mean, q_covar, dt=self.dt)
         grads = g.gradient(val, [q_mean, q_covar])
 
         # TODO: Check this once
@@ -271,21 +252,19 @@ class SDESSM(CVIGaussianProcess):
         """
         # convert from state transitions of the SSM to SDE's drift and offset
 
-        dt = self.grid[1] - self.grid[0]
-
         if dist_q is None:
             dist_q = self.dist_q
 
         A_q = tf.squeeze(dist_q.state_transitions, axis=0)
         b_q = tf.squeeze(dist_q.state_offsets, axis=0)
-        A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / dt
-        b_q = b_q / dt
+        A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / self.dt
+        b_q = b_q / self.dt
 
         # convert from state transitions of the SSM to SDE's drift and offset
         A_p_l = tf.squeeze(self.dist_p_ssm.state_transitions, axis=0)
         b_p_l = tf.squeeze(self.dist_p_ssm.state_offsets, axis=0)
-        A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / dt
-        b_p_l = b_p_l / dt
+        A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / self.dt
+        b_p_l = b_p_l / self.dt
 
         def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
             # Adding N information
@@ -321,73 +300,100 @@ class SDESSM(CVIGaussianProcess):
         q_covar = tf.squeeze(self.fx_covs, axis=0)[:-1]
 
         val = diag_quad(func, q_mean, tf.squeeze(q_covar, axis=-1))
-        val = tf.reduce_sum(val) * dt
+        val = tf.reduce_sum(val) * self.dt
 
         return val
 
-    def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4, update_data_sites: bool = True) -> bool:
-        """
-        Perform one joint update of the Gaussian sites. That is:
+    def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4, update_data_sites: bool = True):
+        """Update data-sites"""
 
-        .. math:: 𝜽 ← ρ𝜽 + (1-ρ)𝐠
-        """
+        fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), self.obs_sites_indices)
+        fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), self.obs_sites_indices)
 
-        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
-        fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), indices)
-        fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), indices)
+        # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
+        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
 
-        data_site_converged = True
-        if update_data_sites:
-            # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
-            _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
+        # update
+        new_data_nat1 = (1 - self.data_sites_lr) * self.data_sites.nat1 + self.data_sites_lr * grads[0]
+        new_data_nat2 = (1 - self.data_sites_lr) * self.data_sites.nat2 + self.data_sites_lr * grads[1][..., None]
 
-            # update
-            new_data_nat1 = (1 - self.data_sites_lr) * self.data_sites.nat1 + self.data_sites_lr * grads[0]
-            new_data_nat2 = (1 - self.data_sites_lr) * self.data_sites.nat2 + self.data_sites_lr * grads[1][..., None]
+        # Check for convergence.
+        data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
+        data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
 
-            # Check for convergence.
-            data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
-            data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
+        data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
 
-            data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
+        self.data_sites.nat1.assign(new_data_nat1)
+        self.data_sites.nat2.assign(new_data_nat2)
 
-        if update_all_sites:
-            # Linearization gradient for updating the overall sites
-            _, grads0, grads1 = self.grad_linearization_diff()
-            # we don't have the gradient for the last state (m[-1, S[-1]])
-            new_nat1 = (1 - self.all_sites_lr) * self.sites_nat1[:-1] + self.all_sites_lr * grads0
-            new_nat2 = (1 - self.all_sites_lr) * self.sites_nat2[:-1] + self.all_sites_lr * grads1[..., None]
-            new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
-            new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
+        # self.sites.nat1.assign(tf.tensor_scatter_nd_add(self.sites.nat1, self.obs_sites_indices, new_data_nat1))
+        # self.sites.nat2.assign(tf.tensor_scatter_nd_add(self.sites.nat2, self.obs_sites_indices, new_data_nat2))
 
-            # Clipping the nat2 value.
-            # new_nat2 = tf.clip_by_value(new_nat2, 1e-20, tf.reduce_max(new_nat2))
+        return data_site_converged
 
-            sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
-            sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
-
-            all_site_converged = (sites_nat1_sq_norm < convergence_tol) & (sites_nat2_sq_norm < convergence_tol)
-
-            self.sites_nat2 = new_nat2
-            self.sites_nat1 = new_nat1
-        else:
-            all_site_converged = True
-
-        if data_site_converged & all_site_converged:
-            has_converged = True
-        else:
-            has_converged = False
-
-        # Assign new values
-        if update_data_sites:
-            self.data_sites.nat2.assign(new_data_nat2)
-            self.data_sites.nat1.assign(new_data_nat1)
-
-        # Done this way as dist_q -> dist_p_ssm -> fx_mus, fx_covs
-        dist_q = self.dist_q
-        self.fx_mus, self.fx_covs = dist_q.marginals
-
-        return has_converged
+    # def update_sites(self, update_all_sites: bool = False, convergence_tol: float = 1e-4, update_data_sites: bool = True) -> bool:
+    #     """
+    #     Perform one joint update of the Gaussian sites. That is:
+    #
+    #     .. math:: 𝜽 ← ρ𝜽 + (1-ρ)𝐠
+    #     """
+    #
+    #     indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
+    #     fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), indices)
+    #     fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), indices)
+    #
+    #     data_site_converged = True
+    #     if update_data_sites:
+    #         # get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²
+    #         _, grads = self.local_objective_and_gradients(fx_mus, fx_covs)
+    #
+    #         # update
+    #         new_data_nat1 = (1 - self.data_sites_lr) * self.data_sites.nat1 + self.data_sites_lr * grads[0]
+    #         new_data_nat2 = (1 - self.data_sites_lr) * self.data_sites.nat2 + self.data_sites_lr * grads[1][..., None]
+    #
+    #         # Check for convergence.
+    #         data_nat1_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat1 - new_data_nat1))
+    #         data_nat2_sq_norm = tf.reduce_sum(tf.square(self.data_sites.nat2 - new_data_nat2))
+    #
+    #         data_site_converged = (data_nat1_sq_norm < convergence_tol) & (data_nat2_sq_norm < convergence_tol)
+    #
+    #     if update_all_sites:
+    #         # Linearization gradient for updating the overall sites
+    #         _, grads0, grads1 = self.grad_linearization_diff()
+    #         # we don't have the gradient for the last state (m[-1, S[-1]])
+    #         new_nat1 = (1 - self.all_sites_lr) * self.sites_nat1[:-1] + self.all_sites_lr * grads0
+    #         new_nat2 = (1 - self.all_sites_lr) * self.sites_nat2[:-1] + self.all_sites_lr * grads1[..., None]
+    #         new_nat1 = tf.concat([new_nat1, self.sites_nat1[-1:]], axis=0)
+    #         new_nat2 = tf.concat([new_nat2, self.sites_nat2[-1:]], axis=0)
+    #
+    #         # Clipping the nat2 value.
+    #         # new_nat2 = tf.clip_by_value(new_nat2, 1e-20, tf.reduce_max(new_nat2))
+    #
+    #         sites_nat1_sq_norm = tf.reduce_sum(tf.square(self.sites_nat1 - new_nat1))
+    #         sites_nat2_sq_norm = tf.reduce_sum(tf.square(self.sites_nat2 - new_nat2))
+    #
+    #         all_site_converged = (sites_nat1_sq_norm < convergence_tol) & (sites_nat2_sq_norm < convergence_tol)
+    #
+    #         self.sites_nat2 = new_nat2
+    #         self.sites_nat1 = new_nat1
+    #     else:
+    #         all_site_converged = True
+    #
+    #     if data_site_converged & all_site_converged:
+    #         has_converged = True
+    #     else:
+    #         has_converged = False
+    #
+    #     # Assign new values
+    #     if update_data_sites:
+    #         self.data_sites.nat2.assign(new_data_nat2)
+    #         self.data_sites.nat1.assign(new_data_nat1)
+    #
+    #     # Done this way as dist_q -> dist_p_ssm -> fx_mus, fx_covs
+    #     dist_q = self.dist_q
+    #     self.fx_mus, self.fx_covs = dist_q.marginals
+    #
+    #     return has_converged
 
     def kl(self, dist_p: StateSpaceModel) -> tf.Tensor:
         r"""
@@ -479,14 +485,14 @@ class SDESSM(CVIGaussianProcess):
         # convert from state transitons of the SSM to SDE P's drift and offset
         A = tf.squeeze(dist_p.state_transitions, axis=0)
         b = tf.squeeze(dist_p.state_offsets, axis=0)
-        A = (A - tf.eye(self.state_dim, dtype=A.dtype))/(self.grid[1] - self.grid[0])
-        b = b / (self.grid[1] - self.grid[0])
+        A = (A - tf.eye(self.state_dim, dtype=A.dtype))/self.dt
+        b = b / self.dt
 
         A = tf.stop_gradient(A)
         b = tf.stop_gradient(b)
 
         # -1 * A as the function expects A without the negative sign i.e. drift = - A*x + b
-        lin_loss = KL_sde(self.prior_sde, -1 * A, b, m, S, dt=(self.grid[1] - self.grid[0]))
+        lin_loss = KL_sde(self.prior_sde, -1 * A, b, m, S, dt=self.dt)
         return lin_loss
 
     def classic_elbo(self) -> tf.Tensor:
@@ -496,7 +502,7 @@ class SDESSM(CVIGaussianProcess):
         # s ~ q(s) = N(μ, P)
         dist_q = self.dist_q
         fx_mus, fx_covs = dist_q.marginals
-        indices = tf.where(tf.equal(self.grid[..., None], self.observations_time_points))[:, 0][..., None]
+        indices = tf.where(tf.equal(self.grid[..., None], self._observations_time_points))[:, 0][..., None]
         fx_mus_obs = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
         fx_covs_obs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
 

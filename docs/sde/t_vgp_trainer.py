@@ -6,7 +6,7 @@ from gpflow.likelihoods import Gaussian
 
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
-from markovflow.models.cvi_sde import SDESSM
+from markovflow.models.cvi_sde import tVGP
 from markovflow.sde.sde_utils import gaussian_log_predictive_density
 from markovflow.sde.sde import PriorOUSDE
 
@@ -15,7 +15,7 @@ class tVGPTrainer:
     def __init__(self, observation_data, likelihood, time_grid, prior_sde, data_sites_lr: float = 0.5,
                  all_sites_lr: float = 0.1, prior_sde_lr: float = 0.1, test_data: Tuple[tf.Tensor, tf.Tensor] = None,
                  update_all_sites: bool = False, update_data_sites: bool = True):
-        self.tvgp_model = SDESSM(input_data=observation_data, prior_sde=prior_sde, grid=time_grid,
+        self.tvgp_model = tVGP(input_data=observation_data, prior_sde=prior_sde, grid=time_grid,
                                 likelihood=likelihood, learning_rate=data_sites_lr, all_sites_lr=all_sites_lr)
 
         # Initialize the initial statistics of the model
@@ -126,6 +126,7 @@ class tVGPTrainer:
                                                                update_data_sites=self.update_data_sites)
                 elbo_vals.append(self.tvgp_model.classic_elbo().numpy().item())
                 print(f"t-VGP: ELBO = {elbo_vals[-1]}")
+                print(f"Kalman log-likelihood : {self.tvgp_model.posterior_kalman.log_likelihood().numpy()}")
 
                 if sites_itr == max_sites_itr:
                     break
@@ -149,7 +150,7 @@ class tVGPTrainer:
             i = i + 1
 
         # If Gaussian then do site update with LR=1 and assert the values.
-        if self.update_data_sites and isinstance(self.tvgp_model.likelihood, Gaussian):
+        if self.update_data_sites and isinstance(self.tvgp_model._likelihood, Gaussian):
             old_lr = self.tvgp_model.data_sites_lr
             self.tvgp_model.data_sites_lr = 1.0
             self.tvgp_model.update_sites(update_all_sites=False,
@@ -159,8 +160,8 @@ class tVGPTrainer:
             # assert
             data_sites_nat1 = self.tvgp_model.data_sites.nat1
             data_sites_nat2 = self.tvgp_model.data_sites.nat2
-            noise_var = self.tvgp_model.likelihood.variance
-            np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model.observations / noise_var)
+            noise_var = self.tvgp_model._likelihood.variance
+            np.testing.assert_array_almost_equal(data_sites_nat1.numpy(), self.tvgp_model._observations / noise_var)
             np.testing.assert_array_almost_equal(tf.reduce_sum(data_sites_nat2),
                                                  data_sites_nat2.shape[0] * (-1 / (2 * noise_var)))
 

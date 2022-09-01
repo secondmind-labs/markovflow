@@ -23,7 +23,7 @@ import wandb
 
 from markovflow.sde.sde import PriorOUSDE
 from markovflow.kernels import OrnsteinUhlenbeck
-from markovflow.models.cvi_sde import SDESSM
+from markovflow.models.cvi_sde import tVGP
 from markovflow.models.vi_sde import VariationalMarkovGP
 from markovflow.sde.sde_utils import gaussian_log_predictive_density
 
@@ -171,7 +171,7 @@ def cvi_gpr():
     return cvi_gpr_model, cvi_params
 
 
-def perform_sde_ssm(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior_lr: float = 0.01):
+def perform_tvgp(data_sites_lr: float = 0.5, all_sites_lr: float = 0.1, prior_lr: float = 0.01):
     true_q = Q * tf.ones((1, 1), dtype=DTYPE)
     # As prior OU SDE doesn't have a negative sign inside it.
     prior_sde_ssm = PriorOUSDE(initial_val=INITIAL_PRIOR_VALUE, q=true_q)
@@ -222,10 +222,10 @@ def compare_plot_posterior(cvi_gpr_model, ssm_model, vgp_model):
         plt.plot(TEST_DATA[0].reshape(-1), TEST_DATA[1].reshape(-1), 'x', color="red", ms=8, mew=2,
                  label="Test Observations (Y)")
 
-    if LEARN_PRIOR_SDE:
-        m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, TIME_GRID, NOISE_STDDEV)
-    else:
-        m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_model, NOISE_STDDEV)
+    # if LEARN_PRIOR_SDE:
+    m_gpr, s_std_gpr = predict_cvi_gpr(cvi_gpr_model, TIME_GRID, NOISE_STDDEV)
+    # else:
+    #     m_gpr, s_std_gpr = predict_cvi_gpr_taylor(cvi_gpr_model, NOISE_STDDEV)
 
     if ssm_model is not None:
         m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
@@ -262,7 +262,7 @@ def plot_elbo(ssm_elbo, v_gp_elbo):
     plt.show()
 
 
-def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
+def calculate_nlpd(ssm_model: tVGP, vgp_model: VariationalMarkovGP):
     """Calculate NLPD on the test set for VGP and SDE-SSM"""
 
     if TEST_DATA is None:
@@ -293,15 +293,15 @@ def calculate_nlpd(ssm_model: SDESSM, vgp_model: VariationalMarkovGP):
 def save_data(ssm_elbo, vgp_elbo, vgp_m_step_data, ssm_m_step_data):
     if ssm_model is not None:
         m_ssm, s_std_ssm = predict_ssm(ssm_model, NOISE_STDDEV)
-        np.savez(os.path.join(OUTPUT_DIR, "ssm_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
+        np.savez(os.path.join(OUTPUT_DIR, "tvgp_data_sites.npz"), nat1=ssm_model.data_sites.nat1.numpy(),
                  nat2=ssm_model.data_sites.nat2.numpy(), log_norm=ssm_model.data_sites.log_norm.numpy())
 
-        np.savez(os.path.join(OUTPUT_DIR, "ssm_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
-        np.savez(os.path.join(OUTPUT_DIR, "ssm_elbo.npz"), elbo=ssm_elbo)
+        np.savez(os.path.join(OUTPUT_DIR, "tvgp_inference.npz"), m=m_ssm, S=tf.square(s_std_ssm))
+        np.savez(os.path.join(OUTPUT_DIR, "tvgp_elbo.npz"), elbo=ssm_elbo)
 
         if LEARN_PRIOR_SDE:
-            np.savez(os.path.join(OUTPUT_DIR, "ssm_learnt_sde.npz"), decay=ssm_prior_decay_values)
-            np.savez(os.path.join(OUTPUT_DIR, "ssm_m_step.npz"), vals=ssm_m_step_data[0])
+            np.savez(os.path.join(OUTPUT_DIR, "tvgp_learnt_sde.npz"), decay=ssm_prior_decay_values)
+            np.savez(os.path.join(OUTPUT_DIR, "tvgp_m_step.npz"), vals=ssm_m_step_data[0])
 
     if vgp_model is not None:
         m_vgp, s_std_vgp = predict_vgp(vgp_model, NOISE_STDDEV)
@@ -362,7 +362,7 @@ def plot_elbo_bound():
 
     plt.clf()
     plt.subplots(1, 1, figsize=(5, 5))
-    plt.plot(-1 * decay_value_range, ssm_elbo_vals, label="SDE-SSM")
+    plt.plot(-1 * decay_value_range, ssm_elbo_vals, label="t-VGP")
     plt.plot(-1 * decay_value_range, vgp_elbo_vals, label="VGP")
     plt.plot(-1 * decay_value_range, gpr_taylor_elbo_vals, label="CVI-GPR (Taylor) ELBO", alpha=0.2, linestyle="dashed",
              color="black")
@@ -424,20 +424,20 @@ if __name__ == '__main__':
     set_output_dir(args.o)
 
     log = args.log == 'True'
-    init_wandb(args.wandb_username, args.log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
+    init_wandb(args.wandb_username, log, args.data_sites_lr, args.prior_ssm_lr, args.vgp_lr, args.prior_vgp_lr,
                args.vgp_x0_lr, args.all_sites_lr)
 
     INITIAL_PRIOR_VALUE = args.prior_decay
 
-    if LEARN_PRIOR_SDE:
-        gpr_model, cvi_params = cvi_gpr()
-        print(f"Learnt CVI param : {cvi_params}")
-    else:
-        gpr_model = gpr_taylor()
+    # if LEARN_PRIOR_SDE:
+    gpr_model, cvi_params = cvi_gpr()
+    # print(f"Learnt CVI param : {cvi_params}")
+    # else:
+    #     gpr_model = gpr_taylor()
 
     ssm_m_step_data = None
     if args.data_sites_lr > 0.:
-        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals, ssm_m_step_data = perform_sde_ssm(args.data_sites_lr,
+        ssm_model, ssm_elbo_vals, ssm_prior_prior_vals, ssm_m_step_data = perform_tvgp(args.data_sites_lr,
                                                                                           args.all_sites_lr,
                                                                                           args.prior_ssm_lr)
         if LEARN_PRIOR_SDE:
