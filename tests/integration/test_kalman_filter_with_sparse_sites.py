@@ -19,6 +19,8 @@ def _time_step_homogeneous_fixture(request):
 @pytest.fixture(name="kalman_gpr_setup")
 def _setup(batch_shape, time_step_homogeneous):
     """
+    Create a Gaussian Process model and an equivalent kalman filter model
+    with more latent states than observations. 
     FIXME: Currently batch_shape isn't used.
     """
     dt, homogeneous = time_step_homogeneous
