@@ -13,6 +13,8 @@ from markovflow.likelihoods import MultivariateGaussian
 @pytest.fixture(name="kalman_gpr_setup")
 def _setup(batch_shape):
     """
+    Create a Gaussian Process model and an equivalent kalman filter model
+    with more latent states than observations. 
     FIXME: Currently batch_shape isn't used.
     """
     time_grid = np.arange(0.0, 1.0, 0.01)
