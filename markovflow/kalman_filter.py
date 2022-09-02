@@ -96,9 +96,8 @@ class BaseKalmanFilter(tf.Module, ABC):
         # The emission matrix is tiled across the time_points, so for a time invariant matrix
         # this is equivalent to Gᵀ Σ⁻¹ G = (I_N ⊗ HᵀR⁻¹H),
         likelihood_precision = SymmetricBlockTriDiagonal(h_t_r_h)
-        _k_inv_prior = self.prior_ssm.precision
         # K⁻¹ + GᵀΣ⁻¹G
-        return _k_inv_prior + likelihood_precision
+        return self._k_inv_prior + likelihood_precision
 
     @property
     def _log_det_observation_precision(self):
@@ -495,3 +494,120 @@ class KalmanFilterWithSites(BaseKalmanFilter):
     def observations(self):
         """ Observation vector """
         return self.sites.means
+
+
+@tf_scope_class_decorator
+class KalmanFilterWithSparseSites(BaseKalmanFilter):
+    r"""
+    Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel`
+    and :class:`~markovflow.emission_model.EmissionModel`, with Gaussian sites, over a time grid.
+    """
+
+    def __init__(self, state_space_model: StateSpaceModel, emission_model: EmissionModel, sites: GaussianSites,
+                 time_grid: tf.Tensor, observations_idx: tf.Tensor, observations: tf.Tensor):
+        """
+        :param state_space_model: Parameterises the latent chain.
+        :param emission_model: Maps the latent chain to the observations.
+        :param sites: Gaussian sites over the time grid.
+        :param time_grid: Time grid with shape (T,).
+        :param observations_idx: Index of the observations in the time grid with shape (N,).
+        :param observations: Observations with shape (N, state_dim).
+        """
+        self.sites = sites
+        self.time_grid = tf.expand_dims(time_grid, axis=-1)
+        self.observations_idx = observations_idx
+        self._observations = tf.scatter_nd(self.observations_idx, observations, self.time_grid.shape)
+        self.data_sites = self._get_data_sites()
+        super().__init__(state_space_model, emission_model)
+
+    def _get_data_sites(self):
+        """
+        Get data sites from all sites using observation idx.
+        """
+        nat1 = tf.gather_nd(self.sites.nat1, self.observations_idx)
+        nat2 = tf.gather_nd(self.sites.nat2, self.observations_idx)
+        log_norm = tf.gather_nd(self.sites.log_norm, self.observations_idx)
+
+        return UnivariateGaussianSitesNat(
+            nat1=nat1,
+            nat2=nat2,
+            log_norm=log_norm,
+        )
+
+    @property
+    def _r_inv(self):
+        """
+        Precisions of the observation model over the time grid.
+        """
+        data_sites_precision = self.data_sites.precisions
+        return tf.scatter_nd(self.observations_idx , data_sites_precision, self.time_grid[..., None].shape)
+
+    @property
+    def _log_det_observation_precision(self):
+        """
+        Sum of log determinant of the precisions of the observation model. It only calculates for the data_sites as
+        other sites precision is anyways zero.
+        """
+        data_r_inv = self._r_inv_data
+        return tf.reduce_sum(tf.linalg.logdet(data_r_inv), axis=-1)
+
+    @property
+    def observations(self):
+        """ Observation vector """
+        return self._observations
+
+    @property
+    def _r_inv_data(self):
+        """
+        Precisions of the observation model for only the data sites.
+        """
+        return self.data_sites.precisions
+
+    def log_likelihood(self) -> tf.Tensor:
+        r"""
+        Construct a TensorFlow function to compute the likelihood.
+
+        Here, as it is for sparse sites, the num_data is set to number of observations and calculate disp_data by
+        gather the data from disp variable using index of observations.
+        For more mathematical details, look at the log_likelihood function of the parent class.
+
+        :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).
+        """
+        # K⁻¹ + GᵀΣ⁻¹G = LLᵀ.
+        l_post = self._k_inv_post.cholesky
+        num_data = self.observations_idx.shape[0]
+
+        # Hμ [..., num_transitions + 1, output_dim]
+        marginal = self.emission.project_state_to_f(self.prior_ssm.marginal_means)
+
+        # y = obs - Hμ [..., num_transitions + 1, output_dim]
+        disp = self.observations - marginal
+        disp_data = tf.expand_dims(tf.gather_nd(tf.reshape(disp, (-1, 1)), self.observations_idx), axis=0)
+
+        # cst is the constant term for a gaussian log likelihood
+        cst = (
+                -0.5 * np.log(2 * np.pi) * tf.cast(self.emission.output_dim * num_data, default_float())
+        )
+
+        term1 = -0.5 * tf.reduce_sum(
+                input_tensor=tf.einsum("...op,...p,...o->...o", self._r_inv_data, disp_data, disp_data), axis=[-1, -2]
+            )
+
+        # term 2 is: ½|L⁻¹(GᵀΣ⁻¹)y|²
+        # (GᵀΣ⁻¹)y [..., num_transitions + 1, state_dim]
+        obs_proj = self._back_project_y_to_state(disp)
+
+        # ½|L⁻¹(GᵀΣ⁻¹)y|² [...]
+        term2 = 0.5 * tf.reduce_sum(
+            input_tensor=tf.square(l_post.solve(obs_proj, transpose_left=False)), axis=[-1, -2]
+        )
+
+        ## term 3 is: ½log |K⁻¹| - log |L| + ½ log |Σ⁻¹|
+        # where log |Σ⁻¹| = num_data * log|R⁻¹|
+        term3 = (
+                0.5 * self.prior_ssm.log_det_precision()
+                - l_post.abs_log_det()
+                + 0.5 * self._log_det_observation_precision
+        )
+
+        return tf.reduce_sum(cst + term1 + term2 + term3)
