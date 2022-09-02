@@ -504,19 +504,19 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
     """
 
     def __init__(self, state_space_model: StateSpaceModel, emission_model: EmissionModel, sites: GaussianSites,
-                 time_grid: tf.Tensor, observations_idx: tf.Tensor, observations: tf.Tensor):
+                 time_grid_shape: tf.TensorShape, observations_index: tf.Tensor, observations: tf.Tensor):
         """
         :param state_space_model: Parameterises the latent chain.
         :param emission_model: Maps the latent chain to the observations.
         :param sites: Gaussian sites over the time grid.
-        :param time_grid: Time grid with shape (T,).
-        :param observations_idx: Index of the observations in the time grid with shape (N,).
+        :param time_grid_shape: Time grid shape, tuple (T, 1).
+        :param observations_index: Index of the observations in the time grid with shape (N,).
         :param observations: Observations with shape (N, state_dim).
         """
         self.sites = sites
-        self.time_grid = tf.expand_dims(time_grid, axis=-1)
-        self.observations_idx = observations_idx
-        self._observations = tf.scatter_nd(self.observations_idx, observations, self.time_grid.shape)
+        self.time_grid_shape = time_grid_shape
+        self.observations_index = observations_index
+        self._observations = tf.scatter_nd(self.observations_index, observations, self.time_grid_shape)
         self.data_sites = self._get_data_sites()
         super().__init__(state_space_model, emission_model)
 
@@ -524,9 +524,9 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         Get data sites from all sites using observation idx.
         """
-        nat1 = tf.gather_nd(self.sites.nat1, self.observations_idx)
-        nat2 = tf.gather_nd(self.sites.nat2, self.observations_idx)
-        log_norm = tf.gather_nd(self.sites.log_norm, self.observations_idx)
+        nat1 = tf.gather_nd(self.sites.nat1, self.observations_index)
+        nat2 = tf.gather_nd(self.sites.nat2, self.observations_index)
+        log_norm = tf.gather_nd(self.sites.log_norm, self.observations_index)
 
         return UnivariateGaussianSitesNat(
             nat1=nat1,
@@ -540,7 +540,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         Precisions of the observation model over the time grid.
         """
         data_sites_precision = self.data_sites.precisions
-        return tf.scatter_nd(self.observations_idx , data_sites_precision, self.time_grid[..., None].shape)
+        return tf.scatter_nd(self.observations_index , data_sites_precision, self.time_grid_shape + (1,))
 
     @property
     def _log_det_observation_precision(self):
@@ -548,8 +548,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         Sum of log determinant of the precisions of the observation model. It only calculates for the data_sites as
         other sites precision is anyways zero.
         """
-        data_r_inv = self._r_inv_data
-        return tf.reduce_sum(tf.linalg.logdet(data_r_inv), axis=-1)
+        return tf.reduce_sum(tf.linalg.logdet(self._r_inv_data), axis=-1)
 
     @property
     def observations(self):
@@ -575,14 +574,14 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         # K⁻¹ + GᵀΣ⁻¹G = LLᵀ.
         l_post = self._k_inv_post.cholesky
-        num_data = self.observations_idx.shape[0]
+        num_data = self.observations_index.shape[0]
 
         # Hμ [..., num_transitions + 1, output_dim]
         marginal = self.emission.project_state_to_f(self.prior_ssm.marginal_means)
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
         disp = self.observations - marginal
-        disp_data = tf.expand_dims(tf.gather_nd(tf.reshape(disp, (-1, 1)), self.observations_idx), axis=0)
+        disp_data = tf.expand_dims(tf.gather_nd(tf.reshape(disp, (-1, 1)), self.observations_index), axis=0)
 
         # cst is the constant term for a gaussian log likelihood
         cst = (
