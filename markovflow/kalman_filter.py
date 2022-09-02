@@ -26,7 +26,6 @@ from markovflow.block_tri_diag import SymmetricBlockTriDiagonal
 from markovflow.emission_model import EmissionModel
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.utils import tf_scope_class_decorator
-from gpflow.base import Parameter
 
 
 class BaseKalmanFilter(tf.Module, ABC):
@@ -495,6 +494,7 @@ class KalmanFilterWithSites(BaseKalmanFilter):
     def observations(self):
         """ Observation vector """
         return self.sites.means
+
 
 @tf_scope_class_decorator
 class KalmanFilterWithSparseSites(BaseKalmanFilter):

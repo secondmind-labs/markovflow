@@ -138,17 +138,3 @@ def test_optimal_sites(with_tf_random_seed, vgp_gpr_optim_setup):
 
     np.testing.assert_allclose(vgp_nat1, gpr_nat1)
     np.testing.assert_allclose(vgp_nat2, gpr_nat2)
-
-
-def test_posterior_ssm(with_tf_random_seed, vgp_gpr_optim_setup):
-    """Self consistency test on two ways to compute the posterior ssm """
-    cvi, _ = vgp_gpr_optim_setup
-
-    q_ssm = cvi.dist_q
-    kf_ssm = cvi.posterior_kalman.posterior_state_space_model()
-
-    np.testing.assert_allclose(q_ssm.marginal_means, kf_ssm.marginal_means)
-    np.testing.assert_allclose(q_ssm.marginal_covariances, kf_ssm.marginal_covariances)
-
-    np.testing.assert_allclose(q_ssm.state_transitions, kf_ssm.state_transitions)
-    np.testing.assert_allclose(q_ssm.state_offsets, kf_ssm.state_offsets)
