@@ -18,3 +18,13 @@ build/
 
 # Default virtual env location created by poetry
 .venv/
+
+# Experiment specific
+output/
+data/
+wandb/
+.ipynb_checkpoints/
+*.svg
+*.png
+*.pdf
+fig/
