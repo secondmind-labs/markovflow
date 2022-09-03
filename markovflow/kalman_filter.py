@@ -511,11 +511,12 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         :param sites: Gaussian sites over the time grid.
         :param num_grid_points: number of grid points.
         :param observations_index: Index of the observations in the time grid with shape (N,).
-        :param observations: Observations with shape (N, output_dim).
+        :param observations: Sparse observations with shape (N, output_dim).
         """
         self.sites = sites
         self.observations_index = observations_index
-        self._observations = self.sparse_to_dense(observations, output_shape=tf.TensorShape((num_grid_points, 1)))
+        self.sparse_observations = observations
+        self.grid_shape = tf.TensorShape((num_grid_points, 1))
         self.data_sites = self._get_data_sites()
         super().__init__(state_space_model, emission_model)
 
@@ -539,7 +540,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         Precisions of the observation model over the time grid.
         """
         data_sites_precision = self.data_sites.precisions
-        return self.sparse_to_dense(data_sites_precision, output_shape=self._observations.shape + (1,))
+        return self.sparse_to_dense(data_sites_precision, output_shape=self.grid_shape + (1,))
 
     @property
     def _log_det_observation_precision(self):
@@ -551,8 +552,8 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
 
     @property
     def observations(self):
-        """ Observation vector """
-        return self._observations
+        """ Sparse observation vector """
+        return self.sparse_observations
 
     @property
     def _r_inv_data(self):
@@ -596,8 +597,8 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         marginal = self.emission.project_state_to_f(self.prior_ssm.marginal_means)
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
-        disp = self.observations - marginal
-        disp_data = self.dense_to_sparse(disp)
+        disp = self.sparse_to_dense(self.observations, marginal.shape) - marginal
+        disp_data = self.sparse_observations - self.dense_to_sparse(marginal)
 
         # cst is the constant term for a gaussian log likelihood
         cst = (
