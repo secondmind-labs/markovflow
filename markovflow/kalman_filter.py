@@ -504,19 +504,18 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
     """
 
     def __init__(self, state_space_model: StateSpaceModel, emission_model: EmissionModel, sites: GaussianSites,
-                 time_grid_shape: tf.TensorShape, observations_index: tf.Tensor, observations: tf.Tensor):
+                 num_grid_points: int, observations_index: tf.Tensor, observations: tf.Tensor):
         """
         :param state_space_model: Parameterises the latent chain.
         :param emission_model: Maps the latent chain to the observations.
         :param sites: Gaussian sites over the time grid.
-        :param time_grid_shape: Time grid shape, tuple (T, 1).
+        :param num_grid_points: number of grid points.
         :param observations_index: Index of the observations in the time grid with shape (N,).
-        :param observations: Observations with shape (N, state_dim).
+        :param observations: Observations with shape (N, output_dim).
         """
         self.sites = sites
-        self.time_grid_shape = time_grid_shape
         self.observations_index = observations_index
-        self._observations = tf.scatter_nd(self.observations_index, observations, self.time_grid_shape)
+        self._observations = self.sparse_to_dense(observations, output_shape=tf.TensorShape((num_grid_points, 1)))
         self.data_sites = self._get_data_sites()
         super().__init__(state_space_model, emission_model)
 
@@ -524,9 +523,9 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         Get data sites from all sites using observation idx.
         """
-        nat1 = tf.gather_nd(self.sites.nat1, self.observations_index)
-        nat2 = tf.gather_nd(self.sites.nat2, self.observations_index)
-        log_norm = tf.gather_nd(self.sites.log_norm, self.observations_index)
+        nat1 = self.dense_to_sparse(self.sites.nat1)
+        nat2 = self.dense_to_sparse(self.sites.nat2)
+        log_norm = self.dense_to_sparse(self.sites.log_norm)
 
         return UnivariateGaussianSitesNat(
             nat1=nat1,
@@ -540,7 +539,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         Precisions of the observation model over the time grid.
         """
         data_sites_precision = self.data_sites.precisions
-        return tf.scatter_nd(self.observations_index , data_sites_precision, self.time_grid_shape + (1,))
+        return self.sparse_to_dense(data_sites_precision, output_shape=self._observations.shape + (1,))
 
     @property
     def _log_det_observation_precision(self):
@@ -562,6 +561,24 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         return self.data_sites.precisions
 
+    def sparse_to_dense(self, tensor: tf.Tensor, output_shape: tf.TensorShape) -> tf.Tensor:
+        """
+        Convert a sparse tensor to a dense one on the basis of observations index, output tensor is of the output_shape.
+        """
+        return tf.scatter_nd(self.observations_index, tensor, output_shape)
+
+    def dense_to_sparse(self, tensor: tf.Tensor) -> tf.Tensor:
+        """
+        Convert a dense tensor to a sparse one on the basis of observations index.
+        """
+        tensor_shape = tensor.shape
+        expand_dims = len(tensor_shape) == 3
+
+        tensor = tf.gather_nd(tf.reshape(tensor, (-1, 1)), self.observations_index)
+        if expand_dims:
+            tensor = tf.expand_dims(tensor, axis=-1)
+        return tensor
+
     def log_likelihood(self) -> tf.Tensor:
         r"""
         Construct a TensorFlow function to compute the likelihood.
@@ -581,7 +598,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
         disp = self.observations - marginal
-        disp_data = tf.expand_dims(tf.gather_nd(tf.reshape(disp, (-1, 1)), self.observations_index), axis=0)
+        disp_data = self.dense_to_sparse(disp)
 
         # cst is the constant term for a gaussian log likelihood
         cst = (

@@ -59,7 +59,7 @@ def _setup(batch_shape, time_step_homogeneous):
     lognorm = tf.zeros_like(nat1)
     sites = UnivariateGaussianSitesNat(nat1=nat1, nat2=nat2, log_norm=lognorm)
 
-    kf_sparse_sites = KalmanFilterWithSparseSites(prior_ssm, emission_model, sites, time_grid[..., None].shape,
+    kf_sparse_sites = KalmanFilterWithSparseSites(prior_ssm, emission_model, sites, time_grid.shape[0],
                                                   observations_index, observations)
 
     return gpr_model, kf_sparse_sites
