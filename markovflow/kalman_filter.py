@@ -580,6 +580,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
         disp = self.observations - marginal
+        # [..., num_data, output_dim]
         disp_data = tf.expand_dims(tf.gather_nd(tf.reshape(disp, (-1, 1)), self.observations_index), axis=0)
 
         # cst is the constant term for a gaussian log likelihood
