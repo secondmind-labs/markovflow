@@ -566,9 +566,8 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         r"""
         Construct a TensorFlow function to compute the likelihood.
 
-        Here, as it is for sparse sites, the num_data is set to number of observations and calculate disp_data by
-        gather the data from disp variable using index of observations.
         For more mathematical details, look at the log_likelihood function of the parent class.
+        The main difference from the parent class are that the vector of observations is now sparse.        
 
         :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).
         """
