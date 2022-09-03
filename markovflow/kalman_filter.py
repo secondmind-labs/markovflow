@@ -508,7 +508,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         :param state_space_model: Parameterises the latent chain.
         :param emission_model: Maps the latent chain to the observations.
-        :param sites: Gaussian sites over the time grid.
+        :param sites: Gaussian sites over the observations.
         :param num_grid_points: number of grid points.
         :param observations_index: Index of the observations in the time grid with shape (N,).
         :param observations: Sparse observations with shape (N, output_dim).
@@ -517,29 +517,14 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         self.observations_index = observations_index
         self.sparse_observations = observations
         self.grid_shape = tf.TensorShape((num_grid_points, 1))
-        self.data_sites = self._get_data_sites()
         super().__init__(state_space_model, emission_model)
-
-    def _get_data_sites(self):
-        """
-        Get data sites from all sites using observation idx.
-        """
-        nat1 = self.dense_to_sparse(self.sites.nat1)
-        nat2 = self.dense_to_sparse(self.sites.nat2)
-        log_norm = self.dense_to_sparse(self.sites.log_norm)
-
-        return UnivariateGaussianSitesNat(
-            nat1=nat1,
-            nat2=nat2,
-            log_norm=log_norm,
-        )
 
     @property
     def _r_inv(self):
         """
         Precisions of the observation model over the time grid.
         """
-        data_sites_precision = self.data_sites.precisions
+        data_sites_precision = self.sites.precisions
         return self.sparse_to_dense(data_sites_precision, output_shape=self.grid_shape + (1,))
 
     @property
@@ -560,7 +545,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         Precisions of the observation model for only the data sites.
         """
-        return self.data_sites.precisions
+        return self.sites.precisions
 
     def sparse_to_dense(self, tensor: tf.Tensor, output_shape: tf.TensorShape) -> tf.Tensor:
         """

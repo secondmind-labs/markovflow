@@ -54,7 +54,6 @@ def _setup(batch_shape, time_step_homogeneous):
     observations -= gpr_model.mean_function(time_points)
 
     nat1 = observations / observation_covariance
-    nat1 = tf.scatter_nd(observations_index, nat1, time_grid[..., None].shape)
     nat2 = (-0.5 / observation_covariance) * tf.ones_like(nat1)[..., None]
     lognorm = tf.zeros_like(nat1)
     sites = UnivariateGaussianSitesNat(nat1=nat1, nat2=nat2, log_norm=lognorm)
