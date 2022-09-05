@@ -538,7 +538,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
     @property
     def observations(self):
         """ Sparse observation vector """
-        return self.sparse_observations
+        return self.sparse_to_dense(self.sparse_observations, self.grid_shape)
 
     @property
     def _r_inv_data(self):
@@ -582,7 +582,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         marginal = self.emission.project_state_to_f(self.prior_ssm.marginal_means)
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
-        disp = self.sparse_to_dense(self.observations, marginal.shape) - marginal
+        disp = self.observations - marginal
         disp_data = self.sparse_observations - self.dense_to_sparse(marginal)
 
         # cst is the constant term for a gaussian log likelihood
