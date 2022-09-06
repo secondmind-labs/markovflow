@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 """Module containing a model for Variational-CVI in SDE models"""
-from typing import Optional, Tuple
+from typing import Tuple
 
 import tensorflow as tf
 from gpflow.likelihoods import Likelihood
@@ -24,23 +24,18 @@ from gpflow.quadrature import NDiagGHQuadrature
 
 from markovflow.models import MarkovFlowModel
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
-from markovflow.models.variational_cvi import CVIGaussianProcess
-from markovflow.mean_function import MeanFunction
 from markovflow.sde.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSparseSites
 from markovflow.sde.sde_utils import KL_sde
-from markovflow.ssm_natgrad import naturals_to_ssm_params
-from markovflow.models.variational_cvi import back_project_nats
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
 class CVISDESparseSites(MarkovFlowModel):
     """
-    # FIXME: This class is still not there. Fix docstring.
-    Provides an alternative parameterization to a :class:`~markovflow.models.vi_sde`.
+    Provides a site-based parameterization to the variational posterior of a dynamical system.
     """
 
     def __init__(
@@ -91,7 +86,9 @@ class CVISDESparseSites(MarkovFlowModel):
         self.dt = self.grid[1] - self.grid[0]
 
     def _initialize_mean_statistic(self):
-        """"""
+        """
+        Initialize the prior on the initial state and the posterior statistics.
+        """
         self.initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
         self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
 
@@ -101,7 +98,6 @@ class CVISDESparseSites(MarkovFlowModel):
     def _linearize_prior(self):
         """
             Set the :class:`~markovflow.state_space_model.StateSpaceModel` representation of the prior process.
-
             Here, we approximate (linearize) the prior SDE based on the grid.
         """
         self.dist_p = linearize_sde(sde=self.prior_sde, transition_times=self.time_points,
@@ -113,8 +109,7 @@ class CVISDESparseSites(MarkovFlowModel):
     @property
     def time_points(self) -> tf.Tensor:
         """
-        Return the time points of the observations. For SDE CVI, it is the time-grid.
-
+        Return the time points of the observations.
         :return: A tensor with shape ``batch_shape + [grid_size]``.
         """
         return self.grid
@@ -279,7 +274,7 @@ class CVISDESparseSites(MarkovFlowModel):
         return lin_loss
 
     def update_sites(self):
-        """Currently only updating data-sites"""
+        """Update the data-sites"""
         fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), self.obs_sites_indices)
         fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), self.obs_sites_indices)
 
@@ -293,7 +288,7 @@ class CVISDESparseSites(MarkovFlowModel):
         self.sites.nat1.assign(new_data_nat1)
         self.sites.nat2.assign(new_data_nat2)
 
-    def varational_expectation(self, fx_mus=None, fx_covs=None) -> tf.Tensor:
+    def variational_expectation(self, fx_mus=None, fx_covs=None) -> tf.Tensor:
         """Likelihood variational expectation"""
 
         if fx_mus is None or fx_covs is None:
@@ -338,13 +333,14 @@ class CVISDESparseSites(MarkovFlowModel):
 
     def classic_elbo(self) -> tf.Tensor:
         """
-            Compute the ELBO.
+            Compute the ELBO,
+            ELBO = Variational_Expectation - (KL[q || p_{L}] + Lin_Loss + Cross_Term).
         """
         # s ~ q(s) = N(μ, P)
         dist_q = self.dist_q
         fx_mus, fx_covs = dist_q.marginals
 
-        ve_fx = self.varational_expectation(fx_mus, fx_covs)
+        ve_fx = self.variational_expectation(fx_mus, fx_covs)
         kl_fx = tf.reduce_sum(dist_q.kl_divergence(self.dist_p))
         lin_loss = self.loss_lin(m=fx_mus, S=fx_covs)
         cross_term_val = self.cross_term(dist_q=dist_q)

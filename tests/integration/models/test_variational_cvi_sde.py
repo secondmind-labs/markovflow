@@ -36,11 +36,10 @@ batch_shape = ()
 DTYPE = default_float()
 
 
-@pytest.fixture(name="cvisde_gpr_optim_setup")
-def _cvisde_gpr_optim_setup():
+@pytest.fixture(name="cvi_sde_gpr_optim_setup")
+def _cvi_sde_gpr_optim_setup():
     """
-    TODO
-    Creates a GPR model and a matched VGP model, and optimize the later (single step)
+    Creates a GPR model and a matched CVI-SDE sparse sites model, and optimize the later (single step).
     """
     observation_grid, observations, time_grid, kernel, sde = _setup()
 
@@ -74,35 +73,40 @@ def _cvisde_gpr_optim_setup():
 
 
 def _setup():
-    """TODO"""
-    # Generate observations from Ornstein-Uhlenbeck SDE.
+    """Generate a time-series data from Ornstein-Uhlenbeck SDE."""
     ou_sde = OrnsteinUhlenbeckSDE(decay=DECAY*tf.ones((1, 1), dtype=DTYPE), q=Q*tf.ones((1, 1), dtype=DTYPE))
     time_grid = tf.cast(tf.linspace(T0, T1, int((T1-T0)//DT) + 2), dtype=DTYPE)
     simulated_vals = euler_maruyama(ou_sde, x0=tf.zeros((1, 1), dtype=DTYPE), time_grid=time_grid)
+    simulated_vals = tf.squeeze(simulated_vals, axis=0)
 
     # observations
     observation_grid = tf.convert_to_tensor(np.sort(np.random.choice(time_grid, NUM_DATA, replace=False)).reshape((-1,)), dtype=DTYPE)
     observation_idx = tf.where(tf.equal(time_grid[..., None], observation_grid))[:, 0]
-    observations = tf.gather(simulated_vals, observation_idx, axis=1)
+    observations = tf.gather(simulated_vals, observation_idx, axis=0)
     observations = observations + tf.random.normal(observations.shape, stddev=NOISE_STDDEV, dtype=DTYPE)
 
     kernel = OrnsteinUhlenbeck(decay=DECAY, diffusion=Q)
 
-    # FIXME: Why?
-    observations = tf.squeeze(observations, axis=0)
-
     return observation_grid, observations, time_grid, kernel, ou_sde
 
 
-def test_elbo_optimal(with_tf_random_seed, cvisde_gpr_optim_setup):
-    """Test that the value of the ELBO at the optimum is the same as the GPR Log Likelihood."""
-    cvi_sde, gpr = cvisde_gpr_optim_setup
-    np.testing.assert_allclose(cvi_sde.elbo(), gpr.log_likelihood())
+def test_elbo_optimal(with_tf_random_seed, cvi_sde_gpr_optim_setup):
+    """
+    Test that the value of the ELBO at the optimum is the same as the GPR Log Likelihood.
+
+    We compare with less tolerance i.e. 2 decimal places as in CVI-SDE model we linearize using Taylor expansion which
+    is an approximation to the prior in GPR.
+
+    """
+    cvi_sde, gpr = cvi_sde_gpr_optim_setup
+    np.testing.assert_array_almost_equal(cvi_sde.elbo(), gpr.log_likelihood(), decimal=2)
 
 
-def test_unchanged_at_optimum(with_tf_random_seed, cvisde_gpr_optim_setup):
-    """Test that the update does not change sites at the optimum"""
-    cvi_sde, _ = cvisde_gpr_optim_setup
+def test_unchanged_at_optimum(with_tf_random_seed, cvi_sde_gpr_optim_setup):
+    """
+    Test that the update does not change sites at the optimum
+    """
+    cvi_sde, _ = cvi_sde_gpr_optim_setup
     # ELBO at optimum
     optim_elbo = cvi_sde.elbo()
     # site update step
@@ -121,9 +125,11 @@ def test_unchanged_at_optimum(with_tf_random_seed, cvisde_gpr_optim_setup):
     np.testing.assert_array_almost_equal(optim_elbo, new_elbo)
 
 
-def test_optimal_sites(with_tf_random_seed, cvisde_gpr_optim_setup):
-    """Test that the optimal value of the exact sites match the true sites """
-    cvi_sde, gpr = cvisde_gpr_optim_setup
+def test_optimal_sites(with_tf_random_seed, cvi_sde_gpr_optim_setup):
+    """
+    Test that the optimal value of the exact sites match the true sites.
+    """
+    cvi_sde, gpr = cvi_sde_gpr_optim_setup
 
     cvi_sde_nat1 = cvi_sde.sites.nat1.numpy()
     cvi_sde_nat2 = cvi_sde.sites.nat2.numpy()
