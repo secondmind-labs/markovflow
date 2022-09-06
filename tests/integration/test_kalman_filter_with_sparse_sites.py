@@ -6,8 +6,8 @@ from gpflow.config import default_float
 from markovflow.kernels.matern import Matern12
 from markovflow.mean_function import LinearMeanFunction
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
-from markovflow.kalman_filter import KalmanFilterWithSparseSites, UnivariateGaussianSitesNat
-from markovflow.likelihoods import MultivariateGaussian
+from markovflow.kalman_filter import KalmanFilterWithSparseSites, UnivariateGaussianSitesNat, KalmanFilterWithSites
+
 
 @pytest.fixture(
     name="time_step_homogeneous", params=[(0.01, True), (0.01, False), (0.001, True), (0.001, False)],
@@ -19,9 +19,11 @@ def _time_step_homogeneous_fixture(request):
 @pytest.fixture(name="kalman_gpr_setup")
 def _setup(batch_shape, time_step_homogeneous):
     """
-    Create a Gaussian Process model and an equivalent kalman filter model
-    with more latent states than observations. 
-    FIXME: Currently batch_shape isn't used.
+        Create a Gaussian Process model and an equivalent kalman filter model
+        with more latent states than observations.
+
+        Note: Batch shape is ignored as :class:`~markovflow.kalman_filter.KalmanFilterWithSparseSites` currently
+        doesn't support batches of sites.
     """
     dt, homogeneous = time_step_homogeneous
 
@@ -63,7 +65,40 @@ def _setup(batch_shape, time_step_homogeneous):
 
     return gpr_model, kf_sparse_sites
 
+
 def test_kalman_loglikelihood(with_tf_random_seed, kalman_gpr_setup):
+    """
+        Compare Kalman log-likelihood and GPR log-likelihood
+    """
     gpr_model, kf_sparse_sites = kalman_gpr_setup
 
     np.testing.assert_allclose(gpr_model.log_likelihood(), kf_sparse_sites.log_likelihood())
+
+
+def _get_kf_sites(kf_sparse_sites: KalmanFilterWithSparseSites):
+    """
+        Get :class:`~markovflow.kalman_filter.KalmanFilterWithSites` from
+        :class:`~markovflow.kalman_filter.KalmanFilterWithSparseSites`
+    """
+    nat1 = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.nat1, kf_sparse_sites.grid_shape)
+    nat2 = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.nat2, kf_sparse_sites.grid_shape + (1,)) + 1e-20
+    log_norm = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.log_norm, kf_sparse_sites.grid_shape)
+    sites = UnivariateGaussianSitesNat(nat1, nat2, log_norm)
+
+    return KalmanFilterWithSites(kf_sparse_sites.prior_ssm,  kf_sparse_sites.emission, sites)
+
+
+def test_kalman_posterior(with_tf_random_seed, kalman_gpr_setup):
+    """
+        Compare the marginals of the posterior of :class:`~markovflow.kalman_filter.KalmanFilterWithSites` and
+        :class:`~markovflow.kalman_filter.KalmanFilterWithSparseSites`
+    """
+    _, kf_sparse_sites = kalman_gpr_setup
+
+    kf_sites = _get_kf_sites(kf_sparse_sites)
+
+    kf_m, kf_S = kf_sites.posterior_state_space_model().marginals
+    kf_sparse_m, kf_sparse_S = kf_sparse_sites.posterior_state_space_model().marginals
+
+    np.testing.assert_array_almost_equal(kf_m, kf_sparse_m)
+    np.testing.assert_array_almost_equal(kf_S, kf_sparse_S)

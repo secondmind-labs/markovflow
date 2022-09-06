@@ -511,11 +511,11 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         :param sites: Gaussian sites over the observations.
         :param num_grid_points: number of grid points.
         :param observations_index: Index of the observations in the time grid with shape (N,).
-        :param observations: Sparse observations with shape (N, output_dim).
+        :param observations: Sparse observations with shape [n_batch] + (N, output_dim).
         """
         self.sites = sites
         self.observations_index = observations_index
-        self.sparse_observations = observations
+        self.sparse_observations = self._drop_batch_shape(observations)
         self.grid_shape = tf.TensorShape((num_grid_points, 1))
         super().__init__(state_space_model, emission_model)
 
@@ -526,6 +526,16 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
         """
         data_sites_precision = self.sites.precisions
         return self.sparse_to_dense(data_sites_precision, output_shape=self.grid_shape + (1,))
+
+    def _drop_batch_shape(self, tensor: tf.Tensor):
+        """
+        Check the batch, if present, is equal to 1, and drop it.
+        """
+        tensor_shape = tensor._shape_as_list()
+        if len(tensor_shape) < 3: return tensor
+        if tensor_shape[0] != 1: raise Exception("KalmanFilterWithSparseSites doesn't support batches")
+
+        return tf.squeeze(tensor, axis=0)
 
     @property
     def _log_det_observation_precision(self):
@@ -538,7 +548,7 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
     @property
     def observations(self):
         """ Sparse observation vector """
-        return self.sparse_observations
+        return self.sparse_to_dense(self.sparse_observations, self.grid_shape)
 
     @property
     def _r_inv_data(self):
@@ -580,9 +590,10 @@ class KalmanFilterWithSparseSites(BaseKalmanFilter):
 
         # Hμ [..., num_transitions + 1, output_dim]
         marginal = self.emission.project_state_to_f(self.prior_ssm.marginal_means)
+        marginal = self._drop_batch_shape(marginal)
 
         # y = obs - Hμ [..., num_transitions + 1, output_dim]
-        disp = self.sparse_to_dense(self.observations, marginal.shape) - marginal
+        disp = self.observations - marginal
         disp_data = self.sparse_observations - self.dense_to_sparse(marginal)
 
         # cst is the constant term for a gaussian log likelihood
