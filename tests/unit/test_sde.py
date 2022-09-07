@@ -81,20 +81,17 @@ def test_linearize_sde_ou_statedim_1(setup):
     )  # [num_batch, num_transitions, state_dim, state_dim]
 
     x0_covar_chol = tf.linalg.cholesky(q_covar[:, 0, :, :])  # [num_batch, state_dim, state_dim]
-    process_noise_chol_covar = 1e-2 * tf.ones_like(
-        q_covar
-    )  # [num_batch, num_transitions, state_dim, state_dim]
 
     # linearize the sde around the path distribution provided by the marginal statistics
     linearized_ssm = linearize_sde(
-        ou_sde, time_grid, q_mean, q_covar, x0, x0_covar_chol, process_noise_chol_covar
+        ou_sde, time_grid, q_mean, q_covar, x0, x0_covar_chol
     )
 
     # ground true linearization for OU
     expected_A = tf.zeros_like(q_covar)  # [num_batch, num_transitions, state_dim, state_dim]
     expected_b = tf.zeros_like(q_mean) * dt  # [num_batch, num_transitions, state_dim]
-    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b) * dt
-    expected_chol_Q = process_noise_chol_covar * tf.sqrt(dt)
+    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b) * dt + tf.eye(ou_sde.state_dim, dtype=DTYPE)
+    expected_chol_Q = ou_sde.diffusion(q_mean, t=None) * tf.sqrt(dt)
 
     np.testing.assert_allclose(linearized_ssm.state_transitions, expected_A, atol=1e-3)
     np.testing.assert_allclose(linearized_ssm.state_offsets, expected_b, atol=1e-3)

@@ -53,7 +53,7 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
         _, t_next = next_state_time
         dt = t_next[0] - t[0]  # As time grid is homogeneous
         diffusion_term = tf.cast(l(x, t) * tf.math.sqrt(dt), dtype=DTYPE)
-        x_next = x + f(x, t) * dt + tf.random.normal(x.shape, dtype=DTYPE) @ diffusion_term
+        x_next = x + f(x, t) * dt + tf.squeeze(diffusion_term @ tf.random.normal(x.shape, dtype=DTYPE)[..., None], axis=-1)
         return x_next, t_next
 
     # [num_data, batch_shape, state_dim] for tf.scan
@@ -104,9 +104,7 @@ def linearize_sde(
     :param q_mean: mean of Gaussian over states with shape (num_batch, num_states, state_dim).
     :param q_covar: covariance of Gaussian over states with shape (num_batch, num_states, state_dim, state_dim).
     :param initial_mean: The initial mean, with shape ``[num_batch, state_dim]``.
-    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[num_batch, state_dim, state_dim]``.
-    :param process_chol_covariances: Cholesky of the noise covariance matrices, with shape
-        ``[num_batch, num_states, state_dim, state_dim]``.
+    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[num_batch, state_dim, state_dim]``
 
     :return: the state-space model of the linearized SDE.
     """
@@ -134,6 +132,7 @@ def linearize_sde(
         state_offsets=state_offsets,
         chol_process_covariances=chol_process_covariances,
     )
+
 
 def KL_sde(sde_p: SDE, A_q, b_q, m, S, dt: float, quadrature_pnts: int = 20):
     """

@@ -29,7 +29,7 @@ DECAY = 0.5
 Q = 0.8
 T0 = 0.
 T1 = 1.
-DT = 0.01
+DT = 0.001
 NUM_DATA = 8
 NOISE_STDDEV = 1.
 batch_shape = ()
@@ -94,12 +94,12 @@ def test_elbo_optimal(with_tf_random_seed, cvi_sde_gpr_optim_setup):
     """
     Test that the value of the ELBO at the optimum is the same as the GPR Log Likelihood.
 
-    We compare with less tolerance i.e. 2 decimal places as in CVI-SDE model we linearize using Taylor expansion which
+    We compare with less tolerance i.e. 4 decimal places as in CVI-SDE model we linearize using Taylor expansion which
     is an approximation to the prior in GPR.
 
     """
     cvi_sde, gpr = cvi_sde_gpr_optim_setup
-    np.testing.assert_array_almost_equal(cvi_sde.elbo(), gpr.log_likelihood(), decimal=2)
+    np.testing.assert_array_almost_equal(cvi_sde.elbo(), gpr.log_likelihood(), decimal=4)
 
 
 def test_unchanged_at_optimum(with_tf_random_seed, cvi_sde_gpr_optim_setup):
@@ -141,3 +141,19 @@ def test_optimal_sites(with_tf_random_seed, cvi_sde_gpr_optim_setup):
 
     np.testing.assert_allclose(cvi_sde_nat1, gpr_nat1)
     np.testing.assert_allclose(cvi_sde_nat2, gpr_nat2)
+
+
+def test_elbo_terms(with_tf_random_seed, cvi_sde_gpr_optim_setup):
+    """
+    Test elbo terms
+    """
+    cvi_sde, gpr = cvi_sde_gpr_optim_setup
+
+    cross_term = cvi_sde.cross_term()
+    linearization_loss = cvi_sde.loss_lin()
+
+    np.testing.assert_array_almost_equal(cross_term, tf.zeros_like(cross_term))
+    np.testing.assert_array_almost_equal(linearization_loss, tf.zeros_like(linearization_loss))
+
+    ve_kl = cvi_sde.variational_expectation() - cvi_sde.dist_q.kl_divergence(cvi_sde.dist_p)
+    np.testing.assert_array_almost_equal(ve_kl, gpr.log_likelihood(), decimal=4)
