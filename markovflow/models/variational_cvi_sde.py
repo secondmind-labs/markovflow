@@ -21,6 +21,7 @@ from gpflow.likelihoods import Likelihood
 from gpflow.base import Parameter
 from gpflow import default_float
 from gpflow.quadrature import NDiagGHQuadrature
+from gpflow.base import TensorType
 
 from markovflow.models import MarkovFlowModel
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
@@ -41,8 +42,8 @@ class CVISDESparseSites(MarkovFlowModel):
     def __init__(
             self,
             prior_sde: SDE,
-            grid: tf.Tensor,
-            input_data: Tuple[tf.Tensor, tf.Tensor],
+            grid: TensorType,
+            input_data: Tuple[TensorType, TensorType],
             likelihood: Likelihood,
             learning_rate=0.1
     ) -> None:
@@ -93,7 +94,7 @@ class CVISDESparseSites(MarkovFlowModel):
         self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
 
         self.fx_mus = tf.ones((1, self.grid.shape[0], self.state_dim), dtype=self._observations.dtype)
-        self.fx_covs = 0.5 * tf.ones_like(self.fx_mus[..., None])
+        self.fx_covs = tf.ones_like(self.fx_mus[..., None])
 
     def _linearize_prior(self):
         """
@@ -107,7 +108,7 @@ class CVISDESparseSites(MarkovFlowModel):
                                     )
 
     @property
-    def time_points(self) -> tf.Tensor:
+    def time_points(self) -> TensorType:
         """
         Return the time points of the observations.
         :return: A tensor with shape ``batch_shape + [grid_size]``.
@@ -122,7 +123,7 @@ class CVISDESparseSites(MarkovFlowModel):
         """
         return self.posterior_kalman.posterior_state_space_model()
 
-    def generate_emission_model(self, time_points: tf.Tensor) -> EmissionModel:
+    def generate_emission_model(self, time_points: TensorType) -> EmissionModel:
         """
         Generate the :class:`~markovflow.emission_model.EmissionModel` that maps from the
         latent :class:`~markovflow.state_space_model.StateSpaceModel` to the observations.
@@ -167,7 +168,7 @@ class CVISDESparseSites(MarkovFlowModel):
     def posterior(self):
         raise NotImplementedError
 
-    def local_objective(self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor) -> tf.Tensor:
+    def local_objective(self, Fmu: TensorType, Fvar: TensorType, Y: TensorType) -> TensorType:
         """
         Calculate local loss in CVI.
 
@@ -178,7 +179,7 @@ class CVISDESparseSites(MarkovFlowModel):
         """
         return self._likelihood.variational_expectations(Fmu, Fvar, Y)
 
-    def local_objective_and_gradients(self, Fmu: tf.Tensor, Fvar: tf.Tensor) -> tf.Tensor:
+    def local_objective_and_gradients(self, Fmu: TensorType, Fvar: TensorType) -> [TensorType, TensorType]:
         """
         Return the local objective and its gradients with regard to the expectation parameters.
 
@@ -197,7 +198,7 @@ class CVISDESparseSites(MarkovFlowModel):
 
         return local_obj, grads
 
-    def cross_term(self, dist_q=None) -> tf.Tensor:
+    def cross_term(self, dist_q: StateSpaceModel = None) -> TensorType:
         """
         Calculate
                     E_{q(x)[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
@@ -249,7 +250,7 @@ class CVISDESparseSites(MarkovFlowModel):
 
         return val
 
-    def loss_lin(self, dist_p: StateSpaceModel = None, m=None, S=None):
+    def loss_lin(self, dist_p: StateSpaceModel = None, m: TensorType = None, S: TensorType = None):
         """
         0.5 * \E_{q}[||f_P - f_l||^2_{\Sigma^{-1}}]
         """
@@ -269,8 +270,7 @@ class CVISDESparseSites(MarkovFlowModel):
         A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / self.dt
         b = b / self.dt
 
-        # -1 * A as the function expects A without the negative sign i.e. drift = - A*x + b
-        lin_loss = KL_sde(self.prior_sde, -1 * A, b, m, S, dt=self.dt)
+        lin_loss = KL_sde(self.prior_sde, A, b, m, S, dt=self.dt)
         return lin_loss
 
     def update_sites(self):
@@ -288,7 +288,7 @@ class CVISDESparseSites(MarkovFlowModel):
         self.sites.nat1.assign(new_data_nat1)
         self.sites.nat2.assign(new_data_nat2)
 
-    def variational_expectation(self, fx_mus=None, fx_covs=None) -> tf.Tensor:
+    def variational_expectation(self, fx_mus: TensorType = None, fx_covs: TensorType = None) -> TensorType:
         """Likelihood variational expectation"""
 
         if fx_mus is None or fx_covs is None:
@@ -306,7 +306,7 @@ class CVISDESparseSites(MarkovFlowModel):
         )
         return ve_fx
 
-    def log_likelihood(self) -> tf.Tensor:
+    def log_likelihood(self) -> TensorType:
         """
         Calculate :math:`log p(y)`.
 
@@ -314,7 +314,7 @@ class CVISDESparseSites(MarkovFlowModel):
         """
         return self.posterior_kalman.log_likelihood()
 
-    def elbo(self) -> tf.Tensor:
+    def elbo(self) -> TensorType:
         """
         Calculate the evidence lower bound (ELBO) :math:`log p(y)`.
 
@@ -325,13 +325,13 @@ class CVISDESparseSites(MarkovFlowModel):
         """
         return self.log_likelihood()
 
-    def loss(self) -> tf.Tensor:
+    def loss(self) -> TensorType:
         """
         Return the loss, which is the negative ELBO.
         """
         return -self.log_likelihood()
 
-    def classic_elbo(self) -> tf.Tensor:
+    def classic_elbo(self) -> TensorType:
         """
             Compute the ELBO,
             ELBO = Variational_Expectation - (KL[q || p_{L}] + Lin_Loss + Cross_Term).

@@ -182,6 +182,6 @@ def test_KL_sde(setup):
 
     kl_expected_val = q_ssm.kl_divergence(p_ssm)
     m, S = q_ssm.marginals
-    kl_val = KL_sde(sde_p=ou_sde, A_q=-1 * A_q_drift, b_q=b_q_drift, m=m[1:], S=S[1:], dt=dt)
+    kl_val = KL_sde(sde_p=ou_sde, A_q=A_q_drift, b_q=b_q_drift, m=m[1:], S=S[1:], dt=dt)
 
     np.testing.assert_array_almost_equal(kl_expected_val, kl_val, decimal=2)

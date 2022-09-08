@@ -134,18 +134,18 @@ def linearize_sde(
     )
 
 
-def KL_sde(sde_p: SDE, A_q: tf.Tensor, b_q: tf.Tensor, m: tf.Tensor, S: tf.Tensor, dt: float,
+def KL_sde(sde_p: SDE, A_q: TensorType, b_q: TensorType, m: TensorType, S: TensorType, dt: float,
            quadrature_pnts: int = 20) -> tf.Tensor:
     """
     Calculate KL between two SDEs i.e. KL[q(x(.) || p(x(.)))]
         p(x(.)) : d x_t = f(x_t, t) dt   + dB_t  ; Q
-        q(x(.)) : d x_t = f_L(x_t, t) dt + dB_t  ; Q  ; f_L(x_t, t) = - A_t * x_t + b_t.
+        q(x(.)) : d x_t = f_L(x_t, t) dt + dB_t  ; Q  ; f_L(x_t, t) = A_t * x_t + b_t.
+
         KL[q(x(.) || p(x(.)))] = 0.5 * \int <(f-f_L)^T Q^{-1} (f-f_L)>_{q_t} dt
         NOTE:
             1. Both the SDE have same diffusion i.e. Q.
-            2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = - A_t * x_t + b_t
-            3. Parameter A_t is "WITHOUT" the negative sign.
-            4. A_q, b_q are the DRIFT parameters of the SDE and should not be confused with the state transitions of the SSM model.
+            2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = A_t * x_t + b_t
+            3. A_q, b_q are the DRIFT parameters of the SDE and should not be confused with the state transitions of the SSM model.
 
     Apply Gaussian quadrature method to approximate the Expectation and integral is approximated as Riemann sum.
 
@@ -179,7 +179,7 @@ def KL_sde(sde_p: SDE, A_q: tf.Tensor, b_q: tf.Tensor, m: tf.Tensor, S: tf.Tenso
 
         prior_drift = sde_p.drift(x=x, t=t)
 
-        tmp = prior_drift + ((x * A_q) - b_q)
+        tmp = prior_drift - ((x * A_q) + b_q)
         tmp = tmp * tmp
 
         sigma = sde_p.q
