@@ -31,10 +31,10 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
     ..math:: x(t+1) = x(t) + f(x,t)dt + L(x,t)*sqrt(dt*q)*N(0,I)
 
     :param sde: Object of SDE class
-    :param x0: state at start time, t0, with shape (num_batch, state_dim)
-    :param time_grid: A homogeneous time grid for simulation, (num_transitions, )
+    :param x0: state at start time, t0, with shape ```[num_batch, state_dim]```
+    :param time_grid: A homogeneous time grid for simulation, ```[num_transitions, ]```
 
-    :return: Simulated SDE values, (num_batch, num_transitions+1, state_dim)
+    :return: Simulated SDE values, ```[num_batch, num_transitions+1, state_dim]```
 
     Note: evaluation time grid is [t0, tn], x0 value is appended for t0 time.
     Thus, simulated values are (num_transitions+1).
@@ -100,9 +100,9 @@ def linearize_sde(
     ..math:: b_{i}^{*} = E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]
 
     :param sde: SDE to be linearized.
-    :param transition_times: Transition_times, (num_transitions, )
-    :param q_mean: mean of Gaussian over states with shape (num_batch, num_states, state_dim).
-    :param q_covar: covariance of Gaussian over states with shape (num_batch, num_states, state_dim, state_dim).
+    :param transition_times: Transition_times, ``[num_transitions, ]``
+    :param q_mean: mean of Gaussian over states with shape ``[num_batch, num_states, state_dim]``.
+    :param q_covar: covariance of Gaussian over states with shape ``[num_batch, num_states, state_dim, state_dim]``.
     :param initial_mean: The initial mean, with shape ``[num_batch, state_dim]``.
     :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[num_batch, state_dim, state_dim]``
 
@@ -134,21 +134,36 @@ def linearize_sde(
     )
 
 
-def KL_sde(sde_p: SDE, A_q, b_q, m, S, dt: float, quadrature_pnts: int = 20):
+def KL_sde(sde_p: SDE, A_q: tf.Tensor, b_q: tf.Tensor, m: tf.Tensor, S: tf.Tensor, dt: float,
+           quadrature_pnts: int = 20) -> tf.Tensor:
     """
     Calculate KL between two SDEs i.e. KL[q(x(.) || p(x(.)))]
-    p(x(.)) : d x_t = f(x_t, t) dt   + dB_t  ; Q
-    q(x(.)) : d x_t = f_L(x_t, t) dt + dB_t  ; Q  ; f_L(x_t, t) = - A_t * x_t + b_t.
-    KL[q(x(.) || p(x(.)))] = 0.5 * \int <(f-f_L)^T Q^{-1} (f-f_L)>_{q_t} dt
-    NOTE:
-        1. Both the SDE have same diffusion i.e. Q.
-        2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = - A_t * x_t + b_t
-        3. Parameter A_t is "WITHOUT" the negative sign.
-        4. A_q, b_q are the DRIFT parameters of the SDE and should not be confused with the state transitions of the SSM model.
+        p(x(.)) : d x_t = f(x_t, t) dt   + dB_t  ; Q
+        q(x(.)) : d x_t = f_L(x_t, t) dt + dB_t  ; Q  ; f_L(x_t, t) = - A_t * x_t + b_t.
+        KL[q(x(.) || p(x(.)))] = 0.5 * \int <(f-f_L)^T Q^{-1} (f-f_L)>_{q_t} dt
+        NOTE:
+            1. Both the SDE have same diffusion i.e. Q.
+            2. SDE q(x(.)) has a linear drift i.e. f_L(x_t, t) = - A_t * x_t + b_t
+            3. Parameter A_t is "WITHOUT" the negative sign.
+            4. A_q, b_q are the DRIFT parameters of the SDE and should not be confused with the state transitions of the SSM model.
+
     Apply Gaussian quadrature method to approximate the Expectation and integral is approximated as Riemann sum.
+
+    :param sde_p: SDE p.
+    :param A_q: Drift parameter of the linear SDE q, ``[num_transitions, state_dim, state_dim)``.
+    :param b_q: Drift parameter of the linear SDE q, ``[num_transitions, state_dim)``.
+    :param m: Mean of the path along which the KL is calculated, ``[num_transitions, state_dim)``.
+    :param S: (Co)variance of the path along which the KL is calculated, ``[num_transitions, state_dim, state_dim)``.
+    :param dt: Time-step value, float.
+    :param quadrature_pnts: Number of quadrature points used.
+
+    :return: the KL value, KL[q(x(.) || p(x(.)))].
+
     """
     assert sde_p.state_dim == 1
-    assert m.shape[0] == A_q.shape[0] == b_q.shape[0]
+    assert m.shape[0] == S.shape[0] == A_q.shape[0] == b_q.shape[0]
+    assert len(m.shape) == len(b_q.shape) == 2
+    assert len(A_q.shape) == len(S.shape) == 3
 
     def func(x, t=None, A_q=A_q, b_q=b_q):
         # Adding N information
