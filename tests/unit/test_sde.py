@@ -23,7 +23,7 @@ import gpflow
 from markovflow.state_space_model import state_space_model_from_covariances
 from markovflow.sde.sde_utils import euler_maruyama, linearize_sde
 from markovflow.sde import OrnsteinUhlenbeckSDE
-from markovflow.sde.sde_utils import KL_sde
+from markovflow.sde.sde_utils import drift_difference_along_Gaussian_path
 
 tf.random.set_seed(33)
 
@@ -168,14 +168,15 @@ def test_KL_sde(setup):
     b_p = tf.zeros_like(m) * dt
     p_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
                                                state_transitions=A_p,
-                                               state_offsets=b_p, process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
+                                               state_offsets=b_p,
+                                               process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
 
     # generate a q SSM and q SDE
     A_q_drift = -1 * np.random.random((1, 1)) * tf.ones_like(A_p)
     A_q = tf.eye(1, dtype=DTYPE) + A_q_drift * dt
 
     b_q = tf.zeros_like(b_p)
-    b_q_drift = b_q/dt
+    b_q_drift = b_q / dt
 
     q_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
                                                state_transitions=A_q, state_offsets=b_q,
@@ -183,6 +184,6 @@ def test_KL_sde(setup):
 
     kl_expected_val = q_ssm.kl_divergence(p_ssm)
     m, S = q_ssm.marginals
-    kl_val = KL_sde(sde_p=ou_sde, A_q=A_q_drift, b_q=b_q_drift, m=m[1:], S=S[1:], dt=dt)
+    kl_val = drift_difference_along_Gaussian_path(sde_p=ou_sde, A=A_q_drift, b=b_q_drift, m=m[1:], S=S[1:], dt=dt)
 
     np.testing.assert_array_almost_equal(kl_expected_val, kl_val, decimal=2)

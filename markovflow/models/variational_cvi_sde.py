@@ -30,7 +30,7 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSparseSites
-from markovflow.sde.sde_utils import KL_sde
+from markovflow.sde.sde_utils import drift_difference_along_Gaussian_path
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
@@ -290,7 +290,7 @@ class CVISDESparseSites(MarkovFlowModel):
         A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / self.dt
         b = b / self.dt
 
-        lin_loss = KL_sde(self.prior_sde, A, b, m, S, dt=self.dt)
+        lin_loss = drift_difference_along_Gaussian_path(self.prior_sde, A, b, m, S, dt=self.dt)
         return lin_loss
 
     def update_sites(self):

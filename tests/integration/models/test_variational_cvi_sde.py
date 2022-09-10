@@ -54,7 +54,7 @@ def _cvi_sde_gpr_optim_setup():
         chol_obs_covariance=chol_obs_covariance,
     )
 
-    likelihood = Gaussian(variance=NOISE_STDDEV**2)
+    likelihood = Gaussian(variance=NOISE_STDDEV ** 2)
     cvi_sde = CVISDESparseSites(
         prior_sde=sde,
         time_grid=time_grid,
@@ -74,13 +74,14 @@ def _cvi_sde_gpr_optim_setup():
 
 def _setup():
     """Generate a time-series data from Ornstein-Uhlenbeck SDE."""
-    ou_sde = OrnsteinUhlenbeckSDE(decay=DECAY*tf.ones((1, 1), dtype=DTYPE), q=Q*tf.ones((1, 1), dtype=DTYPE))
-    time_grid = tf.cast(tf.linspace(T0, T1, int((T1-T0)//DT) + 2), dtype=DTYPE)
+    ou_sde = OrnsteinUhlenbeckSDE(decay=DECAY * tf.ones((1, 1), dtype=DTYPE), q=Q * tf.ones((1, 1), dtype=DTYPE))
+    time_grid = tf.cast(tf.linspace(T0, T1, int((T1 - T0) // DT) + 2), dtype=DTYPE)
     simulated_vals = euler_maruyama(ou_sde, x0=tf.zeros((1, 1), dtype=DTYPE), time_grid=time_grid)
     simulated_vals = tf.squeeze(simulated_vals, axis=0)
 
     # observations
-    observation_grid = tf.convert_to_tensor(np.sort(np.random.choice(time_grid, NUM_DATA, replace=False)).reshape((-1,)), dtype=DTYPE)
+    observation_grid = tf.convert_to_tensor(
+        np.sort(np.random.choice(time_grid, NUM_DATA, replace=False)).reshape((-1,)), dtype=DTYPE)
     observation_idx = tf.where(tf.equal(time_grid[..., None], observation_grid))[:, 0]
     observations = tf.gather(simulated_vals, observation_idx, axis=0)
     observations = observations + tf.random.normal(observations.shape, stddev=NOISE_STDDEV, dtype=DTYPE)
