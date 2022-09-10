@@ -146,7 +146,7 @@ def test_optimal_sites(with_tf_random_seed, cvi_sde_gpr_optim_setup):
 def test_elbo_terms(with_tf_random_seed, cvi_sde_gpr_optim_setup):
     """
     For a linear SDE prior (i.e. a Gaussian Process [GP]), test that the ELBO computed
-    using girsanov theorem or the usual formula for GPs match. 
+    using Girsanov theorem or the usual formula for GPs match.
     """
     cvi_sde, gpr = cvi_sde_gpr_optim_setup
 
