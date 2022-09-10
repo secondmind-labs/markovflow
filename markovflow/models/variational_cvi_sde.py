@@ -275,7 +275,7 @@ class CVISDESparseSites(MarkovFlowModel):
         return lin_loss
 
     def update_sites(self):
-        """Update the data-sites"""
+        """Update of the data-sites following CVI"""
         fx_mus = tf.gather_nd(tf.reshape(self.fx_mus, (-1, 1)), self.obs_sites_indices)
         fx_covs = tf.gather_nd(tf.reshape(self.fx_covs, (-1, 1)), self.obs_sites_indices)
 
