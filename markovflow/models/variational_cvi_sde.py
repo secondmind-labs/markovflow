@@ -36,7 +36,8 @@ from markovflow.models.variational_cvi import gradient_transformation_mean_var_t
 
 class CVISDESparseSites(MarkovFlowModel):
     """
-    Provides a site-based parameterization to the variational posterior of a dynamical system.
+    Provides a site-based parameterization to the variational posterior 
+    over the state trajectory of a dynamical system.
     """
 
     def __init__(
