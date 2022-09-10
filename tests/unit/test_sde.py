@@ -147,7 +147,8 @@ def test_KL_sde(setup):
     Test the KL_sde function which calculates the KL divergence between two SDEs with same diffusion using
     Girsanov theorem.
 
-    We assert with decimal place 2 as KL_SDE is an approximation. With finer grid the tolerance can be made much tighter but it results in high running time.
+    We assert with decimal place 2 as KL_SDE is an approximation. 
+    With finer grid the tolerance can be made much tighter but it results in high running time.
     """
     ou_sde, x0, time_grid = setup
 
