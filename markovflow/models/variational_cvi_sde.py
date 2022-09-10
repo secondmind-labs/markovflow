@@ -290,7 +290,7 @@ class CVISDESparseSites(MarkovFlowModel):
         self.sites.nat2.assign(new_data_nat2)
 
     def variational_expectation(self, fx_mus: TensorType = None, fx_covs: TensorType = None) -> TensorType:
-        """Likelihood variational expectation"""
+        """Expected log-likelihood under the current variational posterior"""
 
         if fx_mus is None or fx_covs is None:
             fx_mus, fx_covs = self.dist_q.marginals
