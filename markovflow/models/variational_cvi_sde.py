@@ -202,7 +202,7 @@ class CVISDESparseSites(MarkovFlowModel):
     def cross_term(self, dist_q: StateSpaceModel = None) -> TensorType:
         """
         Calculate
-                    E_{q(x)[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
+                    E_{q(x)}[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
         """
         # convert from state transitions of the SSM to SDE's drift and offset
         if dist_q is None:
