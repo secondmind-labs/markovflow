@@ -64,7 +64,9 @@ class CVISDESparseSites(MarkovFlowModel):
             time_grid: TensorType,
             input_data: Tuple[TensorType, TensorType],
             likelihood: Likelihood,
-            learning_rate=0.1
+            learning_rate=0.1,
+            prior_initial_mean: TensorType = None,
+            prior_initial_covariance: TensorType = None,
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
@@ -74,8 +76,12 @@ class CVISDESparseSites(MarkovFlowModel):
             * Time points of observations with shape ``batch_shape + [num_data]``
             * Observations with shape ``batch_shape + [num_data, observation_dim]``
 
-        :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.
+        :param likelihood: A likelihood for the observations of the model.
         :param learning_rate: The learning rate of the algorithm.
+        :param prior_initial_mean: Mean of the prior on the initial state with shape ``batch_shape + [state_dim]``
+        :param prior_initial_covariance: Covariance of the prior on the initial state with shape ``batch_shape + [state_dim, state_dim]``
+
+        Note: Currently, only batch shape 1 is supported.
         """
         super().__init__()
 
@@ -96,7 +102,9 @@ class CVISDESparseSites(MarkovFlowModel):
         )
         self.sites_lr = learning_rate
 
-        self._initialize_mean_statistic()
+        self._initialize_initial_state_prior(prior_initial_mean, prior_initial_covariance)
+        self._initialize_posterior_path()
+
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
 
@@ -104,13 +112,25 @@ class CVISDESparseSites(MarkovFlowModel):
             ..., None]
         self.dt = self.time_grid[1] - self.time_grid[0]
 
-    def _initialize_mean_statistic(self):
-        """
-        Initialize the prior on the initial state and the posterior statistics.
-        """
-        self.initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
-        self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
+    def _initialize_initial_state_prior(self, prior_initial_mean: TensorType = None,
+                                        prior_initial_covariance: TensorType = None):
+        """Initialize the prior on the initial state."""
+        if prior_initial_mean is None:
+            self.prior_initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
+        else:
+            self.prior_initial_mean = tf.cast(tf.reshape(prior_initial_mean, (1, self.state_dim)),
+                                              dtype=self._observations.dtype)
 
+        if prior_initial_covariance is None:
+            self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
+                tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim))), dtype=self._observations.dtype)
+        else:
+            self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
+                tf.reshape(prior_initial_covariance, (1, self.state_dim, self.state_dim))),
+                dtype=self._observations.dtype)
+
+    def _initialize_posterior_path(self):
+        """Initialize posterior path."""
         self.fx_mus = tf.ones((1, self.time_grid.shape[0], self.state_dim), dtype=self._observations.dtype)
         self.fx_covs = tf.ones_like(self.fx_mus[..., None])
 
@@ -121,8 +141,8 @@ class CVISDESparseSites(MarkovFlowModel):
         """
         self.dist_p = linearize_sde(sde=self.prior_sde, transition_times=self.time_points,
                                     q_mean=self.linearization_pnts[0],
-                                    q_covar=self.linearization_pnts[1], initial_mean=self.initial_mean,
-                                    initial_chol_covariance=self.initial_chol_cov,
+                                    q_covar=self.linearization_pnts[1], initial_mean=self.prior_initial_mean,
+                                    initial_chol_covariance=self.prior_initial_chol_covariance,
                                     )
 
     @property
