@@ -36,21 +36,39 @@ from markovflow.models.variational_cvi import gradient_transformation_mean_var_t
 
 class CVISDESparseSites(MarkovFlowModel):
     """
-    Provides a site-based parameterization to the variational posterior 
-    over the state trajectory of a dynamical system.
+    Provides a site-based parameterization to the variational posterior over the state trajectory of a dynamical system.
+
+    The prior SDE is an arbitrary SDE of the form:
+                    p : dx(t) = f_p(x_t, t) dt + Σ dB(t).
+
+    The prior SDE is linearized along the current posterior and is represented by
+                    p_{L} : dx(t) = f_L(x_t, t) dt + Σ dB(t) where f_L(x_t, t) = A_{pl}(t)x(t) + b_{pl}(t) ,
+    where the optimal parameters of the linearized drift is calculated using Girsanov theorem.
+
+    The posterior is defined by the linear SDE of the form:
+                    q : dx(t) = f_q(x_t, t) dt + Σ dB(t) where f_q(x_t, t) = A_q(t)x(t) + b_q(t).
+
+    ELBO of the model is defined as:
+    E_{q}[log p(Y|X)] - ( KL[q||p_{L}] + 0.5 * E_{q}[||f_L - f_p||^2_{Σ^{-1}}] + E_{q}[(f_q - f_L){Σ^{-1}}(f_L - f_p)]).
+
+    The term E_{q}[||f_L - f_p||^2_{Σ^{-1}}] is termed as linearization loss as it can be interpreted as the metric for
+    the difference between the prior SDE and the linearized SDE along the current posterior.
+
+    The term E_{q}[(f_q - f_L){Σ^{-1}}(f_L - f_p)] is termed as the cross term.
+
     """
 
     def __init__(
             self,
             prior_sde: SDE,
-            grid: TensorType,
+            time_grid: TensorType,
             input_data: Tuple[TensorType, TensorType],
             likelihood: Likelihood,
             learning_rate=0.1
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
-        :param grid: Grid over time with shape ``batch_shape + [grid_size]``
+        :param time_grid: Grid over time with shape ``batch_shape + [grid_size]``
         :param input_data: A tuple containing the observed data:
 
             * Time points of observations with shape ``batch_shape + [num_data]``
@@ -58,12 +76,11 @@ class CVISDESparseSites(MarkovFlowModel):
 
         :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.
         :param learning_rate: The learning rate of the algorithm.
-        :param test_data: Test data used to calculate NLPD if not None.
         """
         super().__init__()
 
         self._likelihood = likelihood
-        self.grid = grid
+        self.time_grid = time_grid
         self.prior_sde = prior_sde
 
         self._observations_time_points = input_data[0]
@@ -83,9 +100,9 @@ class CVISDESparseSites(MarkovFlowModel):
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
 
-        self.obs_sites_indices = tf.where(tf.equal(self.grid[..., None], self._observations_time_points))[:, 0][
+        self.obs_sites_indices = tf.where(tf.equal(self.time_grid[..., None], self._observations_time_points))[:, 0][
             ..., None]
-        self.dt = self.grid[1] - self.grid[0]
+        self.dt = self.time_grid[1] - self.time_grid[0]
 
     def _initialize_mean_statistic(self):
         """
@@ -94,7 +111,7 @@ class CVISDESparseSites(MarkovFlowModel):
         self.initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
         self.initial_chol_cov = tf.linalg.cholesky(tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim)))
 
-        self.fx_mus = tf.ones((1, self.grid.shape[0], self.state_dim), dtype=self._observations.dtype)
+        self.fx_mus = tf.ones((1, self.time_grid.shape[0], self.state_dim), dtype=self._observations.dtype)
         self.fx_covs = tf.ones_like(self.fx_mus[..., None])
 
     def _linearize_prior(self):
@@ -114,7 +131,7 @@ class CVISDESparseSites(MarkovFlowModel):
         Return the time points of the observations.
         :return: A tensor with shape ``batch_shape + [grid_size]``.
         """
-        return self.grid
+        return self.time_grid
 
     @property
     def dist_q(self) -> StateSpaceModel:
@@ -160,7 +177,7 @@ class CVISDESparseSites(MarkovFlowModel):
             state_space_model=self.dist_p,
             emission_model=self.generate_emission_model(tf.reshape(self.time_points, (-1))),
             sites=self.sites,
-            num_grid_points=self.grid.shape[0],
+            num_grid_points=self.time_grid.shape[0],
             observations_index=self.obs_sites_indices,
             observations=self._observations
         )
@@ -199,10 +216,10 @@ class CVISDESparseSites(MarkovFlowModel):
 
         return local_obj, grads
 
-    def cross_term(self, dist_q: StateSpaceModel = None) -> TensorType:
+    def kl_cross_term(self, dist_q: StateSpaceModel = None) -> TensorType:
         """
-        Calculate
-                    E_{q(x)}[(f_q - f_L)\Sigma^-1(f_L - f_p)] .
+        Calculates the cross term of the ELBO,
+                    E_{q}[(f_q - f_L){Σ^{-1}}(f_L - f_p)]
         """
         # convert from state transitions of the SSM to SDE's drift and offset
         if dist_q is None:
@@ -251,9 +268,11 @@ class CVISDESparseSites(MarkovFlowModel):
 
         return val
 
-    def loss_lin(self, dist_p: StateSpaceModel = None, m: TensorType = None, S: TensorType = None):
+    def kl_linearization_loss(self, dist_p: StateSpaceModel = None, m: TensorType = None, S: TensorType = None):
         """
-        0.5 * \E_{q}[||f_P - f_l||^2_{\Sigma^{-1}}]
+        Calculates the linearization loss term of the ELBO which can also be interpreted as the metric for
+        the difference between the prior SDE and the linearized SDE along the current posterior,
+                                E_{q}[||f_L - f_p||^2_{Σ^{-1}}] .
         """
         if dist_p is None:
             dist_p = self.dist_p
@@ -295,7 +314,7 @@ class CVISDESparseSites(MarkovFlowModel):
         if fx_mus is None or fx_covs is None:
             fx_mus, fx_covs = self.dist_q.marginals
 
-        indices = tf.where(tf.equal(self.grid[..., None], self._observations_time_points))[:, 0][..., None]
+        indices = tf.where(tf.equal(self.time_grid[..., None], self._observations_time_points))[:, 0][..., None]
         fx_mus_obs = tf.gather_nd(tf.reshape(fx_mus, (-1, 1)), indices)
         fx_covs_obs = tf.gather_nd(tf.reshape(fx_covs, (-1, 1)), indices)
 
@@ -334,8 +353,11 @@ class CVISDESparseSites(MarkovFlowModel):
 
     def classic_elbo(self) -> TensorType:
         """
-            Compute the ELBO,
-            ELBO = Variational_Expectation - (KL[q || p_{L}] + Lin_Loss + Cross_Term).
+        Compute the ELBO.
+
+        ELBO of the model is defined as:
+        E_{q}[log p(Y|X)] - (KL[q||p_{L}] + 0.5 * E_{q}[||f_L - f_p||^2_{Σ^{-1}}] + E_{q}[(f_q-f_L){Σ^{-1}}(f_L-f_p)]).
+
         """
         # s ~ q(s) = N(μ, P)
         dist_q = self.dist_q
@@ -343,7 +365,7 @@ class CVISDESparseSites(MarkovFlowModel):
 
         ve_fx = self.variational_expectation(fx_mus, fx_covs)
         kl_fx = tf.reduce_sum(dist_q.kl_divergence(self.dist_p))
-        lin_loss = self.loss_lin(m=fx_mus, S=fx_covs)
-        cross_term_val = self.cross_term(dist_q=dist_q)
+        lin_loss = self.kl_linearization_loss(m=fx_mus, S=fx_covs)
+        cross_term = self.kl_cross_term(dist_q=dist_q)
 
-        return ve_fx - kl_fx - lin_loss - cross_term_val
+        return ve_fx - kl_fx - lin_loss - cross_term

@@ -57,7 +57,7 @@ def _cvi_sde_gpr_optim_setup():
     likelihood = Gaussian(variance=NOISE_STDDEV**2)
     cvi_sde = CVISDESparseSites(
         prior_sde=sde,
-        grid=time_grid,
+        time_grid=time_grid,
         input_data=input_data,
         likelihood=likelihood,
         learning_rate=1.0,
@@ -149,8 +149,8 @@ def test_elbo_terms(with_tf_random_seed, cvi_sde_gpr_optim_setup):
     """
     cvi_sde, gpr = cvi_sde_gpr_optim_setup
 
-    cross_term = cvi_sde.cross_term()
-    linearization_loss = cvi_sde.loss_lin()
+    cross_term = cvi_sde.kl_cross_term()
+    linearization_loss = cvi_sde.kl_linearization_loss()
 
     np.testing.assert_array_almost_equal(cross_term, tf.zeros_like(cross_term))
     np.testing.assert_array_almost_equal(linearization_loss, tf.zeros_like(linearization_loss))
