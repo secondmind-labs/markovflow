@@ -22,6 +22,7 @@ from gpflow.base import Parameter
 from gpflow import default_float
 from gpflow.quadrature import NDiagGHQuadrature
 from gpflow.base import TensorType
+from gpflow.probability_distributions import Gaussian
 
 from markovflow.models import MarkovFlowModel
 from markovflow.kalman_filter import UnivariateGaussianSitesNat
@@ -65,8 +66,8 @@ class CVISDESparseSites(MarkovFlowModel):
             input_data: Tuple[TensorType, TensorType],
             likelihood: Likelihood,
             learning_rate=0.1,
-            prior_initial_mean: TensorType = None,
-            prior_initial_covariance: TensorType = None,
+            prior_initial_state: Gaussian = None,
+            initial_posterior_path: Gaussian = None,
     ) -> None:
         """
         :param prior_sde: Prior SDE over the latent states, x.
@@ -78,8 +79,8 @@ class CVISDESparseSites(MarkovFlowModel):
 
         :param likelihood: A likelihood for the observations of the model.
         :param learning_rate: The learning rate of the algorithm.
-        :param prior_initial_mean: Mean of the prior on the initial state with shape ``batch_shape + [state_dim]``
-        :param prior_initial_covariance: Covariance of the prior on the initial state with shape ``batch_shape + [state_dim, state_dim]``
+        :param prior_initial_state: A Gaussian prior on the initial state.
+        :param initial_posterior_path: A Gaussian prior on the initial posterior path.
 
         Note: Currently, only batch shape 1 is supported.
         """
@@ -102,8 +103,8 @@ class CVISDESparseSites(MarkovFlowModel):
         )
         self.sites_lr = learning_rate
 
-        self._initialize_initial_state_prior(prior_initial_mean, prior_initial_covariance)
-        self._initialize_posterior_path()
+        self._initialize_initial_state_prior(prior_initial_state)
+        self._initialize_posterior_path(initial_posterior_path)
 
         self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
         self._linearize_prior()
@@ -112,27 +113,34 @@ class CVISDESparseSites(MarkovFlowModel):
             ..., None]
         self.dt = self.time_grid[1] - self.time_grid[0]
 
-    def _initialize_initial_state_prior(self, prior_initial_mean: TensorType = None,
-                                        prior_initial_covariance: TensorType = None):
+    def _initialize_initial_state_prior(self, prior_initial_state: Gaussian):
         """Initialize the prior on the initial state."""
-        if prior_initial_mean is None:
-            self.prior_initial_mean = tf.zeros((1, self.state_dim), dtype=self._observations.dtype)
-        else:
-            self.prior_initial_mean = tf.cast(tf.reshape(prior_initial_mean, (1, self.state_dim)),
-                                              dtype=self._observations.dtype)
+        if prior_initial_state is None:
+            prior_initial_state = Gaussian(mu=tf.zeros((1, self.state_dim), dtype=self._observations.dtype),
+                                           cov=self.prior_sde.q * tf.ones((1, self.state_dim, self.state_dim),
+                                                                          dtype=self._observations.dtype))
 
-        if prior_initial_covariance is None:
-            self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
-                tf.reshape(self.prior_sde.q, (1, self.state_dim, self.state_dim))), dtype=self._observations.dtype)
-        else:
-            self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
-                tf.reshape(prior_initial_covariance, (1, self.state_dim, self.state_dim))),
-                dtype=self._observations.dtype)
+        self.prior_initial_mean = tf.cast(tf.reshape(prior_initial_state.mu, (1, self.state_dim)),
+                                          dtype=self._observations.dtype)
 
-    def _initialize_posterior_path(self):
+        self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
+            tf.reshape(prior_initial_state.cov, (1, self.state_dim, self.state_dim))),
+            dtype=self._observations.dtype)
+
+    def _initialize_posterior_path(self, initial_posterior_path: Gaussian):
         """Initialize posterior path."""
-        self.fx_mus = tf.ones((1, self.time_grid.shape[0], self.state_dim), dtype=self._observations.dtype)
-        self.fx_covs = tf.ones_like(self.fx_mus[..., None])
+        if initial_posterior_path is None:
+            initial_posterior_path = Gaussian(mu=tf.ones((self.time_grid.shape[0], self.state_dim),
+                                                         dtype=self._observations.dtype),
+                                              cov=tf.ones((self.time_grid.shape[0], self.state_dim, self.state_dim),
+                                                          dtype=self._observations.dtype))
+
+        self.fx_mus = tf.cast(tf.reshape(initial_posterior_path.mu, (1, self.time_grid.shape[0], self.state_dim)),
+                              dtype=self._observations.dtype)
+
+        self.fx_covs = tf.cast(
+            tf.reshape(initial_posterior_path.cov, (1, self.time_grid.shape[0], self.state_dim, self.state_dim)),
+            dtype=self._observations.dtype)
 
     def _linearize_prior(self):
         """
