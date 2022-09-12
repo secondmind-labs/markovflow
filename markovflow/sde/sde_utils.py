@@ -138,14 +138,18 @@ def linearize_sde(
 def drift_difference_along_Gaussian_path(sde_p: SDE, A: TensorType, b: TensorType, m: TensorType,
                                          S: TensorType, dt: float, quadrature_pnts: int = 20) -> tf.Tensor:
     """
-    Drift difference between the two SDEs where the first SDE can be any arbitrary SDE and the second SDE is linear,
-    with the drift defined as f(x(t)) = A(t) x(t) + b(t), along the path defined by the Gaussian with mean m and
-    (covariance) S.
+    Expected Square Drift difference between two SDEs
+    * a first one denoted by p, that can be any arbitrary SDE.
+    * a second which is linear, denoted by p_L, with a drift defined as f_L(x(t)) = A_L(t) x(t) + b_L(t)
+    Where the expectation is over a third distribution over path
+    summarized by its the mean (m) and covariance (S) for all times.
 
-    Mathematically, the function calculates:
-        0.5 * E_{q}[||f_p(x(t)) - (A(t) x(t) + b(t))||^{2}_{Σ^{-1}}].
+    Formally, the function calculates:
+        0.5 * E_{q}[||f_p(x(t)) - (A_L(t) x(t) + b_L(t))||^{2}_{Σ^{-1}}].
 
-    When A and b parameter is of the drift of the SDE represented by the distribution `q` whose marginals are m and S
+    This function corresponds to the expected log density ratio:  E_q log [p_L || p].
+
+    When A_L and b_L  are the drift parameters of `q`,
     then the function returns the KL[q || p].
 
     NOTE:
