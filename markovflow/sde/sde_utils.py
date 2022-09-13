@@ -19,9 +19,31 @@ import tensorflow as tf
 
 from gpflow.base import TensorType
 from gpflow.quadrature import NDiagGHQuadrature
+from gpflow.probability_distributions import Gaussian
 
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
+
+
+class LinearDrift:
+    """
+    A linear drift of the form, f(x_t, t) = A_t * x_t + b_t.
+    """
+    def __init__(self, A: TensorType = None, b: TensorType = None):
+        self.A = A
+        self.b = b
+
+    def from_ssm(self, ssm: StateSpaceModel, dt: float):
+        """
+        Convert a StateSpaceModel into a linear drift of the f(x_t, t) = A_t * x_t + b_t, where
+            A_t = (SSM.state_transitions - I)/dt
+            b_t = SSM.state_offsets / dt
+        """
+        state_transitions = handle_tensor_shape(ssm.state_transitions, desired_dimensions=3)
+        state_offsets = handle_tensor_shape(ssm.state_offsets, desired_dimensions=2)
+
+        self.A = (state_transitions - tf.eye(ssm.state_dim, dtype=state_offsets.dtype)) / dt
+        self.b = state_offsets / dt
 
 
 def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
@@ -82,35 +104,65 @@ def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
     return sde_values
 
 
+def handle_tensor_shape(tensor: tf.Tensor, desired_dimensions=2):
+    """
+    Handle shape of the tensor according to the desired dimensions.
+
+    * if the shape is 1 more and at dimension 0 there is nothing then drop it.
+    * if the shape is 1 less then add a dimension at the start.
+    * else raise an Exception
+
+    """
+    tensor_shape = tensor._shape_as_list()
+    if len(tensor_shape) == desired_dimensions:
+        return tensor
+    elif (len(tensor_shape) == (desired_dimensions + 1)) and tensor_shape[0] == 1:
+        return tf.squeeze(tensor, axis=0)
+    elif len(tensor_shape) == (desired_dimensions - 1):
+        return tf.expand_dims(tensor, axis=0)
+    else:
+        raise Exception("Batch present!")
+
+
 def linearize_sde(
         sde: SDE,
         transition_times: TensorType,
-        q_mean: TensorType,
-        q_covar: TensorType,
-        initial_mean: TensorType,
-        initial_chol_covariance: TensorType,
+        linearization_path: Gaussian,
+        initial_state: Gaussian,
 ) -> StateSpaceModel:
     """
-    Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states
+    Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states.
 
     Note: this currently only works for sde with a state dimension of 1.
 
     ..math:: q(\cdot) \sim N(q_{mean}, q_{covar})
 
-    ..math:: A_{i}^{*} = E_{q(.)}[d f(x)/ dx]
-    ..math:: b_{i}^{*} = E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]
+    ..math:: A_{i}^{*} = (E_{q(.)}[d f(x)/ dx]) * dt + I
+    ..math:: b_{i}^{*} = (E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]) * dt
 
     :param sde: SDE to be linearized.
     :param transition_times: Transition_times, ``[num_transitions, ]``
-    :param q_mean: mean of Gaussian over states with shape ``[num_batch, num_states, state_dim]``.
-    :param q_covar: covariance of Gaussian over states with shape ``[num_batch, num_states, state_dim, state_dim]``.
-    :param initial_mean: The initial mean, with shape ``[num_batch, state_dim]``.
-    :param initial_chol_covariance: Cholesky of the initial covariance, with shape ``[num_batch, state_dim, state_dim]``
+    :param linearization_path: Gaussian of the states over transition times.
+    :param initial_state: Gaussian over the initial state.
 
     :return: the state-space model of the linearized SDE.
     """
 
     assert sde.state_dim == 1
+
+    q_mean = handle_tensor_shape(linearization_path.mu, desired_dimensions=3)  # (B, N, D)
+    q_covar = handle_tensor_shape(linearization_path.cov, desired_dimensions=4)  # (B, N, D, D)
+    initial_mean = handle_tensor_shape(initial_state.mu, desired_dimensions=2)  # (B, D, )
+    initial_chol_covariance = handle_tensor_shape(tf.linalg.cholesky(initial_state.cov),
+                                                  desired_dimensions=3)  # (B, D, D)
+
+    B, N, D = q_mean.shape
+
+    assert q_mean.shape == (B, N, D)
+    assert q_covar.shape == (B, N, D, D)
+    assert initial_mean.shape == (B, D,)
+    assert initial_chol_covariance.shape == (B, D, D)
+
     E_f = sde.expected_drift(q_mean, q_covar)
     E_x = q_mean
 
@@ -135,41 +187,45 @@ def linearize_sde(
     )
 
 
-def drift_difference_along_Gaussian_path(sde_p: SDE, A: TensorType, b: TensorType, m: TensorType,
-                                         S: TensorType, dt: float, quadrature_pnts: int = 20) -> tf.Tensor:
+def squared_drift_difference_along_Gaussian_path(sde_p: SDE, linear_drift: LinearDrift, q: Gaussian,
+                                                 dt: float, quadrature_pnts: int = 20) -> tf.Tensor:
     """
     Expected Square Drift difference between two SDEs
-    * a first one denoted by p, that can be any arbitrary SDE.
-    * a second which is linear, denoted by p_L, with a drift defined as f_L(x(t)) = A_L(t) x(t) + b_L(t)
-    Where the expectation is over a third distribution over path
-    summarized by its the mean (m) and covariance (S) for all times.
+        * a first one denoted by p, that can be any arbitrary SDE.
+        * a second which is linear, denoted by p_L, with a drift defined as f_L(x(t)) = A_L(t) x(t) + b_L(t)
+
+    Where the expectation is over a third distribution over path summarized by its mean (m) and covariance (S)
+    for all times given by a Gaussian `q`.
 
     Formally, the function calculates:
-        0.5 * E_{q}[||f_p(x(t)) - (A_L(t) x(t) + b_L(t))||^{2}_{Σ^{-1}}].
+        0.5 * E_{q}[||f_L(x(t)) - f_p(x(t))||^{2}_{Σ^{-1}}].
 
     This function corresponds to the expected log density ratio:  E_q log [p_L || p].
 
-    When A_L and b_L  are the drift parameters of `q`,
-    then the function returns the KL[q || p].
+    When the linear drift is of `q`, then the function returns the KL[q || p].
 
     NOTE:
         1. The function assumes that both the SDEs have same diffusion.
-        2. A, b are the DRIFT parameters of the second SDE and should not be confused with the state transitions
-           of the SSM model.
 
     Gaussian quadrature method is used to approximate the expectation and integral over time is approximated
     as Riemann sum.
 
     :param sde_p: SDE p.
-    :param A: Drift parameter of the second SDE, ``[num_transitions, state_dim, state_dim)``.
-    :param b: Drift parameter of the second SDE, ``[num_transitions, state_dim)``.
-    :param m: Mean of the path along which the drift difference is calculated, ``[num_transitions, state_dim)``.
-    :param S: (Co)variance of the path along which the drift difference is calculated, ``[num_transitions, state_dim, state_dim)``.
+    :param linear_drift: Linear drift representing the drift of the second SDE.
+    :param q: Gaussian states of the path along which the drift difference is calculated.
     :param dt: Time-step value, float.
     :param quadrature_pnts: Number of quadrature points used.
 
+    Note: Batching isn't supported.
     """
     assert sde_p.state_dim == 1
+
+    m = handle_tensor_shape(q.mu, desired_dimensions=2)  # (N, D)
+    S = handle_tensor_shape(q.cov, desired_dimensions=3)  # (N, D, D)
+
+    A = linear_drift.A
+    b = linear_drift.b
+
     assert m.shape[0] == S.shape[0] == A.shape[0] == b.shape[0]
     assert len(m.shape) == len(b.shape) == 2
     assert len(A.shape) == len(S.shape) == 3
@@ -185,7 +241,7 @@ def drift_difference_along_Gaussian_path(sde_p: SDE, A: TensorType, b: TensorTyp
 
         prior_drift = sde_p.drift(x=x, t=t)
 
-        tmp = prior_drift - ((x * A) + b)
+        tmp = ((x * A) + b) - prior_drift
         tmp = tmp * tmp
 
         sigma = sde_p.q

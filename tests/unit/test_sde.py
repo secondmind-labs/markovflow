@@ -19,11 +19,12 @@ import pytest
 import tensorflow as tf
 import numpy as np
 import gpflow
+from gpflow.probability_distributions import Gaussian
 
 from markovflow.state_space_model import state_space_model_from_covariances
 from markovflow.sde.sde_utils import euler_maruyama, linearize_sde
 from markovflow.sde import OrnsteinUhlenbeckSDE
-from markovflow.sde.sde_utils import drift_difference_along_Gaussian_path
+from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path, LinearDrift
 
 tf.random.set_seed(33)
 
@@ -43,7 +44,7 @@ def _setup(sde_batch_shape):
 
     # construct a time grid
     t0, t1 = 0.0, 1.0
-    num_transitions = 100
+    num_transitions = 1000
     dt = float((t1 - t0) / num_transitions)
     time_grid = tf.cast(tf.linspace(t0 + dt, t1, num_transitions), dtype=DTYPE)
 
@@ -82,11 +83,13 @@ def test_linearize_sde_ou_statedim_1(setup):
         q_covar, covar_diag
     )  # [num_batch, num_transitions, state_dim, state_dim]
 
-    x0_covar_chol = tf.linalg.cholesky(q_covar[:, 0, :, :])  # [num_batch, state_dim, state_dim]
+    x0_covar = q_covar[:, 0, :, :]  # [num_batch, state_dim, state_dim]
 
+    q = Gaussian(mu=q_mean, cov=q_covar)
+    initial_state = Gaussian(mu=x0, cov=x0_covar)
     # linearize the sde around the path distribution provided by the marginal statistics
     linearized_ssm = linearize_sde(
-        ou_sde, time_grid, q_mean, q_covar, x0, x0_covar_chol
+        ou_sde, time_grid, q, initial_state
     )
 
     # ground true linearization for OU
@@ -184,6 +187,39 @@ def test_KL_sde(setup):
 
     kl_expected_val = q_ssm.kl_divergence(p_ssm)
     m, S = q_ssm.marginals
-    kl_val = drift_difference_along_Gaussian_path(sde_p=ou_sde, A=A_q_drift, b=b_q_drift, m=m[1:], S=S[1:], dt=dt)
+    q = Gaussian(mu=m[:-1], cov=S[:-1])
+
+    linear_drift = LinearDrift(A=A_q_drift, b=b_q_drift)
+
+    kl_val = squared_drift_difference_along_Gaussian_path(sde_p=ou_sde, linear_drift=linear_drift, q=q, dt=dt)
 
     np.testing.assert_array_almost_equal(kl_expected_val, kl_val, decimal=2)
+
+
+def test_ssm_to_linear_drift(setup):
+    ou_sde, x0, time_grid = setup
+
+    # Removing batch
+    if x0.shape[0] != 1:
+        x0 = x0[:1]
+
+    m = euler_maruyama(ou_sde, x0, time_grid)
+    m = tf.squeeze(m, axis=0)
+
+    dt = time_grid[1] - time_grid[0]
+
+    x0 = tf.squeeze(x0, axis=0)
+    A_p = -1 * ou_sde.decay * tf.ones_like(m)[..., None] * dt + tf.eye(1, dtype=DTYPE)
+    b_p = tf.zeros_like(m) * dt
+
+    p_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
+                                               state_transitions=A_p,
+                                               state_offsets=b_p,
+                                               process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
+    linear_drift = LinearDrift()
+    linear_drift.from_ssm(p_ssm, dt=dt)
+
+    true_A = -1 * ou_sde.decay * tf.ones_like(m)[..., None]
+    true_b = tf.zeros_like(m)
+    np.testing.assert_allclose(true_A, linear_drift.A)
+    np.testing.assert_allclose(true_b, linear_drift.b)

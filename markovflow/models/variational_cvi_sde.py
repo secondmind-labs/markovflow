@@ -31,7 +31,7 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSparseSites
-from markovflow.sde.sde_utils import drift_difference_along_Gaussian_path
+from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path, LinearDrift
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
 
 
@@ -103,10 +103,19 @@ class CVISDESparseSites(MarkovFlowModel):
         )
         self.sites_lr = learning_rate
 
-        self._initialize_initial_state_prior(prior_initial_state)
-        self._initialize_posterior_path(initial_posterior_path)
+        # Initialize the prior on the initial state
+        self.prior_initial_state = self._initialize_initial_state_prior(prior_initial_state)
 
-        self.linearization_pnts = (tf.identity(self.fx_mus[:, :-1, :]), tf.identity(self.fx_covs[:, :-1, :, :]))
+        # Initialize posterior path
+        initial_posterior_path = self._initialize_posterior_path(initial_posterior_path)
+        self.fx_mus = tf.cast(tf.reshape(initial_posterior_path.mu, (1, self.time_grid.shape[0], self.state_dim)),
+                              dtype=self._observations.dtype)
+        self.fx_covs = tf.cast(
+            tf.reshape(initial_posterior_path.cov, (1, self.time_grid.shape[0], self.state_dim, self.state_dim)),
+            dtype=self._observations.dtype)
+
+        # Linearize prior
+        self._update_linearize_path()
         self._linearize_prior()
 
         self.obs_sites_indices = tf.where(tf.equal(self.time_grid[..., None], self._observations_time_points))[:, 0][
@@ -120,12 +129,7 @@ class CVISDESparseSites(MarkovFlowModel):
                                            cov=self.prior_sde.q * tf.ones((1, self.state_dim, self.state_dim),
                                                                           dtype=self._observations.dtype))
 
-        self.prior_initial_mean = tf.cast(tf.reshape(prior_initial_state.mu, (1, self.state_dim)),
-                                          dtype=self._observations.dtype)
-
-        self.prior_initial_chol_covariance = tf.cast(tf.linalg.cholesky(
-            tf.reshape(prior_initial_state.cov, (1, self.state_dim, self.state_dim))),
-            dtype=self._observations.dtype)
+        return prior_initial_state
 
     def _initialize_posterior_path(self, initial_posterior_path: Gaussian):
         """Initialize posterior path."""
@@ -135,12 +139,14 @@ class CVISDESparseSites(MarkovFlowModel):
                                               cov=tf.ones((self.time_grid.shape[0], self.state_dim, self.state_dim),
                                                           dtype=self._observations.dtype))
 
-        self.fx_mus = tf.cast(tf.reshape(initial_posterior_path.mu, (1, self.time_grid.shape[0], self.state_dim)),
-                              dtype=self._observations.dtype)
+        return initial_posterior_path
 
-        self.fx_covs = tf.cast(
-            tf.reshape(initial_posterior_path.cov, (1, self.time_grid.shape[0], self.state_dim, self.state_dim)),
-            dtype=self._observations.dtype)
+    def _update_linearize_path(self):
+        """
+        Store the linearization path i.e. the current posterior path as a Gaussian.
+        """
+        self.linearization_path = Gaussian(mu=tf.identity(self.fx_mus[:, :-1, :]),
+                                           cov=tf.identity(self.fx_covs[:, :-1, :, :]))
 
     def _linearize_prior(self):
         """
@@ -148,9 +154,8 @@ class CVISDESparseSites(MarkovFlowModel):
             Here, we approximate (linearize) the prior SDE based on the grid.
         """
         self.dist_p = linearize_sde(sde=self.prior_sde, transition_times=self.time_points,
-                                    q_mean=self.linearization_pnts[0],
-                                    q_covar=self.linearization_pnts[1], initial_mean=self.prior_initial_mean,
-                                    initial_chol_covariance=self.prior_initial_chol_covariance,
+                                    linearization_path=self.linearization_path,
+                                    initial_state=self.prior_initial_state
                                     )
 
     @property
@@ -253,18 +258,14 @@ class CVISDESparseSites(MarkovFlowModel):
         if dist_q is None:
             dist_q = self.dist_q
 
-        A_q = tf.squeeze(dist_q.state_transitions, axis=0)
-        b_q = tf.squeeze(dist_q.state_offsets, axis=0)
-        A_q = (A_q - tf.eye(self.state_dim, dtype=A_q.dtype)) / self.dt
-        b_q = b_q / self.dt
+        linear_drift_q = LinearDrift()
+        linear_drift_q.from_ssm(dist_q, self.dt)
 
-        # convert from state transitions of the SSM to SDE's drift and offset
-        A_p_l = tf.squeeze(self.dist_p.state_transitions, axis=0)
-        b_p_l = tf.squeeze(self.dist_p.state_offsets, axis=0)
-        A_p_l = (A_p_l - tf.eye(self.state_dim, dtype=A_p_l.dtype)) / self.dt
-        b_p_l = b_p_l / self.dt
+        linear_drift_pl = LinearDrift()
+        linear_drift_pl.from_ssm(self.dist_p, self.dt)
 
-        def func(x, t=None, A_q=A_q, b_q=b_q, A_p_l=A_p_l, b_p_l=b_p_l, sde_p=self.prior_sde):
+        def func(x, t=None, A_q=linear_drift_q.A, b_q=linear_drift_q.b, A_p_l=linear_drift_pl.A,
+                 b_p_l=linear_drift_pl.b, sde_p=self.prior_sde):
             # Adding N information
             x = tf.transpose(x, perm=[1, 0, 2])
             n_pnts = x.shape[1]
@@ -311,14 +312,13 @@ class CVISDESparseSites(MarkovFlowModel):
         # removing batch and the last m and S.
         m = tf.squeeze(m, axis=0)[:-1]
         S = tf.squeeze(S, axis=0)[:-1]
+        q = Gaussian(mu=m, cov=S)
 
-        # convert from state transitons of the SSM to SDE P's drift and offset
-        A = tf.squeeze(dist_p.state_transitions, axis=0)
-        b = tf.squeeze(dist_p.state_offsets, axis=0)
-        A = (A - tf.eye(self.state_dim, dtype=A.dtype)) / self.dt
-        b = b / self.dt
+        linear_drift = LinearDrift()
+        linear_drift.from_ssm(dist_p, self.dt)
 
-        lin_loss = drift_difference_along_Gaussian_path(self.prior_sde, A, b, m, S, dt=self.dt)
+        lin_loss = squared_drift_difference_along_Gaussian_path(self.prior_sde, linear_drift=linear_drift, q=q,
+                                                                dt=self.dt)
         return lin_loss
 
     def update_sites(self):
