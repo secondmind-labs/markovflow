@@ -31,8 +31,9 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.sde.sde_utils import linearize_sde
 from markovflow.emission_model import EmissionModel
 from markovflow.kalman_filter import KalmanFilterWithSparseSites
-from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path, LinearDrift
+from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path
 from markovflow.models.variational_cvi import gradient_transformation_mean_var_to_expectation
+from markovflow.sde.drift import LinearDrift
 
 
 class CVISDESparseSites(MarkovFlowModel):

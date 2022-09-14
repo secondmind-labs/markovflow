@@ -24,7 +24,8 @@ from gpflow.probability_distributions import Gaussian
 from markovflow.state_space_model import state_space_model_from_covariances
 from markovflow.sde.sde_utils import euler_maruyama, linearize_sde
 from markovflow.sde import OrnsteinUhlenbeckSDE
-from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path, LinearDrift
+from markovflow.sde.sde_utils import squared_drift_difference_along_Gaussian_path
+from markovflow.sde.drift import LinearDrift
 
 tf.random.set_seed(33)
 
