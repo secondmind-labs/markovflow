@@ -36,14 +36,59 @@ class LinearDrift:
     def from_ssm(self, ssm: StateSpaceModel, dt: float):
         """
         Convert a StateSpaceModel into a linear drift of the f(x_t, t) = A_t * x_t + b_t, where
-            A_t = (SSM.state_transitions - I)/dt
-            b_t = SSM.state_offsets / dt
+            A = (SSM.state_transitions - I)/dt
+            b = SSM.state_offsets / dt
         """
         state_transitions = handle_tensor_shape(ssm.state_transitions, desired_dimensions=3)
         state_offsets = handle_tensor_shape(ssm.state_offsets, desired_dimensions=2)
 
         self.A = (state_transitions - tf.eye(ssm.state_dim, dtype=state_offsets.dtype)) / dt
         self.b = state_offsets / dt
+
+    def to_ssm(self, q: TensorType, transition_times: TensorType, initial_mean: TensorType,
+               initial_chol_covariance: TensorType):
+        """
+        Convert a linear drift SDE to SSM.
+
+        SSM.state_transitions = (A + I) * dt
+        SSM.state_offsets = b * dt
+
+        """
+        if self.A is None or self.b is None:
+            raise Exception("Linear drift is empty so SSM can't be created!")
+
+        self.A = handle_tensor_shape(self.A, desired_dimensions=4)  # (B, N, D, D)
+        self.b = handle_tensor_shape(self.b, desired_dimensions=3)  # (B, N, D)
+        transition_times = handle_tensor_shape(transition_times, desired_dimensions=1)  # (N+1, )
+        q = handle_tensor_shape(q, desired_dimensions=4)  # (B, N, D, D)
+        initial_mean = handle_tensor_shape(initial_mean, desired_dimensions=2)  # (B, D, )
+        initial_chol_covariance = handle_tensor_shape(initial_chol_covariance,
+                                                      desired_dimensions=3)  # (B, D, D)
+
+        B, N, D = self.b .shape
+        assert self.A.shape == (B, N, D, D)
+        assert self.b.shape == (B, N, D)
+        assert transition_times.shape == (N+1, )
+        assert initial_mean.shape == (B, D,)
+        assert initial_chol_covariance.shape == (B, D, D)
+        assert q.shape == (B, N, D, D)
+
+        transition_deltas = tf.reshape(transition_times[1:] - transition_times[:-1], (1, -1, 1))
+        state_transitions = self.A * tf.expand_dims(transition_deltas, -1) + tf.eye(self.A.shape[-1],
+                                                                                    dtype=self.A.dtype)
+
+        state_offsets = self.b * transition_deltas
+        chol_process_covariances = q * tf.expand_dims(
+            tf.sqrt(transition_deltas), axis=-1
+        )
+
+        return StateSpaceModel(
+            initial_mean=initial_mean,
+            chol_initial_covariance=initial_chol_covariance,
+            state_transitions=state_transitions,
+            state_offsets=state_offsets,
+            chol_process_covariances=chol_process_covariances,
+        )
 
 
 def euler_maruyama(sde: SDE, x0: tf.Tensor, time_grid: tf.Tensor) -> tf.Tensor:
@@ -170,21 +215,12 @@ def linearize_sde(
     b = E_f - A * E_x
     A = tf.linalg.diag(A)
 
-    transition_deltas = tf.reshape(transition_times[1:] - transition_times[:-1], (1, -1, 1))
-    state_transitions = A * tf.expand_dims(transition_deltas, -1) + tf.eye(sde.state_dim, dtype=A.dtype)
+    q = sde.diffusion(q_mean, transition_times[:-1])
 
-    state_offsets = b * transition_deltas
-    chol_process_covariances = sde.diffusion(q_mean, transition_times[:-1]) * tf.expand_dims(
-        tf.sqrt(transition_deltas), axis=-1
-    )
-
-    return StateSpaceModel(
-        initial_mean=initial_mean,
-        chol_initial_covariance=initial_chol_covariance,
-        state_transitions=state_transitions,
-        state_offsets=state_offsets,
-        chol_process_covariances=chol_process_covariances,
-    )
+    linear_drift = LinearDrift(A=A, b=b)
+    linear_drift_ssm = linear_drift.to_ssm(q=q, transition_times=transition_times, initial_mean=initial_mean,
+                                           initial_chol_covariance=initial_chol_covariance)
+    return linear_drift_ssm
 
 
 def squared_drift_difference_along_Gaussian_path(sde_p: SDE, linear_drift: LinearDrift, q: Gaussian,
