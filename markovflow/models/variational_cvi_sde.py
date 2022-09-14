@@ -260,10 +260,10 @@ class CVISDESparseSites(MarkovFlowModel):
             dist_q = self.dist_q
 
         linear_drift_q = LinearDrift()
-        linear_drift_q.from_ssm(dist_q, self.dt)
+        linear_drift_q.set_from_ssm(dist_q, self.dt)
 
         linear_drift_pl = LinearDrift()
-        linear_drift_pl.from_ssm(self.dist_p, self.dt)
+        linear_drift_pl.set_from_ssm(self.dist_p, self.dt)
 
         def func(x, t=None, A_q=linear_drift_q.A, b_q=linear_drift_q.b, A_p_l=linear_drift_pl.A,
                  b_p_l=linear_drift_pl.b, sde_p=self.prior_sde):
@@ -316,7 +316,7 @@ class CVISDESparseSites(MarkovFlowModel):
         q = Gaussian(mu=m, cov=S)
 
         linear_drift = LinearDrift()
-        linear_drift.from_ssm(dist_p, self.dt)
+        linear_drift.set_from_ssm(dist_p, self.dt)
 
         lin_loss = squared_drift_difference_along_Gaussian_path(self.prior_sde, linear_drift=linear_drift, q=q,
                                                                 dt=self.dt)

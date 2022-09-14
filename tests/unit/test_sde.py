@@ -218,7 +218,7 @@ def test_ssm_to_linear_drift(setup):
                                                state_offsets=b_p,
                                                process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
     linear_drift = LinearDrift()
-    linear_drift.from_ssm(p_ssm, dt=dt)
+    linear_drift.set_from_ssm(p_ssm, dt=dt)
 
     true_A = -1 * ou_sde.decay * tf.ones_like(m)[..., None]
     true_b = tf.zeros_like(m)
