@@ -26,4 +26,3 @@ from .sparse_variational_cvi import SparseCVIGaussianProcess
 from .spatio_temporal_variational import SpatioTemporalSparseVariational, SpatioTemporalSparseCVI
 from .variational import VariationalGaussianProcess
 from .variational_cvi import CVIGaussianProcess
-from .variational_cvi_sde import CVISDESparseSites
