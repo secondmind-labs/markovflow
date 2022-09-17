@@ -171,7 +171,7 @@ class OrnsteinUhlenbeckSDE(SDE):
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        return tf.linalg.cholesky(self.q)
+        return tf.ones_like(x[..., None]) * tf.linalg.cholesky(self.q)
 
 
 class DoubleWellSDE(SDE):
@@ -216,4 +216,4 @@ class DoubleWellSDE(SDE):
         :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        return tf.linalg.cholesky(self.q)
+        return tf.ones_like(x[..., None]) * tf.linalg.cholesky(self.q)
