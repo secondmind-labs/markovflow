@@ -1,0 +1,484 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.mean_function &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.posterior" href="../posterior/index.html" />
+    <link rel="prev" title="markovflow.kalman_filter" href="../kalman_filter/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.mean_function.MeanFunction" class="nav-link">MeanFunction</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.mean_function.MeanFunction.__call__" class="nav-link">__call__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.mean_function.ZeroMeanFunction" class="nav-link">ZeroMeanFunction</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.mean_function.ZeroMeanFunction.__call__" class="nav-link">__call__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.mean_function.LinearMeanFunction" class="nav-link">LinearMeanFunction</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.mean_function.LinearMeanFunction.__call__" class="nav-link">__call__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.mean_function.ImpulseMeanFunction" class="nav-link">ImpulseMeanFunction</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.mean_function.ImpulseMeanFunction.__call__" class="nav-link">__call__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.mean_function.StepMeanFunction" class="nav-link">StepMeanFunction</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.mean_function.StepMeanFunction.__call__" class="nav-link">__call__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.mean_function">
+<span id="markovflow-mean-function"></span><h1><a class="reference internal" href="#module-markovflow.mean_function" title="markovflow.mean_function"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.mean_function</span></code></a><a class="headerlink" href="#module-markovflow.mean_function" title="Permalink to this headline">¶</a></h1>
+<p>Module containing mean functions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.mean_function.MeanFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">MeanFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#MeanFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.MeanFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class for mean functions.</p>
+<p>Represents the action <span class="math notranslate nohighlight">\(u(t)\)</span> added to the latent states:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + u(t) + L w(t)\]</div>
+<p>…resulting in the the mean function:</p>
+<div class="math notranslate nohighlight">
+\[dμ(t)/dt = F μ(t) + u(t)\]</div>
+<p>We can then solve the pure SDE:</p>
+<div class="math notranslate nohighlight">
+\[dg(t)/dt = F g(t)+ L w(t)\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[g(t) = x(t) - μ(t)\]</div>
+<p>This class provides a very general interface for the function <span class="math notranslate nohighlight">\(μ(t)\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this class should typically avoid performing computation
+in their <code class="xref any docutils literal notranslate"><span class="pre">__init__</span></code> method. Performing computation in the constructor conflicts with
+running in TensorFlow’s eager mode.</p>
+</div>
+<dl class="py method">
+<dt id="markovflow.mean_function.MeanFunction.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#MeanFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.MeanFunction.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function evaluated at the given time points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mean function evaluated at the time points, with shape
+<code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data,</span> <span class="pre">obs_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.mean_function.ZeroMeanFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ZeroMeanFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#ZeroMeanFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.ZeroMeanFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeanFunction</span></code></a></p>
+<p>Represents a mean function that is zero everywhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>obs_dim</strong> – The dimension of the zeros to output.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.mean_function.ZeroMeanFunction.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#ZeroMeanFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.ZeroMeanFunction.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function evaluated at the given time points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mean function evaluated at the time points, with shape
+<code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data,</span> <span class="pre">obs_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.mean_function.LinearMeanFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">LinearMeanFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficient</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#LinearMeanFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.LinearMeanFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeanFunction</span></code></a></p>
+<p>Represents a mean function that is linear. That is, where <span class="math notranslate nohighlight">\(m(t) = a * t\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coefficient</strong> – The linear coefficient.</p></li>
+<li><p><strong>obs_dim</strong> – The output dimension of the mean function.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.mean_function.LinearMeanFunction.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#LinearMeanFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.LinearMeanFunction.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function evaluated at the given time points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mean function evaluated at the time points
+with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data,</span> <span class="pre">obs_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.mean_function.ImpulseMeanFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ImpulseMeanFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_perturbations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#ImpulseMeanFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.ImpulseMeanFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeanFunction</span></code></a></p>
+<p>Represents a mean function that is an impulse action. This is given by:</p>
+<div class="math notranslate nohighlight">
+\[u(t) = Σₖ uₖ δ(t - tₖ)\]</div>
+<p>…in:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + u(t) + L w(t)\]</div>
+<p>…and then:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;μ_(t) = 0                               &amp;     t ≤ t₀\\
+&amp;μ₀(t) = exp(F (t - t₀)) u₀              &amp;t₀ &lt; t ≤ t₁\\
+&amp;μₖ(t) = exp(F (t - tₖ))(μₖ₋₁(tₖ) + uₖ)  &amp;tₖ &lt; t ≤ tₖ₊₁\end{split}\]</div>
+<p>Or:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;μ₋₁(t) = 0                   &amp;     t ≤ t₀\\
+&amp;μₖ(t) = exp(F (t - tₖ))aₖ    &amp;tₖ &lt; t ≤ tₖ₊₁\end{split}\]</div>
+<p>If we let:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;a₋₁ = 0\\
+&amp;a₀ =  u₀\\
+&amp;aₖ = Aₖaₖ₋₁ + uₖ\end{split}\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[Aₖ = exp(F (tₖ - tₖ₋₁))\]</div>
+<p>…then we can write this as a <code class="xref py py-class docutils literal notranslate"><span class="pre">LowerTriangularBlockTriDiagonal</span></code> equation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[ I             ] a₀   u₀
+[-A₁, I         ] a₁   u₁
+[    -A₂, I     ] a₂ = u₂
+[         ᨞  ᨞  ] ⋮     ⋮
+[         -Aₙ, I] aₙ   uₙ
+</pre></div>
+</div>
+<p>We can then determine the <span class="math notranslate nohighlight">\(aₖ\)</span> using a matrix solve.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The effect of the action is not seen until fractionally after it is applied. That is,
+if an impulse is applied at time <span class="math notranslate nohighlight">\(t\)</span>, <span class="math notranslate nohighlight">\(μ(t)\)</span> will not see the effect
+but <span class="math notranslate nohighlight">\(μ(t + ε)\)</span> will.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action_times</strong> – The times at which actions occur, with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_actions]</span></code>.</p></li>
+<li><p><strong>state_perturbations</strong> – The magnitude of the impulse, with shape
+<code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_actions,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – The kernel that is used to generate this mean function.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.mean_function.ImpulseMeanFunction.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#ImpulseMeanFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.ImpulseMeanFunction.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function evaluated at the given time points.</p>
+<p>For each time point, we find the index of the function associated with it; that is,
+the closest previous impulse.</p>
+<p>This index is then used to find the parameters of the function:</p>
+<div class="math notranslate nohighlight">
+\[μₖ(t) = exp(F (t - tₖ))aₖ\]</div>
+<p>…where <span class="math notranslate nohighlight">\(tₖ &lt; t ≤ tₖ₊₁\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mean function evaluated at the time points, with
+shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.mean_function.StepMeanFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">StepMeanFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_perturbations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#StepMeanFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.StepMeanFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeanFunction</span></code></a></p>
+<p>Represents a mean function that is a step action. This is given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;u(t) = 0       &amp;t ≤ t₀\\
+&amp;u(t) = uₖ      &amp;tₖ &lt; t ≤ tₖ₊₁\end{split}\]</div>
+<p>…in:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + u(t) + L w(t)\]</div>
+<p>Then:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;μ_(t) = 0                                              &amp;   t ≤ t₀\\
+&amp;μ₀(t) = -F⁻¹u₀ + exp(F (t - t₀))F⁻¹u₀                  &amp;t₀ &lt; t ≤ t₁\\
+&amp;μₖ(t) = -F⁻¹uₖ + exp(F (t - tₖ))(F⁻¹uₖ + μₖ₋₁(tₖ))     &amp;tₖ &lt; t ≤ tₖ₊₁\end{split}\]</div>
+<p>Or:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;μ₋₁(t) = 0                           &amp;     t ≤ t₀\\
+&amp;μₖ(t) = aₖ + exp(F (t - tₖ))bₖ       &amp;tₖ &lt; t ≤ tₖ₊₁\end{split}\]</div>
+<p>If we let:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;a₋₁ =  b₋₁ = 0\\
+&amp;aₖ =  -F⁻¹uₖ\\
+&amp;bₖ = -aₖ + μₖ₋₁(tₖ) = Aₖbₖ₋₁ + aₖ₋₁ - aₖ\end{split}\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[Aₖ = exp(F (tₖ - tₖ₋₁))\]</div>
+<p>…we can write this as a <code class="xref py py-class docutils literal notranslate"><span class="pre">LowerTriangularBlockTriDiagonal</span></code> equation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[ I             ] b₀   [a₋₁ - a₀]
+[-A₁, I         ] b₁   [a₀ - a₁]
+[    -A₂, I     ] b₂ = [a₁ - a₂]
+[         ᨞  ᨞  ] ⋮         ⋮
+[         -Aₙ, I] bₙ   [aₙ₋₁ - aₙ]
+</pre></div>
+</div>
+<p>We can then determine the <span class="math notranslate nohighlight">\(bₖ\)</span> using a matrix solve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action_times</strong> – The times at which actions occur, with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_actions]</span></code>.</p></li>
+<li><p><strong>state_perturbations</strong> – The magnitude of the impulse, with shape
+<code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_actions,</span> <span class="pre">obs_dim]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – The kernel that is used to generate this mean function.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.mean_function.StepMeanFunction.__call__">
+<code class="sig-name descname"><span class="pre">__call__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/mean_function.html#StepMeanFunction.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.mean_function.StepMeanFunction.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function evaluated at the given time points.</p>
+<p>For each time point, we find the index of the function associated with it; that is,
+the closest previous step (call it <span class="math notranslate nohighlight">\(k\)</span>).</p>
+<p>This index is then used to find the parameters of the function:</p>
+<div class="math notranslate nohighlight">
+\[μₖ(t) = aₖ + exp(F (t - tₖ))bₖ\]</div>
+<p>…where <span class="math notranslate nohighlight">\(tₖ &lt; t ≤ tₖ₊₁\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mean function evaluated at the time points, with
+shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_data,</span> <span class="pre">obs_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

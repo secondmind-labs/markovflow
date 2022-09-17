@@ -1,0 +1,235 @@
+:py:mod:`markovflow.mean_function`
+==================================
+
+.. py:module:: markovflow.mean_function
+
+.. autoapi-nested-parse::
+
+   Module containing mean functions.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: MeanFunction(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class for mean functions.
+
+   Represents the action :math:`u(t)` added to the latent states:
+
+   .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)
+
+   ...resulting in the the mean function:
+
+   .. math:: dμ(t)/dt = F μ(t) + u(t)
+
+   We can then solve the pure SDE:
+
+   .. math:: dg(t)/dt = F g(t)+ L w(t)
+
+   ...where:
+
+   .. math:: g(t) = x(t) - μ(t)
+
+   This class provides a very general interface for the function :math:`μ(t)`.
+
+   .. note:: Implementations of this class should typically avoid performing computation
+      in their `__init__` method. Performing computation in the constructor conflicts with
+      running in TensorFlow's eager mode.
+
+   .. py:method:: __call__(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the mean function evaluated at the given time points.
+
+      :param time_points: A tensor with shape ``[... num_data]``.
+      :return: The mean function evaluated at the time points, with shape
+          ``[... num_data, obs_dim]``.
+
+
+
+.. py:class:: ZeroMeanFunction(obs_dim: int)
+
+   Bases: :py:obj:`MeanFunction`
+
+   Represents a mean function that is zero everywhere.
+
+   :param obs_dim: The dimension of the zeros to output.
+
+   .. py:method:: __call__(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the mean function evaluated at the given time points.
+
+      :param time_points: A tensor with shape ``[... num_data]``.
+      :return: The mean function evaluated at the time points, with shape
+          ``[... num_data, obs_dim]``.
+
+
+
+.. py:class:: LinearMeanFunction(coefficient: float, obs_dim: int = 1)
+
+   Bases: :py:obj:`MeanFunction`
+
+   Represents a mean function that is linear. That is, where :math:`m(t) = a * t`.
+
+   :param coefficient: The linear coefficient.
+   :param obs_dim: The output dimension of the mean function.
+
+   .. py:method:: __call__(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the mean function evaluated at the given time points.
+
+      :param time_points: A tensor with shape ``[... num_data]``.
+      :return: The mean function evaluated at the time points
+          with shape ``[... num_data, obs_dim]``.
+
+
+
+.. py:class:: ImpulseMeanFunction(action_times: tensorflow.Tensor, state_perturbations: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel)
+
+   Bases: :py:obj:`MeanFunction`
+
+   Represents a mean function that is an impulse action. This is given by:
+
+   .. math:: u(t) = Σₖ uₖ δ(t - tₖ)
+
+   ...in:
+
+   .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)
+
+   ...and then:
+
+   .. math::
+       &μ_(t) = 0                               &     t ≤ t₀\\
+       &μ₀(t) = exp(F (t - t₀)) u₀              &t₀ < t ≤ t₁\\
+       &μₖ(t) = exp(F (t - tₖ))(μₖ₋₁(tₖ) + uₖ)  &tₖ < t ≤ tₖ₊₁
+
+   Or:
+
+   .. math::
+       &μ₋₁(t) = 0                   &     t ≤ t₀\\
+       &μₖ(t) = exp(F (t - tₖ))aₖ    &tₖ < t ≤ tₖ₊₁
+
+   If we let:
+
+   .. math::
+       &a₋₁ = 0\\
+       &a₀ =  u₀\\
+       &aₖ = Aₖaₖ₋₁ + uₖ
+
+   ...where:
+
+   .. math:: Aₖ = exp(F (tₖ - tₖ₋₁))
+
+   ...then we can write this as a :class:`LowerTriangularBlockTriDiagonal` equation::
+
+       [ I             ] a₀   u₀
+       [-A₁, I         ] a₁   u₁
+       [    -A₂, I     ] a₂ = u₂
+       [         ᨞  ᨞  ] ⋮     ⋮
+       [         -Aₙ, I] aₙ   uₙ
+
+   We can then determine the :math:`aₖ` using a matrix solve.
+
+   .. note:: The effect of the action is not seen until fractionally after it is applied. That is,
+      if an impulse is applied at time :math:`t`, :math:`μ(t)` will not see the effect
+      but :math:`μ(t + ε)` will.
+
+   :param action_times: The times at which actions occur, with shape ``[... num_actions]``.
+   :param state_perturbations: The magnitude of the impulse, with shape
+       ``[... num_actions, state_dim]``.
+   :param kernel: The kernel that is used to generate this mean function.
+
+   .. py:method:: __call__(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the mean function evaluated at the given time points.
+
+      For each time point, we find the index of the function associated with it; that is,
+      the closest previous impulse.
+
+      This index is then used to find the parameters of the function:
+
+      .. math:: μₖ(t) = exp(F (t - tₖ))aₖ
+
+      ...where :math:`tₖ < t ≤ tₖ₊₁`.
+
+      :param time_points: A tensor with shape ``[... num_data]``.
+      :return: The mean function evaluated at the time points, with
+          shape ``[... num_data, state_dim]``.
+
+
+
+.. py:class:: StepMeanFunction(action_times: tensorflow.Tensor, state_perturbations: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel)
+
+   Bases: :py:obj:`MeanFunction`
+
+   Represents a mean function that is a step action. This is given by:
+
+   .. math::
+       &u(t) = 0       &t ≤ t₀\\
+       &u(t) = uₖ      &tₖ < t ≤ tₖ₊₁
+
+   ...in:
+
+   .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)
+
+   Then:
+
+   .. math::
+       &μ_(t) = 0                                              &   t ≤ t₀\\
+       &μ₀(t) = -F⁻¹u₀ + exp(F (t - t₀))F⁻¹u₀                  &t₀ < t ≤ t₁\\
+       &μₖ(t) = -F⁻¹uₖ + exp(F (t - tₖ))(F⁻¹uₖ + μₖ₋₁(tₖ))     &tₖ < t ≤ tₖ₊₁
+
+   Or:
+
+   .. math::
+       &μ₋₁(t) = 0                           &     t ≤ t₀\\
+       &μₖ(t) = aₖ + exp(F (t - tₖ))bₖ       &tₖ < t ≤ tₖ₊₁
+
+   If we let:
+
+   .. math::
+       &a₋₁ =  b₋₁ = 0\\
+       &aₖ =  -F⁻¹uₖ\\
+       &bₖ = -aₖ + μₖ₋₁(tₖ) = Aₖbₖ₋₁ + aₖ₋₁ - aₖ
+
+   ...where:
+
+   .. math:: Aₖ = exp(F (tₖ - tₖ₋₁))
+
+   ...we can write this as a :class:`LowerTriangularBlockTriDiagonal` equation::
+
+       [ I             ] b₀   [a₋₁ - a₀]
+       [-A₁, I         ] b₁   [a₀ - a₁]
+       [    -A₂, I     ] b₂ = [a₁ - a₂]
+       [         ᨞  ᨞  ] ⋮         ⋮
+       [         -Aₙ, I] bₙ   [aₙ₋₁ - aₙ]
+
+   We can then determine the :math:`bₖ` using a matrix solve.
+
+   :param action_times: The times at which actions occur, with shape ``[... num_actions]``.
+   :param state_perturbations: The magnitude of the impulse, with shape
+       ``[... num_actions, obs_dim]``.
+   :param kernel: The kernel that is used to generate this mean function.
+
+   .. py:method:: __call__(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the mean function evaluated at the given time points.
+
+      For each time point, we find the index of the function associated with it; that is,
+      the closest previous step (call it :math:`k`).
+
+      This index is then used to find the parameters of the function:
+
+      .. math:: μₖ(t) = aₖ + exp(F (t - tₖ))bₖ
+
+      ...where :math:`tₖ < t ≤ tₖ₊₁`.
+
+      :param time_points: A tensor with shape ``[... num_data]``.
+      :return: The mean function evaluated at the time points, with
+          shape ``[... num_data, obs_dim]``.
+
+
+

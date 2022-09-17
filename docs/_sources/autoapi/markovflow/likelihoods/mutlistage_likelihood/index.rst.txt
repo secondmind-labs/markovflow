@@ -1,0 +1,126 @@
+:py:mod:`markovflow.likelihoods.mutlistage_likelihood`
+======================================================
+
+.. py:module:: markovflow.likelihoods.mutlistage_likelihood
+
+.. autoapi-nested-parse::
+
+   Module containing the MultiStageLikelihood 
+
+
+
+Module Contents
+---------------
+
+.. py:class:: MultiStageLikelihood(invlink_bernoulli=inv_probit, invlink_poisson=tf.exp, **kwargs)
+
+   Bases: :py:obj:`gpflow.likelihoods.MultiLatentLikelihood`
+
+   The Multistage Likelihood as described in
+
+   @inproceedings{seeger2016bayesian,
+     title={Bayesian intermittent demand forecasting for large inventories},
+     author={Seeger, Matthias W and Salinas, David and Flunkert, Valentin},
+     booktitle={Advances in Neural Information Processing Systems},
+     pages={4646--4654},
+     year={2016}
+   }
+
+   This relates scalar data y to variables F = [F0, F1, F2]
+   through the log-conditional density
+
+   log p(Y|F) = δ(Y=0) * log σ(F0)
+               + δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))
+               + δ(Y>1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))
+
+   This can be interpreted as a decision tree
+         σ(F0) -> Y = 0
+        /
+   root -> 1-σ(F0) -> 1-σ(F1) -> Y ~ Poisson(λ(F2)) + 2
+                 \
+                  σ(F1) -> Y = 1
+
+   A base class for likelihoods, which specifies an observation model 
+   connecting the latent functions ('F') to the data ('Y').
+
+   All of the members of this class are expected to obey some shape conventions, as specified
+   by latent_dim and observation_dim.
+
+   If we're operating on an array of function values 'F', then the last dimension represents
+   multiple functions (preceding dimensions could represent different data points, or
+   different random samples, for example). Similarly, the last dimension of Y represents a
+   single data point. We check that the dimensions are as this object expects.
+
+   The return shapes of all functions in this class is the broadcasted shape of the arguments,
+   excluding the last dimension of each argument.
+
+   :param latent_dim: the dimension of the vector F of latent functions for a single data point
+   :param observation_dim: the dimension of the observation vector Y for a single data point
+
+   .. py:method:: _split_f(F)
+
+      Splits the input tensor F into 3 tensors along the last dimension
+      :param F: tensor of shape [..., 3]
+      :return: tuple of 3 tensors of shape [..., 1]
+
+
+   .. py:method:: _log_prob(F, Y)
+
+      Return the log-conditional density
+      log p(Y|F) = δ(Y=0) * log σ(F0)
+              + δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))
+              + δ(Y>1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))
+
+      :param F: tensor of shape [..., 3]
+      :param Y: tensor of shape [..., 1]
+      :return:  tensor of shape [...]
+
+
+   .. py:method:: _variational_expectations(Fmu, Fvar, Y)
+
+      Returns E_q(F) log p(Y|F) under the factored distribution
+      q(F) = ∏ₖ q(Fₖ) = ∏ₖ 𝓝(Fmuₖ, Fvarₖ)
+
+      E_q(F) log p(Y|F) = δ(Y=0) * E_q(F0) log σ(F0)
+              + δ(Y=1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log σ(F1))
+              + δ(Y>1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log(1-σ(F1))
+                          + E_q(F2) log Poisson(Y-2|λ(F2)))
+
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., observation_dim]:
+      :returns: variational expectations, with shape [...]
+
+
+
+   .. py:method:: _predict_log_density(Fmu, Fvar, Y)
+      :abstractmethod:
+
+      Here, we implement a default Gauss-Hermite quadrature routine, but some
+      likelihoods (Gaussian, Poisson) will implement specific cases.
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., observation_dim]:
+      :returns: log predictive density, with shape [...]
+
+
+   .. py:method:: _predict_mean_and_var(Fmu, Fvar)
+      :abstractmethod:
+
+      Here, we implement a default Gauss-Hermite quadrature routine, but some
+      likelihoods (e.g. Gaussian) will implement specific cases.
+
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :returns: mean and variance of Y, both with shape [..., observation_dim]
+
+
+   .. py:method:: sample_y(F_samples: tensorflow.Tensor)
+
+      Given values of the latent processes F,
+      samples observations from P(Y|F)
+      :param F_samples: batch_shape + [3]
+      :return: batch_shape + [1]
+
+
+

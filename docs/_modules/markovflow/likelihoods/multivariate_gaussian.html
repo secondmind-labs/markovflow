@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.likelihoods.multivariate_gaussian &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.likelihoods.multivariate_gaussian</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a multivariate Gaussian likelihood.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">TensorType</span>
+<span class="kn">from</span> <span class="nn">gpflow.utilities</span> <span class="kn">import</span> <span class="n">triangular</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.likelihoods.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span><span class="p">,</span> <span class="n">check_input_shapes</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+
+<div class="viewcode-block" id="MultivariateGaussian"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">MultivariateGaussian</span><span class="p">(</span><span class="n">Likelihood</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a multivariate Gaussian likelihood. For example:</span>
+
+<span class="sd">    .. math:: p(yᵢ | fᵢ) = 𝓝(yᵢ; fᵢ, Σ= LLᵀ)</span>
+
+<span class="sd">    See also the documentation for the base</span>
+<span class="sd">    :class:`~markovflow.likelihoods.likelihoods.Likelihood` class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chol_covariance</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param chol_covariance: A :data:`~markovflow.base.TensorType` containing the Cholesky</span>
+<span class="sd">            factor of the covariance of the Gaussian noise, with shape ``[obs_dim, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span>
+            <span class="n">chol_covariance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">triangular</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;chol_covariance&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+            <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">]),]</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="MultivariateGaussian.obs_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian.obs_dim">[docs]</a>    <span class="k">def</span> <span class="nf">obs_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the dimensionality of each observation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span></div>
+
+<div class="viewcode-block" id="MultivariateGaussian.log_probability_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian.log_probability_density">[docs]</a>    <span class="k">def</span> <span class="nf">log_probability_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log probability density :math:`log p(Y|F)`.</span>
+
+<span class="sd">        For a multivariate Gaussian, this is :math:`log 𝓝(yᵢ; fᵢ, Σ)`.</span>
+
+<span class="sd">        :param fs: A tensor representing a conditioning variable, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param observations: A tensor representing a conditioned variable,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :return: A tensor representing :math:`log p(yᵢ | fᵢ)`,</span>
+<span class="sd">            with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span><span class="n">fs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">)</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span>
+            <span class="n">observations</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="MultivariateGaussian.variational_expectations"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian.variational_expectations">[docs]</a>    <span class="k">def</span> <span class="nf">variational_expectations</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a variational expectation for each observation:</span>
+
+<span class="sd">        .. math:: ∫ q(fᵢ) log p(yᵢ|fᵢ) dfᵢ</span>
+
+<span class="sd">        ...where:</span>
+
+<span class="sd">            * :math:`q(fᵢ) ~ N(μᵢ, Σᵢ)`</span>
+<span class="sd">            * :math:`p(y |f)` is a general likelihood function</span>
+
+<span class="sd">        For a multivariate Gaussian this is:</span>
+
+<span class="sd">        .. math:: ∫ 𝓝(fᵢ; μᵢ, Sᵢ) log𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = -½ Tr(Σ⁻¹Sᵢ) + log𝓝(yᵢ; μᵢ, Σ)</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :param observations: The :math:`y` values at which to evaluate the log probability,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">observations</span>
+        <span class="n">check_input_shapes</span><span class="p">(</span><span class="n">f_means</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">f_covariances</span><span class="o">=</span><span class="n">f_covariances</span><span class="p">)</span>
+
+        <span class="n">inv_covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">inv_covariance</span> <span class="o">*</span> <span class="n">f_covariances</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span><span class="n">f_means</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">)</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultivariateGaussian.predict_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian.predict_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict a density. This calculates:</span>
+
+<span class="sd">        .. math:: ∫ q(F) p(Y|F) dF</span>
+
+<span class="sd">        ...of a Gaussian approximation :math:`q(F) ~ N(μ, Σ)` to the posterior</span>
+<span class="sd">        density :math:`p(F|Y)`.</span>
+
+<span class="sd">        For a multivariate Gaussian this is:</span>
+
+<span class="sd">        .. math:: log ∫ 𝓝(fᵢ; μᵢ, Sᵢ) 𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = log 𝓝(yᵢ; μᵢ, Σ + Sᵢ)</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :param observations: The :math:`y` values at which to evaluate the log probability,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">observations</span>
+        <span class="n">check_input_shapes</span><span class="p">(</span><span class="n">f_means</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_dim</span><span class="p">,</span> <span class="n">f_covariances</span><span class="o">=</span><span class="n">f_covariances</span><span class="p">)</span>
+
+        <span class="n">covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">f_chol_covariances</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">f_covariances</span> <span class="o">+</span> <span class="n">covariance</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span><span class="n">f_means</span><span class="p">,</span> <span class="n">f_chol_covariances</span><span class="p">)</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultivariateGaussian.predict_mean_and_var"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/multivariate_gaussian/index.html#markovflow.likelihoods.MultivariateGaussian.predict_mean_and_var">[docs]</a>    <span class="k">def</span> <span class="nf">predict_mean_and_var</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict the observation means and covariances given the f-space means and covariances.</span>
+
+<span class="sd">        That is, calculate:</span>
+
+<span class="sd">        .. math:: p(y* | x*, x, y) = ∫ p(y* | f*) p(f* | x*, x, y) df*</span>
+
+<span class="sd">        ...where:</span>
+
+<span class="sd">            * `f_means` and `f_covariances` is our representation of :math:`p(f* | x*, x, y)`</span>
+<span class="sd">            * :math:`p(y* | f*)` is defined by the likelihood</span>
+
+<span class="sd">        For a multivariate Gaussian this is:</span>
+
+<span class="sd">        .. math:: p(y* | x*, x, y) = ∫ 𝓝(f*; μ*, S*) 𝓝(y*; f*, Σ= LLᵀ) dfᵢ = 𝓝(y*; μ*, Σ + S*)</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for some arbitrary predicted time points,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for some arbitrary predicted</span>
+<span class="sd">            time points, with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :return: A tuple of tensors containing observation means and covariances, with</span>
+<span class="sd">            respective shapes</span>
+<span class="sd">            ``batch_shape + [num_time_points, obs_dim]``,</span>
+<span class="sd">            ``batch_shape + [num_time_points, obs_dim, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chol_covariance</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f_means</span><span class="p">,</span> <span class="n">covariance</span> <span class="o">+</span> <span class="n">f_covariances</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

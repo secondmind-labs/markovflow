@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kalman_filter &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.mean_function" href="../mean_function/index.html" />
+    <link rel="prev" title="markovflow.gauss_markov" href="../gauss_markov/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter" class="nav-link">BaseKalmanFilter</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter._r_inv" class="nav-link">_r_inv</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter.observations" class="nav-link">observations</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter._k_inv_prior" class="nav-link">_k_inv_prior</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter._k_inv_post" class="nav-link">_k_inv_post</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter._log_det_observation_precision" class="nav-link">_log_det_observation_precision</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter.posterior_state_space_model" class="nav-link">posterior_state_space_model</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter.log_likelihood" class="nav-link">log_likelihood</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.BaseKalmanFilter._back_project_y_to_state" class="nav-link">_back_project_y_to_state</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.KalmanFilter" class="nav-link">KalmanFilter</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilter._r_inv" class="nav-link">_r_inv</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilter.observations" class="nav-link">observations</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.GaussianSites" class="nav-link">GaussianSites</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.GaussianSites.means" class="nav-link">means</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.GaussianSites.precisions" class="nav-link">precisions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.GaussianSites.log_det_precisions" class="nav-link">log_det_precisions</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.UnivariateGaussianSitesNat" class="nav-link">UnivariateGaussianSitesNat</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.means" class="nav-link">means</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.precisions" class="nav-link">precisions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.log_det_precisions" class="nav-link">log_det_precisions</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSites" class="nav-link">KalmanFilterWithSites</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSites._r_inv" class="nav-link">_r_inv</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSites._log_det_observation_precision" class="nav-link">_log_det_observation_precision</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSites.observations" class="nav-link">observations</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites" class="nav-link">KalmanFilterWithSparseSites</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv" class="nav-link">_r_inv</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._drop_batch_shape" class="nav-link">_drop_batch_shape</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._log_det_observation_precision" class="nav-link">_log_det_observation_precision</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.observations" class="nav-link">observations</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv_data" class="nav-link">_r_inv_data</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.sparse_to_dense" class="nav-link">sparse_to_dense</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.dense_to_sparse" class="nav-link">dense_to_sparse</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.log_likelihood" class="nav-link">log_likelihood</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.kalman_filter">
+<span id="markovflow-kalman-filter"></span><h1><a class="reference internal" href="#module-markovflow.kalman_filter" title="markovflow.kalman_filter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.kalman_filter</span></code></a><a class="headerlink" href="#module-markovflow.kalman_filter" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a Kalman filter.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">BaseKalmanFilter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_space_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><span class="pre">markovflow.emission_model.EmissionModel</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Performs a Kalman filter on a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> and
+<a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a>, with given observations.</p>
+<p>The key reference is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">grigorievskiy2017parallelizable</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Parallelizable</span> <span class="n">sparse</span> <span class="n">inverse</span> <span class="n">formulation</span> <span class="n">Gaussian</span> <span class="n">processes</span> <span class="p">(</span><span class="n">SpInGP</span><span class="p">)},</span>
+    <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Grigorievskiy</span><span class="p">,</span> <span class="n">Alexander</span> <span class="ow">and</span> <span class="n">Lawrence</span><span class="p">,</span> <span class="n">Neil</span> <span class="ow">and</span> <span class="n">S</span><span class="p">{</span>\<span class="s2">&quot;a}rkk{</span><span class="se">\&quot;</span><span class="s2">a}, Simo},</span>
+    <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">Int</span><span class="s1">&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+    <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="o">--</span><span class="mi">6</span><span class="p">},</span>
+    <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2017</span><span class="p">},</span>
+    <span class="n">organization</span><span class="o">=</span><span class="p">{</span><span class="n">IEEE</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following notation from the above paper is used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(G = I_N ⊗ H\)</span>, where <span class="math notranslate nohighlight">\(⊗\)</span> is the Kronecker product</p></li>
+<li><p><span class="math notranslate nohighlight">\(R\)</span> is the observation covariance</p></li>
+<li><p><span class="math notranslate nohighlight">\(Σ = I_N ⊗ R\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(K⁻¹ = A⁻ᵀQ⁻¹A⁻¹\)</span> is the precision, where <span class="math notranslate nohighlight">\(A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(L\)</span> is the Cholesky of <span class="math notranslate nohighlight">\(K⁻¹ + GᵀΣ⁻¹G\)</span>. That is, <span class="math notranslate nohighlight">\(LLᵀ = K⁻¹ + GᵀΣ⁻¹G\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y\)</span> is the observation matrix</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_space_model</strong> – Parametrises the latent chain.</p></li>
+<li><p><strong>emission_model</strong> – Maps the latent chain to the observations.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter._r_inv">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_r_inv</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter._r_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter._r_inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precision of observation model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter.observations">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observations</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter.observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter.observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Observation vector</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter._k_inv_prior">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_k_inv_prior</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter._k_inv_prior"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter._k_inv_prior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prior precision</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter._k_inv_post">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_k_inv_post</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter._k_inv_post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter._k_inv_post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Posterior precision</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter._log_det_observation_precision">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_log_det_observation_precision</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter._log_det_observation_precision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter._log_det_observation_precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum of log determinant of the precisions of the observation model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter.posterior_state_space_model">
+<code class="sig-name descname"><span class="pre">posterior_state_space_model</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter.posterior_state_space_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter.posterior_state_space_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the posterior as a state space model.</p>
+<p>The marginal means and covariances are given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;μ(Χ) = (K⁻¹ + GᵀΣ⁻¹G)⁻¹[GᵀΣ⁻¹y + K⁻¹μ]\\
+&amp;P(X) = K⁻¹ + GᵀΣ⁻¹G\end{split}\]</div>
+<p>…where <span class="math notranslate nohighlight">\(μ\)</span> is a block vector of the marginal means.</p>
+<p>We can derive the state transitions <span class="math notranslate nohighlight">\(aₖ\)</span> and process noise covariances <span class="math notranslate nohighlight">\(qₖ\)</span>
+from the block tridiagonal matrix (see
+<a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower"><code class="xref py py-meth docutils literal notranslate"><span class="pre">upper_diagonal_lower()</span></code></a>).
+Lower case is used to attempt to distinguish the posterior and prior parameters.</p>
+<p>We then need to calculate <span class="math notranslate nohighlight">\(μ₀\)</span> and <span class="math notranslate nohighlight">\(bₖ\)</span> (this is what most of the code in
+this function does). This can be calculated from:</p>
+<div class="math notranslate nohighlight">
+\[K⁻¹ₚₒₛₜμₚₒₛₜ = GᵀΣ⁻¹y + K⁻¹ₚᵣᵢₒᵣμₚᵣᵢₒᵣ\]</div>
+<p>Firstly, we use that for any <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>:</p>
+<div class="math notranslate nohighlight">
+\[K⁻¹μ = A⁻ᵀ Q⁻¹ m\]</div>
+<p>…where <span class="math notranslate nohighlight">\(m = [μ₀, b₁,... bₙ]\)</span> and:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>A⁻¹ =  [ I             ]      Q⁻¹ =  [ P₀⁻¹          ]
+       [-A₁, I         ]            [    Q₁⁻¹       ]
+       [    -A₂, I     ]            [       ᨞      ]
+       [         ᨞  ᨞  ]            [         ᨞    ]
+       [         -Aₙ, I]            [           Qₙ⁻¹]
+</pre></div>
+</div>
+<p>So:</p>
+<div class="math notranslate nohighlight">
+\[mₚₒₛₜ = Qₚₒₛₜ Aₚₒₛₜᵀ [GᵀΣ⁻¹y + Kₚᵣᵢₒᵣ⁻¹mₚᵣᵢₒᵣ]\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The posterior as a state space model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter.log_likelihood">
+<code class="sig-name descname"><span class="pre">log_likelihood</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter.log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a TensorTlow function to compute the likelihood.</p>
+<p>We set <span class="math notranslate nohighlight">\(y = obs - Hμ\)</span> (where <span class="math notranslate nohighlight">\(μ\)</span> is the vector of marginal state means):</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}log p(obs|params) = &amp;- ᴺ⁄₂log(2π) - ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|)\\
+                    &amp;- ½ yᵀ(Σ⁻¹ - Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y\end{split}\]</div>
+<p>…where <span class="math notranslate nohighlight">\(N\)</span> is the dimensionality of the precision object, that is
+<code class="docutils literal notranslate"><span class="pre">state_dim</span> <span class="pre">*</span> <span class="pre">(num_transitions</span> <span class="pre">+</span> <span class="pre">1)</span></code>.</p>
+<p>We break up the log likelihood as: cst + term1 + term2 + term3. That is, as:</p>
+<blockquote>
+<div><ul>
+<li><p>cst: <span class="math notranslate nohighlight">\(- ᴺ⁄₂log(2π)\)</span></p></li>
+<li><p>term 1: <span class="math notranslate nohighlight">\(- ½ yᵀΣ⁻¹y\)</span></p></li>
+<li><p>term 2:</p>
+<div class="math notranslate nohighlight">
+\[½ yᵀΣ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y = ½ yᵀΣ⁻¹G(LLᵀ)⁻¹GᵀΣ⁻¹)y = ½|L⁻¹(GᵀΣ⁻¹)y|²\]</div>
+</li>
+<li><p>term 3:</p>
+<div class="math notranslate nohighlight">
+\[- ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|) = ½log |K⁻¹| - log |L| + ½log |Σ⁻¹|\]</div>
+</li>
+</ul>
+</div></blockquote>
+<p>Note that there are a couple of mistakes in the SpinGP paper for this formula (18):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>They have <span class="math notranslate nohighlight">\(- ½(... + log |Σ⁻¹|)\)</span>. It should be <span class="math notranslate nohighlight">\(- ½(... - log |Σ⁻¹|)\)</span></p></li>
+<li><p>They have <span class="math notranslate nohighlight">\(- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹)y\)</span>. It should
+be <span class="math notranslate nohighlight">\(- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y\)</span></p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The likelihood as a scalar tensor (we sum over the <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape" title="markovflow.block_tri_diag.BlockTriDiagonal.batch_shape"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">batch_shape</span></code></a>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.BaseKalmanFilter._back_project_y_to_state">
+<code class="sig-name descname"><span class="pre">_back_project_y_to_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#BaseKalmanFilter._back_project_y_to_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.BaseKalmanFilter._back_project_y_to_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Back project from the observation space to the state_space, i.e. calculate (GᵀΣ⁻¹)y.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>observations</strong> – a tensor y of shape
+batch_shape + [num_data, output_dim]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a tensor (GᵀΣ⁻¹)y of shape
+batch_shape + [num_data, state_dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kalman_filter.KalmanFilter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">KalmanFilter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_space_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><span class="pre">markovflow.emission_model.EmissionModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">chol_obs_covariance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.kalman_filter.BaseKalmanFilter" title="markovflow.kalman_filter.BaseKalmanFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseKalmanFilter</span></code></a></p>
+<p>Performs a Kalman filter on a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> and
+<a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a>, with given observations.</p>
+<p>The key reference is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">grigorievskiy2017parallelizable</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Parallelizable</span> <span class="n">sparse</span> <span class="n">inverse</span> <span class="n">formulation</span> <span class="n">Gaussian</span> <span class="n">processes</span> <span class="p">(</span><span class="n">SpInGP</span><span class="p">)},</span>
+    <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Grigorievskiy</span><span class="p">,</span> <span class="n">Alexander</span> <span class="ow">and</span> <span class="n">Lawrence</span><span class="p">,</span> <span class="n">Neil</span> <span class="ow">and</span> <span class="n">S</span><span class="p">{</span>\<span class="s2">&quot;a}rkk{</span><span class="se">\&quot;</span><span class="s2">a}, Simo},</span>
+    <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">Int</span><span class="s1">&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+    <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="o">--</span><span class="mi">6</span><span class="p">},</span>
+    <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2017</span><span class="p">},</span>
+    <span class="n">organization</span><span class="o">=</span><span class="p">{</span><span class="n">IEEE</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following notation from the above paper is used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(G = I_N ⊗ H\)</span>, where <span class="math notranslate nohighlight">\(⊗\)</span> is the Kronecker product</p></li>
+<li><p><span class="math notranslate nohighlight">\(R\)</span> is the observation covariance</p></li>
+<li><p><span class="math notranslate nohighlight">\(Σ = I_N ⊗ R\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(K⁻¹ = A⁻ᵀQ⁻¹A⁻¹\)</span> is the precision, where <span class="math notranslate nohighlight">\(A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(L\)</span> is the Cholesky of <span class="math notranslate nohighlight">\(K⁻¹ + GᵀΣ⁻¹G\)</span>. That is, <span class="math notranslate nohighlight">\(LLᵀ = K⁻¹ + GᵀΣ⁻¹G\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y\)</span> is the observation matrix</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_space_model</strong> – Parametrises the latent chain.</p></li>
+<li><p><strong>emission_model</strong> – Maps the latent chain to the observations.</p></li>
+<li><p><strong>observations</strong> – Data with shape <code class="docutils literal notranslate"><span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">output_dim]</span></code>.</p></li>
+<li><p><strong>chol_obs_covariance</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with shape
+<code class="docutils literal notranslate"><span class="pre">[output_dim,</span> <span class="pre">output_dim]</span></code> for the Cholesky factor of the covariance to be
+applied to <span class="math notranslate nohighlight">\(f\)</span> from <a class="reference internal" href="../emission_model/index.html#module-markovflow.emission_model" title="markovflow.emission_model"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">emission_model</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilter._r_inv">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_r_inv</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilter._r_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilter._r_inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precision of the observation model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilter.observations">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observations</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilter.observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilter.observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Observation vector</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kalman_filter.GaussianSites">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">GaussianSites</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#GaussianSites"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.GaussianSites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>This class is a wrapper around the parameters specifying multiple independent
+Gaussian distributions.</p>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.GaussianSites.means">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">means</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#GaussianSites.means"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.GaussianSites.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the means of the Gaussians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.GaussianSites.precisions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">precisions</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#GaussianSites.precisions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.GaussianSites.precisions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the precisions of the Gaussians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.GaussianSites.log_det_precisions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">log_det_precisions</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#GaussianSites.log_det_precisions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.GaussianSites.log_det_precisions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sum of the log determinant of the observation precisions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kalman_filter.UnivariateGaussianSitesNat">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">UnivariateGaussianSitesNat</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#UnivariateGaussianSitesNat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.UnivariateGaussianSitesNat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.kalman_filter.GaussianSites" title="markovflow.kalman_filter.GaussianSites"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GaussianSites</span></code></a></p>
+<p>This class is a wrapper around parameters of univariate Gaussian distributions
+in the natural form. That is:</p>
+<div class="math notranslate nohighlight">
+\[p(f) = exp(𝞰ᵀφ(f) - A(𝞰))\]</div>
+<p>…where <span class="math notranslate nohighlight">\(𝞰=[η₁,η₂]\)</span> and <span class="math notranslate nohighlight">\(𝛗(f)=[f,f²]\)</span>.</p>
+<p>The mean <span class="math notranslate nohighlight">\(μ\)</span> and variance <span class="math notranslate nohighlight">\(σ²\)</span> parameterization is such that:</p>
+<div class="math notranslate nohighlight">
+\[μ = -½η₁/η₂, σ²=-½η₂⁻¹\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nat1</strong> – first natural parameter [N, D]</p></li>
+<li><p><strong>nat2</strong> – second natural parameter [N, D, D]</p></li>
+<li><p><strong>log_norm</strong> – normalizer parameter [N, D]</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.UnivariateGaussianSitesNat.means">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">means</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#UnivariateGaussianSitesNat.means"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the means of the Gaussians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.UnivariateGaussianSitesNat.precisions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">precisions</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#UnivariateGaussianSitesNat.precisions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.precisions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the precisions of the Gaussians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.UnivariateGaussianSitesNat.log_det_precisions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">log_det_precisions</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#UnivariateGaussianSitesNat.log_det_precisions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.UnivariateGaussianSitesNat.log_det_precisions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the sum of the log determinant of the observation precisions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSites">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">KalmanFilterWithSites</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_space_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><span class="pre">markovflow.emission_model.EmissionModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#markovflow.kalman_filter.GaussianSites" title="markovflow.kalman_filter.GaussianSites"><span class="pre">GaussianSites</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSites"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.kalman_filter.BaseKalmanFilter" title="markovflow.kalman_filter.BaseKalmanFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseKalmanFilter</span></code></a></p>
+<p>Performs a Kalman filter on a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> and
+<a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a>, with Gaussian sites,
+that is time dependent Gaussian Likelihood terms.</p>
+<p>The key reference is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">grigorievskiy2017parallelizable</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Parallelizable</span> <span class="n">sparse</span> <span class="n">inverse</span> <span class="n">formulation</span> <span class="n">Gaussian</span> <span class="n">processes</span> <span class="p">(</span><span class="n">SpInGP</span><span class="p">)},</span>
+    <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Grigorievskiy</span><span class="p">,</span> <span class="n">Alexander</span> <span class="ow">and</span> <span class="n">Lawrence</span><span class="p">,</span> <span class="n">Neil</span> <span class="ow">and</span> <span class="n">S</span><span class="p">{</span>\<span class="s2">&quot;a}rkk{</span><span class="se">\&quot;</span><span class="s2">a}, Simo},</span>
+    <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">Int</span><span class="s1">&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+    <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="o">--</span><span class="mi">6</span><span class="p">},</span>
+    <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2017</span><span class="p">},</span>
+    <span class="n">organization</span><span class="o">=</span><span class="p">{</span><span class="n">IEEE</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following notation from the above paper is used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(G = I_N ⊗ H\)</span>, where <span class="math notranslate nohighlight">\(⊗\)</span> is the Kronecker product</p></li>
+<li><p><span class="math notranslate nohighlight">\(R = [R₁, R₂, ... Rₙ]\)</span> is the observation covariance</p></li>
+<li><p><span class="math notranslate nohighlight">\(Σ = blockdiag[R]\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(K⁻¹ = A⁻ᵀQ⁻¹A⁻¹\)</span> is the precision, where <span class="math notranslate nohighlight">\(A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(L\)</span> is the Cholesky of <span class="math notranslate nohighlight">\(K⁻¹ + GᵀΣ⁻¹G\)</span>. That is, <span class="math notranslate nohighlight">\(LLᵀ = K⁻¹ + GᵀΣ⁻¹G\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(y\)</span> is the observation matrix</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_space_model</strong> – Parametrises the latent chain.</p></li>
+<li><p><strong>emission_model</strong> – Maps the latent chain to the observations.</p></li>
+<li><p><strong>sites</strong> – Gaussian sites parameterizing the Gaussian likelihoods.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSites._r_inv">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_r_inv</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSites._r_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSites._r_inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precisions of the observation model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSites._log_det_observation_precision">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_log_det_observation_precision</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSites._log_det_observation_precision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSites._log_det_observation_precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum of log determinant of the precisions of the observation model</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSites.observations">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observations</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSites.observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSites.observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Observation vector</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">KalmanFilterWithSparseSites</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_space_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">emission_model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><span class="pre">markovflow.emission_model.EmissionModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sites</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#markovflow.kalman_filter.GaussianSites" title="markovflow.kalman_filter.GaussianSites"><span class="pre">GaussianSites</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_grid_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations_index</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">observations</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.kalman_filter.BaseKalmanFilter" title="markovflow.kalman_filter.BaseKalmanFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseKalmanFilter</span></code></a></p>
+<p>Performs a Kalman filter on a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>
+and <a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a>, with Gaussian sites, over a time grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_space_model</strong> – Parameterises the latent chain.</p></li>
+<li><p><strong>emission_model</strong> – Maps the latent chain to the observations.</p></li>
+<li><p><strong>sites</strong> – Gaussian sites over the observations.</p></li>
+<li><p><strong>num_grid_points</strong> – number of grid points.</p></li>
+<li><p><strong>observations_index</strong> – Index of the observations in the time grid with shape (N,).</p></li>
+<li><p><strong>observations</strong> – Sparse observations with shape [n_batch] + (N, output_dim).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_r_inv</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites._r_inv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precisions of the observation model over the time grid.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites._drop_batch_shape">
+<code class="sig-name descname"><span class="pre">_drop_batch_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites._drop_batch_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._drop_batch_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the batch, if present, is equal to 1, and drop it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites._log_det_observation_precision">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_log_det_observation_precision</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites._log_det_observation_precision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._log_det_observation_precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum of log determinant of the precisions of the observation model. It only calculates for the data_sites as
+other sites precision is anyways zero.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites.observations">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observations</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites.observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sparse observation vector</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv_data">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_r_inv_data</span></code><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites._r_inv_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Precisions of the observation model for only the data sites.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites.sparse_to_dense">
+<code class="sig-name descname"><span class="pre">sparse_to_dense</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/TensorShape" title="(in TensorFlow v2.4)"><span class="pre">tf.TensorShape</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites.sparse_to_dense"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.sparse_to_dense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a sparse tensor to a dense one on the basis of observations index, output tensor is of the output_shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites.dense_to_sparse">
+<code class="sig-name descname"><span class="pre">dense_to_sparse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites.dense_to_sparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.dense_to_sparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dense tensor to a sparse one on the basis of observations index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kalman_filter.KalmanFilterWithSparseSites.log_likelihood">
+<code class="sig-name descname"><span class="pre">log_likelihood</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/kalman_filter.html#KalmanFilterWithSparseSites.log_likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kalman_filter.KalmanFilterWithSparseSites.log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a TensorFlow function to compute the likelihood.</p>
+<p>For more mathematical details, look at the log_likelihood function of the parent class.
+The main difference from the parent class are that the vector of observations is now sparse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The likelihood as a scalar tensor (we sum over the <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape" title="markovflow.block_tri_diag.BlockTriDiagonal.batch_shape"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">batch_shape</span></code></a>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

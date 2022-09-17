@@ -1,0 +1,163 @@
+:py:mod:`markovflow.kernels.periodic`
+=====================================
+
+.. py:module:: markovflow.kernels.periodic
+
+.. autoapi-nested-parse::
+
+   Module containing a periodic kernel.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: HarmonicOscillator(variance: float, period: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents a periodic kernel. The definition is in the paper `"Explicit Link Between Periodic
+   Covariance Functions and State Space Models" <http://proceedings.mlr.press/v33/solin14.pdf>`_.
+
+   This kernel has the formula:
+
+   .. math:: C(x, x') = σ² cos(2π/p * (x-x'))
+
+   ...where:
+
+       * :math:`σ²` is a kernel parameter, representing the constant variance
+         this kernel introduces
+       * :math:`p` is the period of the oscillator in radius
+
+   The transition matrix :math:`F` in the SDE form for this kernel is:
+
+   .. math::
+       F = [&[0,  -λ],\\
+            &[λ,  0]].
+
+   ...where :math:`λ = 2π / period`.
+
+   Covariance for the steady state is:
+
+   .. math::
+       P∞ = [&[σ², 0],\\
+             &[0,  σ²]].
+
+   The state transition matrix is:
+
+   .. math::
+       Aₖ = [&[cos(Δtₖλ),  -sin(Δtₖλ)],\\
+             &[sin(Δtₖλ),  cos(Δtₖλ)]]
+
+   The process covariance is:
+
+   .. math::
+       Qₖ = [&[0, 0],\\
+             &[0, 0]].
+
+   :param variance: Initial variance for the kernel. Must be a positive float.
+   :param period: The period of the Harmonic oscillator, in radius. Must be a positive float.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number used to make sure that
+       matrix inversion is numerically stable.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the kernel.
+
+      The state transition matrix at time step :math:`k` is:
+
+      .. math::
+          Aₖ = [&[cos(Δtₖλ),  -sin(Δtₖλ)],\\
+                &[sin(Δtₖλ),  cos(Δtₖλ)]].
+
+      ...where :math:`λ = 2π / period`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the kernel.
+
+      The process covariance for time step k is:
+
+      .. math::
+          Qₖ = [&[0, 0],\\
+                &[0, 0]].
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that:
+
+      .. math::
+          F = [&[0,  -λ],\\
+               &[λ,  0]].
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The steady state covariance :math:`P∞` is given by:
+
+      .. math::
+          P∞ = [&[σ², 0],\\
+                &[0,  σ²]].
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: period() -> gpflow.Parameter
+      :property:
+
+      Return the period parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+

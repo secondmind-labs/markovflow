@@ -1,0 +1,190 @@
+:py:mod:`markovflow.gauss_markov`
+=================================
+
+.. py:module:: markovflow.gauss_markov
+
+.. autoapi-nested-parse::
+
+   Module representing a Gauss-Markov chain.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: GaussMarkovDistribution(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class for representing a Gauss-Markov chain. Classes that extend this one (such as
+   :class:`~markovflow.state_space_model.StateSpaceModel`) represent a different parameterisation
+   of the joint Gaussian distribution.
+
+   .. py:method:: event_shape() -> tensorflow.Tensor
+      :property:
+
+      Return the shape of the event in the Gauss-Markov chain that is
+      ``[num_transitions + 1, state_dim]``.
+
+
+   .. py:method:: batch_shape() -> tensorflow.TensorShape
+      :property:
+
+      Return the shape of any leading dimensions in the Gauss-Markov chain that come before
+      :attr:`event_shape`.
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the Gauss-Markov chain.
+
+
+   .. py:method:: num_transitions() -> tensorflow.Tensor
+      :property:
+
+      Return the number of transitions in the Gauss-Markov chain.
+
+
+   .. py:method:: _build_precision() -> markovflow.block_tri_diag.SymmetricBlockTriDiagonal
+      :abstractmethod:
+
+      Compute the compact banded representation of the precision matrix.
+
+
+   .. py:method:: precision() -> markovflow.block_tri_diag.SymmetricBlockTriDiagonal
+      :property:
+
+      Return the precision matrix of the joint Gaussian.
+
+
+   .. py:method:: marginal_means() -> tensorflow.Tensor
+      :property:
+
+      Return the marginal means of the joint Gaussian.
+
+      :return: A tensor with shape ``batch_shape + [num_transitions + 1, state_dim]``.
+
+
+   .. py:method:: marginal_covariances() -> tensorflow.Tensor
+      :property:
+
+      Return the marginal covariances of the joint Gaussian.
+
+      :return: A tensor with shape ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.
+
+
+   .. py:method:: covariance_blocks() -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+      :abstractmethod:
+
+      Return the diagonal and lower off-diagonal blocks of the covariance.
+
+      :return: A tuple of tensors, with respective shapes
+              ``batch_shape + [num_transitions + 1, state_dim]``,
+              ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: marginals() -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+      :property:
+
+      Return the means :math:`μₖ` and the covariances :math:`Σₖₖ` of the marginal distributions
+      over consecutive states :math:`xₖ`.
+
+      :return: The means and covariances, with respective shapes
+               ``batch_shape + [num_transitions + 1, state_dim]``,
+               ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.
+
+
+   .. py:method:: sample(sample_shape: markovflow.base.SampleShape) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Sample trajectories from the distribution.
+
+      :param sample_shape: The shape (and hence number of) trajectories to sample from
+          the distribution.
+
+      :return: The state samples, with shape
+          ``sample_shape + self.batch_shape + self.event_shape``.
+
+
+   .. py:method:: log_det_precision() -> tensorflow.Tensor
+      :abstractmethod:
+
+      Calculate the log determinant of the precision matrix.
+
+      :return: A tensor with shape ``batch_shape``.
+
+
+   .. py:method:: log_pdf(states) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the value of the log of the PDF evaluated at states.
+
+      That is:
+
+      .. math:: log p(x) = log p(x₀) + Σₖ log p(xₖ₊₁|xₖ)  \verb|(for 0 ⩽ k < n)|
+
+      :param states: The state trajectory, with shape
+          ``sample_shape + self.batch_shape + self.event_shape``.
+
+      :return: The log pdf, with shape ``sample_shape + self.batch_shape``.
+
+
+   .. py:method:: create_trainable_copy() -> GaussMarkovDistribution
+      :abstractmethod:
+
+      Create a trainable version.
+
+      This is primarily for use with variational approaches where we want to optimise
+      the parameters of the Gauss-Markov distribution.
+
+      :return: A Gauss-Markov distribution that is a copy of this one with trainable parameters.
+
+
+   .. py:method:: create_non_trainable_copy() -> GaussMarkovDistribution
+      :abstractmethod:
+
+      Create a non-trainable version.
+
+      Convert a trainable version of this class back to being non-trainable.
+
+      :return: A Gauss-Markov distribution that is a copy of this one.
+
+
+   .. py:method:: kl_divergence(dist: GaussMarkovDistribution) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the KL divergence of the current Gauss-Markov distribution from the specified
+      input `dist`:
+
+      .. math:: KL(dist₁ ∥ dist₂)
+
+      To do so we first compute the marginal distributions from the Gauss-Markov form:
+
+      .. math::
+          dist₁ = 𝓝(μ₁, P⁻¹₁)\\
+          dist₂ = 𝓝(μ₂, P⁻¹₂)
+
+      ...where :math:`μᵢ` are the marginal means and :math:`Pᵢ` are the banded precisions.
+
+      The KL divergence is then given by:
+
+      .. math::
+          KL(dist₁ ∥ dist₂) = ½(tr(P₂P₁⁻¹) + (μ₂ - μ₁)ᵀP₂(μ₂ - μ₁) - N - log(|P₂|) + log(|P₁|))
+
+      ...where :math:`N = (\verb|num_transitions| + 1) * \verb|state_dim|` (that is,
+      the dimensionality of the Gaussian).
+
+      :param dist: Another similarly-parameterised Gauss-Markov distribution.
+      :return: The KL divergences, with shape ``self.batch_shape``.
+
+
+
+.. py:function:: check_compatible(dist_1: GaussMarkovDistribution, dist_2: GaussMarkovDistribution) -> None
+
+   Check that two :class:`~markovflow.gauss_markov.GaussMarkovDistribution` objects are
+   compatible.
+
+   If not, raise an exception.
+
+

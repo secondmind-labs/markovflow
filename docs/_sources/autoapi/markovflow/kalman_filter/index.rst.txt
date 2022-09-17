@@ -1,0 +1,389 @@
+:py:mod:`markovflow.kalman_filter`
+==================================
+
+.. py:module:: markovflow.kalman_filter
+
+.. autoapi-nested-parse::
+
+   Module containing a Kalman filter.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: BaseKalmanFilter(state_space_model: markovflow.state_space_model.StateSpaceModel, emission_model: markovflow.emission_model.EmissionModel)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and
+   :class:`~markovflow.emission_model.EmissionModel`, with given observations.
+
+   The key reference is::
+
+       @inproceedings{grigorievskiy2017parallelizable,
+           title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},
+           author={Grigorievskiy, Alexander and Lawrence, Neil and S{\"a}rkk{\"a}, Simo},
+           booktitle={Int'l Workshop on Machine Learning for Signal Processing (MLSP)},
+           pages={1--6},
+           year={2017},
+           organization={IEEE}
+       }
+
+   The following notation from the above paper is used:
+
+       * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product
+       * :math:`R` is the observation covariance
+       * :math:`Σ = I_N ⊗ R`
+       * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`
+       * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`
+       * :math:`y` is the observation matrix
+
+   :param state_space_model: Parametrises the latent chain.
+   :param emission_model: Maps the latent chain to the observations.
+
+   .. py:method:: _r_inv()
+      :property:
+
+      Precision of observation model 
+
+
+   .. py:method:: observations()
+      :property:
+
+      Observation vector 
+
+
+   .. py:method:: _k_inv_prior()
+      :property:
+
+      Prior precision 
+
+
+   .. py:method:: _k_inv_post()
+      :property:
+
+      Posterior precision 
+
+
+   .. py:method:: _log_det_observation_precision()
+      :property:
+
+      Sum of log determinant of the precisions of the observation model 
+
+
+   .. py:method:: posterior_state_space_model() -> markovflow.state_space_model.StateSpaceModel
+
+      Return the posterior as a state space model.
+
+      The marginal means and covariances are given by:
+
+      .. math::
+          &μ(Χ) = (K⁻¹ + GᵀΣ⁻¹G)⁻¹[GᵀΣ⁻¹y + K⁻¹μ]\\
+          &P(X) = K⁻¹ + GᵀΣ⁻¹G
+
+      ...where :math:`μ` is a block vector of the marginal means.
+
+      We can derive the state transitions :math:`aₖ` and process noise covariances :math:`qₖ`
+      from the block tridiagonal matrix (see
+      :meth:`~markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower`).
+      Lower case is used to attempt to distinguish the posterior and prior parameters.
+
+      We then need to calculate :math:`μ₀` and :math:`bₖ` (this is what most of the code in
+      this function does). This can be calculated from:
+
+      .. math:: K⁻¹ₚₒₛₜμₚₒₛₜ = GᵀΣ⁻¹y + K⁻¹ₚᵣᵢₒᵣμₚᵣᵢₒᵣ
+
+      Firstly, we use that for any :class:`~markovflow.state_space_model.StateSpaceModel`:
+
+      .. math:: K⁻¹μ = A⁻ᵀ Q⁻¹ m
+
+      ...where :math:`m = [μ₀, b₁,... bₙ]` and::
+
+          A⁻¹ =  [ I             ]      Q⁻¹ =  [ P₀⁻¹          ]
+                 [-A₁, I         ]            [    Q₁⁻¹       ]
+                 [    -A₂, I     ]            [       ᨞      ]
+                 [         ᨞  ᨞  ]            [         ᨞    ]
+                 [         -Aₙ, I]            [           Qₙ⁻¹]
+
+      So:
+
+      .. math:: mₚₒₛₜ = Qₚₒₛₜ Aₚₒₛₜᵀ [GᵀΣ⁻¹y + Kₚᵣᵢₒᵣ⁻¹mₚᵣᵢₒᵣ]
+
+      :return: The posterior as a state space model.
+
+
+   .. py:method:: log_likelihood() -> tensorflow.Tensor
+
+      Construct a TensorTlow function to compute the likelihood.
+
+      We set :math:`y = obs - Hμ` (where :math:`μ` is the vector of marginal state means):
+
+      .. math::
+          log p(obs|params) = &- ᴺ⁄₂log(2π) - ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|)\\
+                              &- ½ yᵀ(Σ⁻¹ - Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y
+
+      ...where :math:`N` is the dimensionality of the precision object, that is
+      ``state_dim * (num_transitions + 1)``.
+
+      We break up the log likelihood as: cst + term1 + term2 + term3. That is, as:
+
+          * cst: :math:`- ᴺ⁄₂log(2π)`
+          * term 1: :math:`- ½ yᵀΣ⁻¹y`
+          * term 2:
+
+            .. math::
+               ½ yᵀΣ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y = ½ yᵀΣ⁻¹G(LLᵀ)⁻¹GᵀΣ⁻¹)y = ½|L⁻¹(GᵀΣ⁻¹)y|²
+
+          * term 3:
+
+            .. math::
+               - ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|) = ½log |K⁻¹| - log |L| + ½log |Σ⁻¹|
+
+      Note that there are a couple of mistakes in the SpinGP paper for this formula (18):
+
+          * They have :math:`- ½(... + log |Σ⁻¹|)`. It should be :math:`- ½(... - log |Σ⁻¹|)`
+          * They have :math:`- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹)y`. It should
+            be :math:`- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y`
+
+      :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).
+
+
+   .. py:method:: _back_project_y_to_state(observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Back project from the observation space to the state_space, i.e. calculate (GᵀΣ⁻¹)y.
+
+      :param observations: a tensor y of shape
+                  batch_shape + [num_data, output_dim]
+      :return: a tensor (GᵀΣ⁻¹)y of shape
+                  batch_shape + [num_data, state_dim]
+
+
+
+.. py:class:: KalmanFilter(state_space_model: markovflow.state_space_model.StateSpaceModel, emission_model: markovflow.emission_model.EmissionModel, observations: tensorflow.Tensor, chol_obs_covariance: gpflow.base.TensorType)
+
+   Bases: :py:obj:`BaseKalmanFilter`
+
+   Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and
+   :class:`~markovflow.emission_model.EmissionModel`, with given observations.
+
+   The key reference is::
+
+       @inproceedings{grigorievskiy2017parallelizable,
+           title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},
+           author={Grigorievskiy, Alexander and Lawrence, Neil and S{\"a}rkk{\"a}, Simo},
+           booktitle={Int'l Workshop on Machine Learning for Signal Processing (MLSP)},
+           pages={1--6},
+           year={2017},
+           organization={IEEE}
+       }
+
+   The following notation from the above paper is used:
+
+       * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product
+       * :math:`R` is the observation covariance
+       * :math:`Σ = I_N ⊗ R`
+       * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`
+       * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`
+       * :math:`y` is the observation matrix
+
+   :param state_space_model: Parametrises the latent chain.
+   :param emission_model: Maps the latent chain to the observations.
+   :param observations: Data with shape ``[num_transitions + 1, output_dim]``.
+   :param chol_obs_covariance: A :data:`~markovflow.base.TensorType` with shape
+       ``[output_dim, output_dim]`` for the Cholesky factor of the covariance to be
+       applied to :math:`f` from `emission_model`.
+
+   .. py:method:: _r_inv()
+      :property:
+
+      Precision of the observation model 
+
+
+   .. py:method:: observations()
+      :property:
+
+      Observation vector 
+
+
+
+.. py:class:: GaussianSites(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   This class is a wrapper around the parameters specifying multiple independent
+   Gaussian distributions.
+
+   .. py:method:: means()
+      :property:
+
+      Return the means of the Gaussians.
+
+
+   .. py:method:: precisions()
+      :property:
+
+      Return the precisions of the Gaussians.
+
+
+   .. py:method:: log_det_precisions()
+      :property:
+
+      Return the sum of the log determinant of the observation precisions.
+
+
+
+.. py:class:: UnivariateGaussianSitesNat(nat1, nat2, log_norm=None)
+
+   Bases: :py:obj:`GaussianSites`
+
+   This class is a wrapper around parameters of univariate Gaussian distributions
+   in the natural form. That is:
+
+   .. math:: p(f) = exp(𝞰ᵀφ(f) - A(𝞰))
+
+   ...where :math:`𝞰=[η₁,η₂]` and :math:`𝛗(f)=[f,f²]`.
+
+   The mean :math:`μ` and variance :math:`σ²` parameterization is such that:
+
+   .. math:: μ = -½η₁/η₂, σ²=-½η₂⁻¹
+
+   :param nat1: first natural parameter [N, D]
+   :param nat2: second natural parameter [N, D, D]
+   :param log_norm: normalizer parameter [N, D]
+
+   .. py:method:: means()
+      :property:
+
+      Return the means of the Gaussians.
+
+
+   .. py:method:: precisions()
+      :property:
+
+      Return the precisions of the Gaussians.
+
+
+   .. py:method:: log_det_precisions()
+      :property:
+
+      Return the sum of the log determinant of the observation precisions. 
+
+
+
+.. py:class:: KalmanFilterWithSites(state_space_model: markovflow.state_space_model.StateSpaceModel, emission_model: markovflow.emission_model.EmissionModel, sites: GaussianSites)
+
+   Bases: :py:obj:`BaseKalmanFilter`
+
+   Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and
+   :class:`~markovflow.emission_model.EmissionModel`, with Gaussian sites,
+   that is time dependent Gaussian Likelihood terms.
+
+   The key reference is::
+
+       @inproceedings{grigorievskiy2017parallelizable,
+           title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},
+           author={Grigorievskiy, Alexander and Lawrence, Neil and S{\"a}rkk{\"a}, Simo},
+           booktitle={Int'l Workshop on Machine Learning for Signal Processing (MLSP)},
+           pages={1--6},
+           year={2017},
+           organization={IEEE}
+       }
+
+   The following notation from the above paper is used:
+
+       * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product
+       * :math:`R = [R₁, R₂, ... Rₙ]` is the observation covariance
+       * :math:`Σ = blockdiag[R]`
+       * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`
+       * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`
+       * :math:`y` is the observation matrix
+
+   :param state_space_model: Parametrises the latent chain.
+   :param emission_model: Maps the latent chain to the observations.
+   :param sites: Gaussian sites parameterizing the Gaussian likelihoods.
+
+   .. py:method:: _r_inv()
+      :property:
+
+      Precisions of the observation model 
+
+
+   .. py:method:: _log_det_observation_precision()
+      :property:
+
+      Sum of log determinant of the precisions of the observation model 
+
+
+   .. py:method:: observations()
+      :property:
+
+      Observation vector 
+
+
+
+.. py:class:: KalmanFilterWithSparseSites(state_space_model: markovflow.state_space_model.StateSpaceModel, emission_model: markovflow.emission_model.EmissionModel, sites: GaussianSites, num_grid_points: int, observations_index: tensorflow.Tensor, observations: tensorflow.Tensor)
+
+   Bases: :py:obj:`BaseKalmanFilter`
+
+   Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel`
+   and :class:`~markovflow.emission_model.EmissionModel`, with Gaussian sites, over a time grid.
+
+   :param state_space_model: Parameterises the latent chain.
+   :param emission_model: Maps the latent chain to the observations.
+   :param sites: Gaussian sites over the observations.
+   :param num_grid_points: number of grid points.
+   :param observations_index: Index of the observations in the time grid with shape (N,).
+   :param observations: Sparse observations with shape [n_batch] + (N, output_dim).
+
+   .. py:method:: _r_inv()
+      :property:
+
+      Precisions of the observation model over the time grid.
+
+
+   .. py:method:: _drop_batch_shape(tensor: tensorflow.Tensor)
+
+      Check the batch, if present, is equal to 1, and drop it.
+
+
+   .. py:method:: _log_det_observation_precision()
+      :property:
+
+      Sum of log determinant of the precisions of the observation model. It only calculates for the data_sites as
+      other sites precision is anyways zero.
+
+
+   .. py:method:: observations()
+      :property:
+
+      Sparse observation vector 
+
+
+   .. py:method:: _r_inv_data()
+      :property:
+
+      Precisions of the observation model for only the data sites.
+
+
+   .. py:method:: sparse_to_dense(tensor: tensorflow.Tensor, output_shape: tensorflow.TensorShape) -> tensorflow.Tensor
+
+      Convert a sparse tensor to a dense one on the basis of observations index, output tensor is of the output_shape.
+
+
+   .. py:method:: dense_to_sparse(tensor: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Convert a dense tensor to a sparse one on the basis of observations index.
+
+
+   .. py:method:: log_likelihood() -> tensorflow.Tensor
+
+      Construct a TensorFlow function to compute the likelihood.
+
+      For more mathematical details, look at the log_likelihood function of the parent class.
+      The main difference from the parent class are that the vector of observations is now sparse.        
+
+      :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).
+
+
+

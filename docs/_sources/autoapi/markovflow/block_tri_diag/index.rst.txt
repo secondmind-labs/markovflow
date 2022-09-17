@@ -1,0 +1,294 @@
+:py:mod:`markovflow.block_tri_diag`
+===================================
+
+.. py:module:: markovflow.block_tri_diag
+
+.. autoapi-nested-parse::
+
+   Module representing block tridiagonal matrices.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: BlockTriDiagonal(diagonal: tensorflow.Tensor, symmetric: bool, sub_diagonal: Optional[tensorflow.Tensor] = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+   Abstract class representing a block tridiagonal matrix.
+
+   All precisions in Markovflow are of this form, so this class provides an adapter between the
+   TensorFlow banded_matrices and the MarkovFlow code.
+
+   :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.
+   :param symmetric: Whether the block tridiagonal matrix will be symmetric.
+   :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.
+
+   .. py:method:: as_band() -> banded_matrices.banded.BandedMatrixTensor
+      :property:
+
+      Return a TensorFlow tensor (or NumPy array) representing a banded matrix.
+
+      The (dense) tensor should be of dimension :math:`K×N`, where :math:`K` is the bandwidth
+      of the represented :math:`N×N` matrix.
+
+
+   .. py:method:: bandwidth() -> int
+      :property:
+
+      Return the (lower) bandwidth of the tensor.
+
+
+   .. py:method:: batch_shape() -> tensorflow.TensorShape
+      :property:
+
+      Return the batch shape of this object.
+
+
+   .. py:method:: inner_dim() -> int
+      :property:
+
+      Return the inner dimension of the block tridiagonal matrix. That is,
+      the dimensions of the block.
+
+
+   .. py:method:: outer_dim() -> tensorflow.Tensor
+      :property:
+
+      Return the outer dimension of the block tridiagonal matrix. That is, the number of blocks.
+
+
+   .. py:method:: block_diagonal() -> tensorflow.Tensor
+      :property:
+
+      Return the block diagonal.
+
+      :return: Diagonal with shape ``[... outer_dim, inner_dim, inner_dim]``.
+
+
+   .. py:method:: block_sub_diagonal() -> Optional[tensorflow.Tensor]
+      :property:
+
+      Return the block sub-diagonal, if it exists.
+
+      :return: Sub-diagonal with shape ``[... outer_dim, inner_dim, inner_dim]`` or `None`.
+
+
+   .. py:method:: to_dense() -> tensorflow.Tensor
+
+      Convert this object to a dense tensor.
+
+      This is useful mainly for debugging and testing purposes.
+
+      :return: A tensor with shape ``[... outer_dim * inner_dim, outer_dim * inner_dim]``
+
+
+   .. py:method:: dense_mult(right: tensorflow.Tensor, transpose_left: bool = False) -> tensorflow.Tensor
+
+      Multiply a dense vector by this object.
+
+      If this object is :math:`L` and right is :math:`x`, calculate :math:`Lx` as a dense tensor.
+
+      :param right: A tensor with shape ``[... outer_dim, inner_dim]``.
+      :param transpose_left: Whether to transpose :math:`L` before multiplying.
+      :return: A tensor with shape ``[... outer_dim, inner_dim]``.
+
+
+   .. py:method:: __add__(other)
+      :abstractmethod:
+
+      Add two :class:`BlockTriDiagonal` tensors together.
+
+
+   .. py:method:: _convert_to_band() -> banded_matrices.banded.BandedMatrixTensor
+
+      :return: A `BandedMatrixTensor` representation of this matrix
+
+
+   .. py:method:: _flatten_right(right: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.
+
+      :param right: the tensor whose shape we want to alter.
+
+
+   .. py:method:: _unflatten_right(flat_right: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.
+
+      :param flat_right: the tensor whose shape we want to alter.
+
+
+   .. py:method:: _assert_compatible_right_shape(right: tensorflow.Tensor) -> None
+
+      Make sure the Tensor 'right' is a suitable right-hand-side tensor for
+      multiplication and solving. The inner and outer dims should match, and
+      the broadcast_dim should be compatible.
+
+      :param right: the tensor whose shape we want to check.
+
+
+
+.. py:class:: LowerTriangularBlockTriDiagonal(diagonal: tensorflow.Tensor, sub_diagonal: Optional[tensorflow.Tensor] = None)
+
+   Bases: :py:obj:`BlockTriDiagonal`
+
+   Represents a lower triangular block tridiagonal matrix::
+
+              [D₁              ]
+              [A₁ D₂           ]
+              [    A₂ D₃       ]
+              [        ᨞  ᨞    ]
+              [         Aₙ₋₁ Dₙ]
+
+   This is typically the Cholesky of a :class:`SymmetricBlockTriDiagonal`.
+
+   Each matrix :math:`Dᵢ` is lower triangular and square with dimension `inner_dim`.
+   :math:`Aᵢ` is square with dimension `inner_dim`.
+
+   The `outer_dim` is :math:`n`; that is, the number of block matrices on the main diagonal.
+
+   :math:`Dᵢ` are the diagonal matrices and :math:`Aᵢ` are the sub-diagonal matrices.
+
+   :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.
+   :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.
+
+   .. py:method:: block_diagonal_of_inverse() -> tensorflow.Tensor
+
+      If this object is :math:`L` and :math:`M = LLᵀ`, return the block diagonal
+      elements of :math:`M⁻¹`.
+
+      :math:`M⁻¹` will not, in general, be a banded matrix, and we are normally interested
+      only in the diagonal elements.
+
+      :return: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.
+
+
+   .. py:method:: solve(right: tensorflow.Tensor, transpose_left: bool = False) -> tensorflow.Tensor
+
+      If this object is :math:`L` and right is :math:`x`, calculate :math:`L⁻¹ x`
+      as a dense tensor.
+
+      :param right: A tensor with shape ``[... outer_dim, inner_dim]``.
+      :param transpose_left: Whether to transpose :math:`L` before solving.
+      :return: A tensor with shape ``[... outer_dim, inner_dim]``.
+
+
+   .. py:method:: abs_log_det() -> tensorflow.Tensor
+
+      Return the absolute log determinant of this matrix.
+      This is just the log of the product of diagonal elements (since it is lower triangular).
+
+      For numerical stability and nicer gradients, we do:
+
+      .. math:: log |L| = Σₙ log |Lₙₙ| =  Σₙ  ½ log |Lₙₙ|²
+
+      :return: A tensor with shape ``batch_shape``, representing the log determinant.
+
+
+   .. py:method:: __add__(other: LowerTriangularBlockTriDiagonal) -> LowerTriangularBlockTriDiagonal
+
+      Add two :class:`LowerTriangularBlockTriDiagonal` tensors together.
+
+
+
+.. py:class:: SymmetricBlockTriDiagonal(diagonal: tensorflow.Tensor, sub_diagonal: Optional[tensorflow.Tensor] = None)
+
+   Bases: :py:obj:`BlockTriDiagonal`
+
+   Represents a symmetric block tridiagonal matrix::
+
+              [D₁ A₁ᵀ              ]
+              [A₁ D₂  A₂ᵀ          ]
+              [    A₂ D₃ A₂ᵀ       ]
+              [        ᨞  ᨞   Aₙ₋₁ᵀ]
+              [         Aₙ₋₁  Dₙ   ]
+
+   This is the form of the precision matrix for a
+   :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+   Each matrix :math:`Dᵢ` is symmetric square with dimension `inner_dim`.
+   :math:`Aᵢ` is square with dimension `inner_dim`.
+
+   The `outer_dim` is :math:`n`; that is, the number of block matrices on the main diagonal.
+
+   :math:`Dᵢ` are the diagonal matrices and :math:`Aᵢ` are the sub-diagonal matrices.
+
+   :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.
+   :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.
+
+   .. py:method:: __add__(other: SymmetricBlockTriDiagonal) -> SymmetricBlockTriDiagonal
+
+      Add two :class:`SymmetricBlockTriDiagonal` tensors together.
+
+
+   .. py:method:: cholesky() -> LowerTriangularBlockTriDiagonal
+      :property:
+
+      Calculates the Cholesky factorisation of this matrix.
+
+      Cholesky factorisations require a symmetric matrix.
+      The `cholesky_band` matrix only operates on the lower triangle, so no copy is needed.
+
+      Cholesky factorisations preserve band structure, so the result is a
+      :class:`LowerTriangularBlockTriDiagonal` with the same shape.
+
+      :return: A matrix of the same shape, representing the Cholesky.
+
+
+   .. py:method:: upper_diagonal_lower() -> Tuple[LowerTriangularBlockTriDiagonal, LowerTriangularBlockTriDiagonal]
+
+      For this matrix, calculate the :math:`UDUᵀ` factorisation. This is where::
+
+          Uᵀ =  [ I             ]       D = [ D₀          ]
+                [U₁ᵀ, I         ]           [    D₁       ]
+                [    U₂ᵀ, I     ]           [       ᨞     ]
+                [         ᨞  ᨞ ]            [         ᨞  ]
+                [         Uₙᵀ, I]           [           Dₙ]
+
+      :math:`D₀, D₁... Dₙ` are symmetric.
+
+      This is related to the Cholesky :math:`LLᵀ` and :math:`LDLᵀ` decompositions, but is more
+      natural when dealing with the inverses of matrices. That is, if
+      :math:`K⁻¹ = UDUᵀ` then :math:`K = LD⁻¹Lᵀ` where :math:`L=U⁻ᵀ`.
+
+      This can be used to find the :class:`~markovflow.state_space_model.StateSpaceModel`
+      that represents this :class:`SymmetricBlockTriDiagonal`, since:
+
+      .. math:: K⁻¹ = A⁻ᵀ Q⁻¹ A⁻¹
+
+      Hence we can identify the state transition matrices :math:`Aᵢ = -Uᵢᵀ`
+      and the initial and process noise covariance matrices :math:`D₀= P₀⁻¹, Dᵢ= Qᵢ⁻¹`
+      with the above form:
+
+      .. math::
+          K = &| D₀ + U₁ D₁ U₁ᵀ &| U₁ D₁          &| 0...\\
+              &| D₁ U₁ᵀ         &| D₁ + U₂ D₂ U₂ᵀ &|  U₂ D₂         &| 0...\\
+              &|   0            &| D₂ U₂ᵀ         &| D₂ + D₃ U₃ D₃ᵀ &| U₃ D₃ &| 0...\\
+          ...
+
+      We can write the following recurrence relation:
+
+      .. math::
+         &Dₙ = Kₙₙ\\
+         &Dₖ = Kₖₖ - Kₖₖ₊₁ᵀ Dₖ₊₁⁻¹Kₖₖ₊₁\\
+         &Uₖᵀ = Dₖ⁻¹ Kₖₖ₋₁
+
+      ...where :math:`Kⱼₖ` is the block matrix at location j, k of this matrix.
+      This method allows us to return the posterior from a
+      :class:`~markovflow.kalman_filter.KalmanFilter` as a
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      :return: A tuple of :math:`Uᵀ` and `chol_D`.
+
+
+
+.. py:function:: _banded_to_block_tri(banded: banded_matrices.banded.BandedMatrixTensor, block_size: int) -> LowerTriangularBlockTriDiagonal
+
+   Convert a banded matrix to a LowerTriangularBlockTriDiagonal.
+
+   NOTE This is designed for internal use with this module as it doesn't check the shapes, so
+   may not work for `BandedMatrixTensor`s that aren't LowerTriangularBlockTriDiagonal.
+
+

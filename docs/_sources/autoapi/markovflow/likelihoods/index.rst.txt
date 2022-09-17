@@ -1,0 +1,354 @@
+:py:mod:`markovflow.likelihoods`
+================================
+
+.. py:module:: markovflow.likelihoods
+
+.. autoapi-nested-parse::
+
+   Package containing observation models, or 'likelihoods'.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   likelihoods/index.rst
+   multivariate_gaussian/index.rst
+   mutlistage_likelihood/index.rst
+
+
+Package Contents
+----------------
+
+.. py:class:: Likelihood(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class for likelihoods.
+
+   A likelihood defines the observation model relating the observed variables :math:`Y`
+   to the latent variables :math:`F` of a generative model. The observation model is specified
+   through its conditional density :math:`p(Y|F)`.
+
+   In order to perform variational inference with non-Gaussian likelihoods, a 'variational
+   expectation' should be computed under a Gaussian distribution :math:`q(F) ~ N(μ, Σ)`.
+   This can be defined as:
+
+   .. math:: ∫ q(F) log p(Y|F) dF
+
+   Note that the predictive density:
+
+   .. math:: ∫ q(F) p(Y|F) dF
+
+   ...is a useful metric to evaluate the quality of a Gaussian approximation
+   :math:`q(F) ~ N(μ, Σ)` to the posterior density :math:`p(F|Y)`.
+
+   .. note:: Implementations of this class should typically avoid performing computation in their
+       `__init__` method. Performing computation in the constructor conflicts with
+       running in TensorFlow's eager mode (and computation of gradients etc).
+
+   .. py:method:: log_probability_density(fs: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Compute the log probability density :math:`log p(Y|F)`.
+
+      :param fs: A conditioning variable, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param observations: A conditioned variable,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor representing :math:`log p(yᵢ | fᵢ)`,
+          with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: variational_expectations(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Calculate a variational expectation for each observation:
+
+      .. math:: ∫ log(p(yᵢ|fᵢ)) q(fᵢ) df
+
+      ...where :math:`q(f) ~ N(μ, P)`.
+
+      Note that :math:`p(y |f)` is defined by the type of likelihood function, as
+      specified by the observation model.
+
+      This term is used when calculating the evidence lower bound (ELBO):
+
+      .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ|fᵢ)) q(fᵢ) df - KL[q(F) ‖ p(F)]
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with
+          shape ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: predict_density(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Predict the density.
+
+      That is, calculate :math:`∫ q(F) p(Y|F) dF` of a Gaussian
+      approximation :math:`q(F) ~ N(μ, Σ)` to the posterior density :math:`p(F|Y)`.
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`,
+          with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: predict_mean_and_var(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+      :abstractmethod:
+
+      Compute the means and covariances of the posterior predictive distribution over outputs
+      :math:`y*` at :math:`x*`.
+
+      The (in most case intractable) density is given by:
+
+      .. math:: p(y* | x*, x, y) = ∫ p(y* | f*) p(f* | x*, x, y) df*
+
+      ...where:
+
+          * :math:`p(f* | x*, x, y)` is Gaussian with moments `f_means` and `f_covariances`
+          * :math:`p(y* | f*)` is defined by the likelihood
+
+      :param f_means: The marginal :math:`f` means for some arbitrary predicted time points,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for some arbitrary predicted time
+          points, with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :return: A tuple of tensors containing observation means and covariances, with
+          respective shapes
+          ``batch_shape + [num_time_points, obs_dim]``,
+          ``batch_shape + [num_time_points, obs_dim, obs_dim]``.
+
+
+
+.. py:class:: PEPGaussian(base: gpflow.likelihoods.Gaussian, **kwargs)
+
+   Bases: :py:obj:`PEPScalarLikelihood`
+
+   Wrapper around the univariate Gaussian Likelihood.
+
+   :param base: A Gaussian Likelihood object
+   :param kwargs: dictionary of additional parameters
+
+   .. py:method:: log_expected_density(Fmu, Fvar, Y, alpha=1.0)
+
+      Compute log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(f;Fmu, Fvar)
+
+      log ∫ p(y=Y|f)ᵃ q(f) df
+      =  log ∫ N(y; f, σ²) ᵃ N(f; Fmu, Fvar) df
+      =  log N(y; Fmu, σ² + Fvar)
+
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., latent_dim]
+      :param alpha: scalar
+
+
+   .. py:method:: grad_log_expected_density(Fmu, Fvar, Y, alpha=1.0)
+
+      Noting I(q) = log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar),
+      this computes ∇I(q) and ∇∇I(q), where the gradient is wrt Fmu.
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., observation_dim]:
+      :param alpha: scalar
+
+
+   .. py:method:: _conditional_mean(F)
+      :abstractmethod:
+
+      The conditional mean of Y|F 
+
+
+   .. py:method:: _conditional_variance(F)
+      :abstractmethod:
+
+      The conditional variance of Y|F 
+
+
+
+.. py:class:: PEPScalarLikelihood(base: gpflow.likelihoods.ScalarLikelihood, num_gauss_hermite_points=20, **kwargs)
+
+   Bases: :py:obj:`gpflow.likelihoods.ScalarLikelihood`
+
+   Wrapper around GPflow likelihoods, adding
+   functionality to compute Power Expectation Propagation updates
+
+   :param base: base likelihood object
+   :param num_gauss_hermite_points: number of Gauss-Hermite points
+   :param kwargs: additional arguments dictionary
+
+   .. py:method:: _scalar_log_prob(F, Y)
+
+      Compute log p(Y|F).
+      :param F: function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., latent_dim]
+
+
+   .. py:method:: _scalar_alpha_prob(F, Y, alpha=1.0)
+
+      Compute p(Y|F)
+      :param F: function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., latent_dim]
+      :param alpha: scalar
+
+
+   .. py:method:: log_expected_density(Fmu, Fvar, Y, alpha=1.0)
+
+      Compute log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar)
+      :param Fmu: mean function evaluation Tenself._quadrature_reduction(
+              self.quadrature.logspace(self._scalar_log_prob, Fmu, Fvar, Y=Y)
+      )sor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., observation_dim]:
+      :param alpha: scalar
+
+
+   .. py:method:: grad_log_expected_density(Fmu, Fvar, Y, alpha=1.0)
+
+      Noting I(q) = log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar),
+      this computes ∇I(q) and ∇∇I(q), where the gradient is wrt Fmu.
+      :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]
+      :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]
+      :param Y: observation Tensor, with shape [..., observation_dim]:
+      :param alpha: scalar
+
+
+   .. py:method:: _conditional_mean(F)
+      :abstractmethod:
+
+      The conditional mean of Y|F 
+
+
+   .. py:method:: _conditional_variance(F)
+      :abstractmethod:
+
+      The conditional variance of Y|F 
+
+
+
+.. py:class:: MultivariateGaussian(chol_covariance: gpflow.base.TensorType)
+
+   Bases: :py:obj:`markovflow.likelihoods.likelihoods.Likelihood`
+
+   Represents a multivariate Gaussian likelihood. For example:
+
+   .. math:: p(yᵢ | fᵢ) = 𝓝(yᵢ; fᵢ, Σ= LLᵀ)
+
+   See also the documentation for the base
+   :class:`~markovflow.likelihoods.likelihoods.Likelihood` class.
+
+   :param chol_covariance: A :data:`~markovflow.base.TensorType` containing the Cholesky
+       factor of the covariance of the Gaussian noise, with shape ``[obs_dim, obs_dim]``.
+
+   .. py:method:: obs_dim() -> int
+      :property:
+
+      Return the dimensionality of each observation.
+
+
+   .. py:method:: log_probability_density(fs: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Compute the log probability density :math:`log p(Y|F)`.
+
+      For a multivariate Gaussian, this is :math:`log 𝓝(yᵢ; fᵢ, Σ)`.
+
+      :param fs: A tensor representing a conditioning variable, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param observations: A tensor representing a conditioned variable,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor representing :math:`log p(yᵢ | fᵢ)`,
+          with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: variational_expectations(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Calculate a variational expectation for each observation:
+
+      .. math:: ∫ q(fᵢ) log p(yᵢ|fᵢ) dfᵢ
+
+      ...where:
+
+          * :math:`q(fᵢ) ~ N(μᵢ, Σᵢ)`
+          * :math:`p(y |f)` is a general likelihood function
+
+      For a multivariate Gaussian this is:
+
+      .. math:: ∫ 𝓝(fᵢ; μᵢ, Sᵢ) log𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = -½ Tr(Σ⁻¹Sᵢ) + log𝓝(yᵢ; μᵢ, Σ)
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: predict_density(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Predict a density. This calculates:
+
+      .. math:: ∫ q(F) p(Y|F) dF
+
+      ...of a Gaussian approximation :math:`q(F) ~ N(μ, Σ)` to the posterior
+      density :math:`p(F|Y)`.
+
+      For a multivariate Gaussian this is:
+
+      .. math:: log ∫ 𝓝(fᵢ; μᵢ, Sᵢ) 𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = log 𝓝(yᵢ; μᵢ, Σ + Sᵢ)
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+
+
+   .. py:method:: predict_mean_and_var(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict the observation means and covariances given the f-space means and covariances.
+
+      That is, calculate:
+
+      .. math:: p(y* | x*, x, y) = ∫ p(y* | f*) p(f* | x*, x, y) df*
+
+      ...where:
+
+          * `f_means` and `f_covariances` is our representation of :math:`p(f* | x*, x, y)`
+          * :math:`p(y* | f*)` is defined by the likelihood
+
+      For a multivariate Gaussian this is:
+
+      .. math:: p(y* | x*, x, y) = ∫ 𝓝(f*; μ*, S*) 𝓝(y*; f*, Σ= LLᵀ) dfᵢ = 𝓝(y*; μ*, Σ + S*)
+
+      :param f_means: The marginal :math:`f` means for some arbitrary predicted time points,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for some arbitrary predicted
+          time points, with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :return: A tuple of tensors containing observation means and covariances, with
+          respective shapes
+          ``batch_shape + [num_time_points, obs_dim]``,
+          ``batch_shape + [num_time_points, obs_dim, obs_dim]``.
+
+
+

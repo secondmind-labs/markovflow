@@ -1,0 +1,377 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.models &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.models</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module containing base classes for models.</span>
+
+<span class="sd">.. note:: Markovflow models are intended to work with eager mode in TensorFlow. Therefore</span>
+<span class="sd">   models (and their collaborating objects) should typically avoid performing any</span>
+<span class="sd">   computation in their `__init__` methods. Because models and other objects are typically</span>
+<span class="sd">   initialised outside of an optimisation loop, performing computation in the constructor</span>
+<span class="sd">   means that this computation is performed &#39;too early&#39;, and optimisation is not possible.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">PosteriorProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+
+<div class="viewcode-block" id="MarkovFlowModel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowModel">[docs]</a><span class="k">class</span> <span class="nc">MarkovFlowModel</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class representing Markovflow models that depend on input data.</span>
+
+<span class="sd">    All Markovflow models are :class:`TensorFlow Modules &lt;tf.Module&gt;`, so it is possible to obtain</span>
+<span class="sd">    trainable variables via the :attr:`trainable_variables` attribute. You can combine this with</span>
+<span class="sd">    the :meth:`loss` method to train the model. For example::</span>
+
+<span class="sd">        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.01)</span>
+<span class="sd">        for i in range(iterations):</span>
+<span class="sd">            model.optimization_step(optimizer)</span>
+
+<span class="sd">    Call the :meth:`predict_f` method to predict marginal function values at future time points.</span>
+<span class="sd">    For example::</span>
+
+<span class="sd">        mean, variance = model.predict_f(validation_data_tensor)</span>
+
+<span class="sd">    .. note:: Markovflow models that extend this class must implement the :meth:`loss`</span>
+<span class="sd">       method and :attr:`posterior` attribute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="MarkovFlowModel.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowModel.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the loss, which you can use to train the model.</span>
+<span class="sd">        It should always return a scalar.</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="MarkovFlowModel.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowModel.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a posterior process from the model, which can be used for inference.</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MarkovFlowModel.predict_state"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowModel.predict_state">[docs]</a>    <span class="k">def</span> <span class="nf">predict_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict state at `new_time_points`. Note these time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_state</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MarkovFlowModel.predict_f"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowModel.predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">predict_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict marginal function values at `new_time_points`. Note these</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]`` and either</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MarkovFlowSparseModel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">MarkovFlowSparseModel</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class representing Markovflow models that do not need to store the training</span>
+<span class="sd">    data (:math:`X, Y`) in the model to approximate the</span>
+<span class="sd">    posterior predictions :math:`p(f*|X, Y, x*)`.</span>
+
+<span class="sd">    This currently applies only to sparse variational models.</span>
+
+<span class="sd">    The `optimization_step` method should typically be used to train the model. For example::</span>
+
+<span class="sd">        input_data = (tf.constant(time_points), tf.constant(observations))</span>
+<span class="sd">        optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.01)</span>
+<span class="sd">        for i in range(iterations):</span>
+<span class="sd">            model.optimization_step(input_data, optimizer)</span>
+
+<span class="sd">    Call the :meth:`predict_f` method to predict marginal function values at future time points.</span>
+<span class="sd">    For example::</span>
+
+<span class="sd">        mean, variance = model.predict_f(validation_data_tensor)</span>
+
+<span class="sd">    .. note:: Markovflow models that extend this class must implement the :meth:`loss`</span>
+<span class="sd">       method and :attr:`posterior` attribute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="MarkovFlowSparseModel.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the loss, which can be used to train the model.</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="MarkovFlowSparseModel.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a posterior process from the model, which can be used for inference.</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="MarkovFlowSparseModel.predict_state"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel.predict_state">[docs]</a>    <span class="k">def</span> <span class="nf">predict_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict state at `new_time_points`. Note these time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_state</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MarkovFlowSparseModel.predict_f"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel.predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">predict_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict marginal function values at `new_time_points`. Note these</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`FalseF`).</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]`` and either</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MarkovFlowSparseModel.predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/models/models/index.html#markovflow.models.MarkovFlowSparseModel.predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_log_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log density of the data. That is:</span>
+
+<span class="sd">        .. math:: log ∫ p(yᵢ=Yᵢ|Fᵢ)q(Fᵢ) dFᵢ</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        :return: Predicted log density at input time points, with shape</span>
+<span class="sd">            ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="n">full_output_cov</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

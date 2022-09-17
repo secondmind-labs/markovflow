@@ -1,0 +1,84 @@
+:py:mod:`markovflow.kernels.kernel`
+===================================
+
+.. py:module:: markovflow.kernels.kernel
+
+.. autoapi-nested-parse::
+
+   Module containing a base class for kernels.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: Kernel(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class generating a :class:`~markovflow.state_space_model.StateSpaceModel` for a
+   given set of time points.
+
+   For a given set of time points :math:`tₖ`, define a state space model of the form:
+
+   .. math:: xₖ₊₁ = Aₖ xₖ + qₖ
+
+   ...where:
+
+   .. math::
+       &qₖ \sim 𝓝(0, Qₖ)\\
+       &x₀ \sim 𝓝(μ₀, P₀)\\
+       &xₖ ∈ ℝ^d\\
+       &Aₖ ∈ ℝ^{d × d}\\
+       &Qₖ ∈ ℝ^{d × d}\\
+       &μ₀ ∈ ℝ^{d × 1}\\
+       &P₀ ∈ ℝ^{d × d}\\
+       &d \verb| is the state_dim|
+
+   And an :class:`~markovflow.emission_model.EmissionModel` for a given output dimension:
+
+   .. math:: fₖ = H xₖ
+
+   ...where:
+
+   .. math::
+       &x ∈ ℝ^d\\
+       &f ∈ ℝ^m\\
+       &H ∈ ℝ^{m × d}\\
+       &m \verb| is the output_dim|
+
+   .. note:: Implementations of this class should typically avoid performing computation in their
+             `__init__` method. Performing computation in the constructor conflicts with
+             running in TensorFlow's eager mode.
+
+   .. py:method:: output_dim() -> int
+      :property:
+
+      Return the output dimension of the kernel.
+
+
+   .. py:method:: build_finite_distribution(time_points: tensorflow.Tensor) -> markovflow.gauss_markov.GaussMarkovDistribution
+      :abstractmethod:
+
+      Return the :class:`~markovflow.gauss_markov.GaussMarkovDistribution` that this kernel
+      represents on the provided time points.
+
+      .. note:: Currently the only representation we can use is a
+          :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      :param time_points: The times between which to define the distribution,
+          with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+      :abstractmethod:
+
+      Return the :class:`~markovflow.emission_model.EmissionModel` associated with this kernel
+      that maps from the latent :class:`~markovflow.gauss_markov.GaussMarkovDistribution`
+      to the observations.
+
+      :param time_points: The time points over which the emission model is defined,
+          with shape ``batch_shape + [num_data]``.
+
+
+

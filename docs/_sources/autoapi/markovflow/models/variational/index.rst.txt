@@ -1,0 +1,149 @@
+:py:mod:`markovflow.models.variational`
+=======================================
+
+.. py:module:: markovflow.models.variational
+
+.. autoapi-nested-parse::
+
+   Module containing a model for variational inference, for GP classification.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: VariationalGaussianProcess(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], kernel: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, initial_distribution: Optional[markovflow.gauss_markov.GaussMarkovDistribution] = None)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowModel`
+
+   Approximates a :class:`~markovflow.gauss_markov.GaussMarkovDistribution`
+   with a general likelihood using a Gaussian posterior.
+
+   The following notation is used:
+
+       * :math:`x` - the time points of the training data
+       * :math:`y` - observations corresponding to time points :math:`x`
+       * :math:`s(.)` - the latent state of the Markov chain
+       * :math:`f(.)` - the noise free predictions of the model
+       * :math:`p(y | f)` - the likelihood
+       * :math:`p(.)` - the true distribution
+       * :math:`q(.)` - the variational distribution
+
+   Subscript is used to denote dependence for notational convenience,
+   for example :math:`fₖ === f(k)`.
+
+   With a prior generative model comprising a Gauss-Markov distribution, an emission model and an
+   arbitrary likelihood on the emitted variables, these define:
+
+       * :math:`p(xₖ₊₁| xₖ)`
+       * :math:`fₖ = H xₖ`
+       * :math:`p(yₖ | fₖ)`
+
+   We would like to approximate the posterior of this generative model with a parametric
+   model :math:`q`, comprising of the same distribution as the prior.
+
+   To approximate the posterior, we maximise the evidence lower bound (ELBO) :math:`ℒ` with
+   respect to the parameters of the variational distribution, since:
+
+   .. math:: log p(y) = ℒ(q) + KL[q ‖ p(f | y)]
+
+   ...where:
+
+   .. math:: ℒ(q) = ∫ log(p(f, y) / q(f)) q(f) df
+
+   Since the last term is non-negative, the ELBO provides a lower bound to the log-likelihood of
+   the model. This bound is exact when :math:`KL[q ‖ p(f | y)] = 0`; that is, our approximation is
+   sufficiently flexible to capture the true posterior.
+
+   This turns the inference into an optimisation problem: find the optional :math:`q`.
+
+   To calculate the ELBO, we rewrite it as:
+
+   .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+   The first term is the 'variational expectation' of the model likelihood;
+   the second is the KL from the prior to the approximation.
+
+   :param input_data: A tuple of ``(time_points, observations)`` containing the observed data:
+       time points of observations, with shape ``batch_shape + [num_data]``,
+       observations with shape ``batch_shape + [num_data, observation_dim]``.
+   :param kernel: A kernel that defines a prior over functions.
+   :param likelihood: A likelihood.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param initial_distribution: An initial configuration for the variational distribution,
+       with shape ``batch_shape + [num_inducing]``.
+
+   .. py:method:: elbo() -> tensorflow.Tensor
+
+      Calculate the evidence lower bound (ELBO) :math:`log p(y)`. We rewrite the ELBO as:
+
+      .. math:: ℒ(q(x)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(sₓ) ‖ p(sₓ)]
+
+      The first term is the 'variational expectation' (VE); the second is the KL divergence from
+      the prior to the approximation.
+
+      :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.
+
+
+   .. py:method:: time_points() -> tensorflow.Tensor
+      :property:
+
+      Return the time points of our observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: observations() -> tensorflow.Tensor
+      :property:
+
+      Return the observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: likelihood() -> gpflow.likelihoods.Likelihood
+      :property:
+
+      Return the likelihood of the GP.
+
+
+   .. py:method:: mean_function() -> markovflow.mean_function.MeanFunction
+      :property:
+
+      Return the mean function of the GP.
+
+
+   .. py:method:: dist_p() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the prior Gauss-Markov distribution.
+
+
+   .. py:method:: dist_q() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the variational distribution as a Gauss-Markov distribution.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process for inference.
+
+      For this class this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`
+      built from the variational distribution. This will be a locally optimal variational
+      approximation of the posterior after optimisation.
+
+
+   .. py:method:: loss() -> tensorflow.Tensor
+
+      Return the loss, which is the negative ELBO.
+
+
+

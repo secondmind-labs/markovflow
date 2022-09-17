@@ -1,0 +1,330 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.gaussian_process_regression &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.gaussian_process_regression</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for GP regression.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">TensorType</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.kalman_filter</span> <span class="kn">import</span> <span class="n">KalmanFilter</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.likelihoods</span> <span class="kn">import</span> <span class="n">MultivariateGaussian</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span><span class="p">,</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.models</span> <span class="kn">import</span> <span class="n">MarkovFlowModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">AnalyticPosteriorProcess</span><span class="p">,</span> <span class="n">PosteriorProcess</span>
+
+
+<div class="viewcode-block" id="GaussianProcessRegression"><a class="viewcode-back" href="../../../autoapi/markovflow/models/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression">[docs]</a><span class="k">class</span> <span class="nc">GaussianProcessRegression</span><span class="p">(</span><span class="n">MarkovFlowModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs GP regression.</span>
+
+<span class="sd">    The key reference is Chapter 2 of::</span>
+
+<span class="sd">        Gaussian Processes for Machine Learning</span>
+<span class="sd">        Carl Edward Rasmussen and Christopher K. I. Williams</span>
+<span class="sd">        The MIT Press, 2006. ISBN 0-262-18253-X.</span>
+
+<span class="sd">    This class uses the kernel and the time points to create a state space model.</span>
+<span class="sd">    GP regression is then a Kalman filter on that state space model using the observations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">chol_obs_covariance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TensorType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernel: A kernel defining a prior over functions.</span>
+<span class="sd">        :param input_data: A tuple of ``(time_points, observations)`` containing the observed data:</span>
+<span class="sd">            time points of observations, with shape ``batch_shape + [num_data]``,</span>
+<span class="sd">            observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        :param chol_obs_covariance: A :data:`~markovflow.base.TensorType` containing</span>
+<span class="sd">            the Cholesky factor of the observation noise covariance,</span>
+<span class="sd">            with shape ``[observation_dim, observation_dim]``.</span>
+<span class="sd">            a default None value will assume independent likelihood variance of 1.0</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">observation_dim</span> <span class="o">=</span> <span class="n">observations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">chol_obs_covariance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">chol_obs_covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">observation_dim</span><span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">ensure_shape</span><span class="p">(</span><span class="n">chol_obs_covariance</span><span class="p">,</span> <span class="p">[</span><span class="n">observation_dim</span><span class="p">,</span> <span class="n">observation_dim</span><span class="p">])</span>
+
+        <span class="c1"># ensure that time_points have the shape: batch_shape + [num_data]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">ensure_shape</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># To collect kernel and mean function tf.Module trainable_variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span> <span class="o">=</span> <span class="n">time_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span> <span class="o">=</span> <span class="n">observations</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span> <span class="o">=</span> <span class="n">chol_obs_covariance</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessRegression.time_points"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.time_points">[docs]</a>    <span class="k">def</span> <span class="nf">time_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the time points of observations.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessRegression.observations"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the observations.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessRegression.kernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.kernel">[docs]</a>    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SDEKernel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the kernel of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessRegression.mean_function"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.mean_function">[docs]</a>    <span class="k">def</span> <span class="nf">mean_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeanFunction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_kalman</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KalmanFilter</span><span class="p">:</span>
+        <span class="c1"># subtract the mean function from the observations, if it exists</span>
+        <span class="n">residuals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">residuals</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">KalmanFilter</span><span class="p">(</span>
+            <span class="n">state_space_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">),</span>
+            <span class="n">emission_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">),</span>
+            <span class="n">observations</span><span class="o">=</span><span class="n">residuals</span><span class="p">,</span>
+            <span class="n">chol_obs_covariance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GaussianProcessRegression.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the loss, which is the negative log likelihood.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">log_likelihood</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessRegression.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a posterior process for inference.</span>
+
+<span class="sd">        For this class, this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`</span>
+<span class="sd">        built from the Kalman filter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">AnalyticPosteriorProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kalman</span><span class="o">.</span><span class="n">posterior_state_space_model</span><span class="p">(),</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">,</span>
+            <span class="n">likelihood</span><span class="o">=</span><span class="n">MultivariateGaussian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span><span class="p">),</span>
+            <span class="n">mean_function</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GaussianProcessRegression.log_likelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/models/gaussian_process_regression/index.html#markovflow.models.gaussian_process_regression.GaussianProcessRegression.log_likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the log likelihood of the observations given the kernel parameters.</span>
+
+<span class="sd">        In other words, :math:`log p(y_{1...T} | ϑ)` for some parameters :math:`ϑ`.</span>
+
+<span class="sd">        :return: A scalar tensor (summed over the batch shape and the whole trajectory).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kalman</span><span class="o">.</span><span class="n">log_likelihood</span><span class="p">()</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

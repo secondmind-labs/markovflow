@@ -1,0 +1,761 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.state_space_model &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.utils" href="../utils/index.html" />
+    <link rel="prev" title="markovflow.ssm_natgrad" href="../ssm_natgrad/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.state_space_model.StateSpaceModel" class="nav-link">StateSpaceModel</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.event_shape" class="nav-link">event_shape</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.batch_shape" class="nav-link">batch_shape</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.num_transitions" class="nav-link">num_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.cholesky_process_covariances" class="nav-link">cholesky_process_covariances</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.cholesky_initial_covariance" class="nav-link">cholesky_initial_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.initial_covariance" class="nav-link">initial_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.concatenated_cholesky_process_covariance" class="nav-link">concatenated_cholesky_process_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.state_offsets" class="nav-link">state_offsets</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.initial_mean" class="nav-link">initial_mean</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.concatenated_state_offsets" class="nav-link">concatenated_state_offsets</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.state_transitions" class="nav-link">state_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.marginal_means" class="nav-link">marginal_means</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.marginal_covariances" class="nav-link">marginal_covariances</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.covariance_blocks" class="nav-link">covariance_blocks</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.a_inv_block" class="nav-link">a_inv_block</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.sample" class="nav-link">sample</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.subsequent_covariances" class="nav-link">subsequent_covariances</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.log_det_precision" class="nav-link">log_det_precision</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.create_non_trainable_copy" class="nav-link">create_non_trainable_copy</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.create_trainable_copy" class="nav-link">create_trainable_copy</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel._build_precision" class="nav-link">_build_precision</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel._log_pdf_factors" class="nav-link">_log_pdf_factors</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.log_pdf" class="nav-link">log_pdf</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.kl_divergence" class="nav-link">kl_divergence</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.state_space_model.StateSpaceModel.normalizer" class="nav-link">normalizer</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.state_space_model.state_space_model_from_covariances" class="nav-link">state_space_model_from_covariances</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.state_space_model">
+<span id="markovflow-state-space-model"></span><h1><a class="reference internal" href="#module-markovflow.state_space_model" title="markovflow.state_space_model"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.state_space_model</span></code></a><a class="headerlink" href="#module-markovflow.state_space_model" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a state space model.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.state_space_model.StateSpaceModel">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">StateSpaceModel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chol_initial_covariance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_transitions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_offsets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chol_process_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></code></a></p>
+<p>Implements a state space model. This has the following form:</p>
+<div class="math notranslate nohighlight">
+\[xₖ₊₁ = Aₖ xₖ + bₖ + qₖ\]</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(qₖ ~ 𝓝(0, Qₖ)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(x₀ ~ 𝓝(μ₀, P₀)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(xₖ ∈ ℝ^d\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(bₖ ∈ ℝ^d\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(Aₖ ∈ ℝ^{d × d}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(Qₖ ∈ ℝ^{d × d}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(μ₀ ∈ ℝ^{d × 1}\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(P₀ ∈ ℝ^{d × d}\)</span></p></li>
+</ul>
+</div></blockquote>
+<p>The key reference is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">grigorievskiy2017parallelizable</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Parallelizable</span> <span class="n">sparse</span> <span class="n">inverse</span> <span class="n">formulation</span> <span class="n">Gaussian</span> <span class="n">processes</span> <span class="p">(</span><span class="n">SpInGP</span><span class="p">)},</span>
+    <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Grigorievskiy</span><span class="p">,</span> <span class="n">Alexander</span> <span class="ow">and</span> <span class="n">Lawrence</span><span class="p">,</span> <span class="n">Neil</span> <span class="ow">and</span> <span class="n">S</span><span class="p">{</span><span class="s2">&quot;a}rkk{&quot;</span><span class="n">a</span><span class="p">},</span> <span class="n">Simo</span><span class="p">},</span>
+    <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">Int</span><span class="s1">&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+    <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="o">--</span><span class="mi">6</span><span class="p">},</span>
+    <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2017</span><span class="p">},</span>
+    <span class="n">organization</span><span class="o">=</span><span class="p">{</span><span class="n">IEEE</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The model samples <span class="math notranslate nohighlight">\(x₀\)</span> with an initial Gaussian distribution in <span class="math notranslate nohighlight">\(ℝ^d\)</span>
+(in code <span class="math notranslate nohighlight">\(d\)</span> is <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel.state_dim" title="markovflow.state_space_model.StateSpaceModel.state_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">state_dim</span></code></a>).</p>
+<p>The model then proceeds for <span class="math notranslate nohighlight">\(n\)</span> (<a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel.num_transitions" title="markovflow.state_space_model.StateSpaceModel.num_transitions"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">num_transitions</span></code></a>) to generate <span class="math notranslate nohighlight">\([x₁, ... xₙ]\)</span>,
+according to the formula above. The marginal distribution of samples at a point <span class="math notranslate nohighlight">\(k\)</span>
+is a Gaussian with mean <span class="math notranslate nohighlight">\(μₖ, Pₖ\)</span>.</p>
+<p>This class allows the user to generate samples from this process as well as to calculate the
+marginal distributions for each transition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_mean</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> containing the initial mean,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[state_dim]</span></code>.</p></li>
+<li><p><strong>chol_initial_covariance</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> containing the
+Cholesky of the initial covariance, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>. That is, unless the
+initial covariance is zero, in which case it is zero.</p></li>
+<li><p><strong>state_transitions</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> containing state transition
+matrices, with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>state_offsets</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> containing the process means
+bₖ, with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>chol_process_covariances</strong> – A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> containing the
+Cholesky of the noise covariance matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>. That is, unless the
+noise covariance is zero, in which case it is zero.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.event_shape">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">event_shape</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.event_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.event_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The shape is <code class="docutils literal notranslate"><span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.batch_shape">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">batch_shape</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/TensorShape" title="(in TensorFlow v2.4)"><span class="pre">tf.TensorShape</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.batch_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.batch_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of any leading dimensions that come before <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel.event_shape" title="markovflow.state_space_model.StateSpaceModel.event_shape"><code class="xref py py-attr docutils literal notranslate"><span class="pre">event_shape</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.num_transitions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">num_transitions</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.num_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.num_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of transitions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.cholesky_process_covariances">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">cholesky_process_covariances</span></code> &#x2192; <span class="pre">gpflow.base.TensorType</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.cholesky_process_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.cholesky_process_covariances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Cholesky of <span class="math notranslate nohighlight">\([Q₁, Q₂, ....]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with
+shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.cholesky_initial_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">cholesky_initial_covariance</span></code> &#x2192; <span class="pre">gpflow.base.TensorType</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.cholesky_initial_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.cholesky_initial_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Cholesky of <span class="math notranslate nohighlight">\(P₀\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.initial_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">initial_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.initial_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.initial_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <span class="math notranslate nohighlight">\(P₀\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.concatenated_cholesky_process_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">concatenated_cholesky_process_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.concatenated_cholesky_process_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.concatenated_cholesky_process_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Cholesky of <span class="math notranslate nohighlight">\([P₀, Q₁, Q₂, ....]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.state_offsets">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_offsets</span></code> &#x2192; <span class="pre">gpflow.base.TensorType</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.state_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.state_offsets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state offsets <span class="math notranslate nohighlight">\([b₁, b₂, ....]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with
+shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">num_transitions,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.initial_mean">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">initial_mean</span></code> &#x2192; <span class="pre">gpflow.base.TensorType</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.initial_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.initial_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the initial mean <span class="math notranslate nohighlight">\(μ₀\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.concatenated_state_offsets">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">concatenated_state_offsets</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.concatenated_state_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.concatenated_state_offsets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the concatenated state offsets <span class="math notranslate nohighlight">\([μ₀, b₁, b₂, ....]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.state_transitions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_transitions</span></code> &#x2192; <span class="pre">gpflow.base.TensorType</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.state_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.state_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the concatenated state offsets <span class="math notranslate nohighlight">\([A₀, A₁, A₂, ....]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code> with
+shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.marginal_means">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">marginal_means</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.marginal_means"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.marginal_means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean of the marginal distributions at each time point. If:</p>
+<div class="math notranslate nohighlight">
+\[xₖ ~ 𝓝(μₖ, Kₖₖ)\]</div>
+<p>…then return <span class="math notranslate nohighlight">\(μₖ\)</span>.</p>
+<p>If we let the concatenated state offsets be <span class="math notranslate nohighlight">\(m = [μ₀, b₁, b₂, ....]\)</span> and <span class="math notranslate nohighlight">\(A\)</span>
+be defined as in equation (5) of the SpInGP paper (see class docstring), then:</p>
+<div class="math notranslate nohighlight">
+\[μ = A m = (A⁻¹)⁻¹ m\]</div>
+<p>…which we can do quickly using <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel.a_inv_block" title="markovflow.state_space_model.StateSpaceModel.a_inv_block"><code class="xref py py-meth docutils literal notranslate"><span class="pre">a_inv_block()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The marginal means of the joint Gaussian, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.marginal_covariances">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">marginal_covariances</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.marginal_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.marginal_covariances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the ordered covariances <span class="math notranslate nohighlight">\(Σₖₖ\)</span> of the multivariate normal marginal
+distributions over consecutive states <span class="math notranslate nohighlight">\(xₖ\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The marginal covariances of the joint Gaussian, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.covariance_blocks">
+<code class="sig-name descname"><span class="pre">covariance_blocks</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.covariance_blocks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.covariance_blocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the diagonal and lower off-diagonal blocks of the covariance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tuple of tensors with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim]</span></code>,
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.a_inv_block">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">a_inv_block</span></code> &#x2192; <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.a_inv_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.a_inv_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <span class="math notranslate nohighlight">\(A⁻¹\)</span>.</p>
+<p>This has the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>A⁻¹ =  [ I             ]
+       [-A₁, I         ]
+       [    -A₂, I     ]
+       [         ᨞  ᨞  ]
+       [         -Aₙ, I]
+</pre></div>
+</div>
+<p>…where <span class="math notranslate nohighlight">\([A₁, ..., Aₙ]\)</span> are the state transition matrices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.sample">
+<code class="sig-name descname"><span class="pre">sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.sample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return sample trajectories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sample_shape</strong> – The shape (and hence number of) trajectories to sample from
+the state space model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor containing state samples, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">self.batch_shape</span> <span class="pre">+</span> <span class="pre">self.event_shape</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.subsequent_covariances">
+<code class="sig-name descname"><span class="pre">subsequent_covariances</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">marginal_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.subsequent_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.subsequent_covariances" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each pair of subsequent states <span class="math notranslate nohighlight">\(xₖ, xₖ₊₁\)</span>, return the covariance of their joint
+distribution. That is:</p>
+<div class="math notranslate nohighlight">
+\[Cov(xₖ₊₁, xₖ) = AₖPₖ\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>marginal_covariances</strong> – The marginal covariances of each state in the model,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">1,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The covariance between subsequent state, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.log_det_precision">
+<code class="sig-name descname"><span class="pre">log_det_precision</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.log_det_precision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.log_det_precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the log determinant of the precision matrix. This uses the precision as
+defined in the SpInGP paper (see class summary above).</p>
+<p>Precision is defined as:</p>
+<div class="math notranslate nohighlight">
+\[K⁻¹ = (AQAᵀ)⁻¹\]</div>
+<p>so:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}log |K⁻¹| &amp;=  log | Q⁻¹ | (since |A| = 1)\\
+          &amp;= - log |P₀| - Σₜ log |Qₜ|\\
+          &amp;= - 2 * (log |chol_P₀| + Σₜ log |chol_Qₜ|)\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.create_non_trainable_copy">
+<code class="sig-name descname"><span class="pre">create_non_trainable_copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">StateSpaceModel</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.create_non_trainable_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.create_non_trainable_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a non-trainable version of <a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussMarkovDistribution</span></code></a>.</p>
+<p>This is to convert a trainable version of this class back to being non-trainable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A Gauss-Markov distribution that is a copy of this one.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.create_trainable_copy">
+<code class="sig-name descname"><span class="pre">create_trainable_copy</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">StateSpaceModel</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.create_trainable_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.create_trainable_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a trainable version of this state space model.</p>
+<p>This is primarily for use with variational approaches where we want to optimise
+the parameters of a state space model that is initialised from a prior state space model.</p>
+<p>The initial mean and state transitions are the same.</p>
+<p>The initial and process covariances are ‘flattened’. Since they are lower triangular, we
+only want to parametrise this part of the matrix. For this purpose we use the
+<code class="xref any docutils literal notranslate"><span class="pre">params.triangular</span></code> constraint which is the <a class="reference external" href="https://www.tensorflow.org/probability/api_docs/python/tfp/bijectors/FillTriangular" title="(in TensorFlow Probability v0.12)"><code class="xref any docutils literal notranslate"><span class="pre">tfp.bijectors.FillTriangular</span></code></a> bijector that
+converts between a triangular matrix <span class="math notranslate nohighlight">\([dim, dim]\)</span> and a flattened vector of
+shape <span class="math notranslate nohighlight">\([dim (dim + 1) / 2]\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A state space model that is a copy of this one and a dataclass containing the
+variables that can be trained.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel._build_precision">
+<code class="sig-name descname"><span class="pre">_build_precision</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><span class="pre">markovflow.block_tri_diag.SymmetricBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel._build_precision"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel._build_precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the compact banded representation of the Precision matrix using state space model
+parameters.</p>
+<dl class="simple">
+<dt>We construct matrix:</dt><dd><p>K⁻¹ = A⁻ᵀQ⁻¹A⁻¹</p>
+</dd>
+</dl>
+<p>Using Q⁻¹ and A⁻¹ defined in equations (6) and (8) in the SpInGP paper (see class docstring)</p>
+<p>It can be shown that</p>
+<dl>
+<dt>K⁻¹ = | P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁ | -A₁ᵀ Q₁⁻¹          | 0…</dt><dd><div class="line-block">
+<div class="line">-Q₁⁻¹ A₁          | Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂ |  -A₂ᵀ Q₂⁻¹         | 0…</div>
+<div class="line-block">
+<div class="line">0               | -Q₂⁻¹ A₂          | Q₂⁻¹ + A₃ᵀ Q₃⁻¹ A₃ | -A₃ᵀ Q₃⁻¹| 0…</div>
+</div>
+</div>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The precision as a <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><code class="xref any py py-class docutils literal notranslate"><span class="pre">SymmetricBlockTriDiagonal</span></code></a> object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel._log_pdf_factors">
+<code class="sig-name descname"><span class="pre">_log_pdf_factors</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel._log_pdf_factors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel._log_pdf_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the log of the factors of the probability density function (PDF)
+evaluated at a state trajectory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[log p(x₀), log p(x₁|x₀), ..., log p(xₖ₊₁|xₖ)]
+</pre></div>
+</div>
+<p>…with x₀ ~ 𝓝(μ₀, P₀) and xₖ₊₁|xₖ ~ 𝓝(Aₖ xₖ + bₖ, Qₖ)</p>
+<dl class="field-list simple">
+<dt class="field-odd">States</dt>
+<dd class="field-odd"><p>The state trajectory has shape:
+sample_shape + self.batch_shape + self.event_shape</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The log PDF of the factors with shape:
+sample_shape + self.batch_shape + [self.num_transitions + 1]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.log_pdf">
+<code class="sig-name descname"><span class="pre">log_pdf</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.log_pdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.log_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of the log of the probability density function (PDF)
+evaluated at states. That is:</p>
+<div class="math notranslate nohighlight">
+\[log p(x) = log p(x₀) + Σₖ log p(xₖ₊₁|xₖ)  (for 0 ⩽ k &lt; n)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>states</strong> – The state trajectory, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">self.batch_shape</span> <span class="pre">+</span> <span class="pre">self.event_shape</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The log PDF, with shape <code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">self.batch_shape</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.kl_divergence">
+<code class="sig-name descname"><span class="pre">kl_divergence</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.kl_divergence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.kl_divergence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the KL divergence of the current Gauss-Markov distribution from the specified
+input <code class="xref any docutils literal notranslate"><span class="pre">dist</span></code>. That is:</p>
+<div class="math notranslate nohighlight">
+\[KL(dist₁ ∥ dist₂)\]</div>
+<p>To do so we first compute the marginal distributions from the Gauss-Markov form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}dist₁ = 𝓝(μ₁, P⁻¹₁)\\
+dist₂ = 𝓝(μ₂, P⁻¹₂)\end{split}\]</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(μᵢ\)</span> are the marginal means</p></li>
+<li><p><span class="math notranslate nohighlight">\(Pᵢ\)</span> are the banded precisions</p></li>
+</ul>
+</div></blockquote>
+<p>The KL divergence is thus given by:</p>
+<div class="math notranslate nohighlight">
+\[KL(dist₁ ∥ dist₂) = ½(tr(P₂P₁⁻¹) + (μ₂ - μ₁)ᵀP₂(μ₂ - μ₁) - N - log(|P₂|) + log(|P₁|))\]</div>
+<p>…where <span class="math notranslate nohighlight">\(N = (\verb |num_transitions| + 1) * \verb |state_dim|\)</span> (that is,
+the dimensionality of the Gaussian).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dist</strong> – Another similarly parameterised Gauss-Markov distribution.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor of the KL divergences, with shape <code class="docutils literal notranslate"><span class="pre">self.batch_shape</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.state_space_model.StateSpaceModel.normalizer">
+<code class="sig-name descname"><span class="pre">normalizer</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#StateSpaceModel.normalizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.StateSpaceModel.normalizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conputes the normalizer
+Page 36 of Thang Bui
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.state_space_model.state_space_model_from_covariances">
+<code class="sig-name descname"><span class="pre">state_space_model_from_covariances</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_covariance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_transitions</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_offsets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">StateSpaceModel</span></a><a class="reference internal" href="../../../_modules/markovflow/state_space_model.html#state_space_model_from_covariances"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.state_space_model.state_space_model_from_covariances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a state space model using the full covariance matrices for convenience.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initial_mean</strong> – The initial mean, with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[state_dim]</span></code>.</p></li>
+<li><p><strong>initial_covariance</strong> – Initial covariance, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>state_transitions</strong> – State transition matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>state_offsets</strong> – The process means <span class="math notranslate nohighlight">\(bₖ\)</span>, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>process_covariances</strong> – Noise covariance matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

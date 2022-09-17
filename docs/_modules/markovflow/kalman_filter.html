@@ -1,0 +1,795 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kalman_filter &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.kalman_filter</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a Kalman filter.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">TensorType</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.block_tri_diag</span> <span class="kn">import</span> <span class="n">SymmetricBlockTriDiagonal</span>
+<span class="kn">from</span> <span class="nn">markovflow.emission_model</span> <span class="kn">import</span> <span class="n">EmissionModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+
+<div class="viewcode-block" id="BaseKalmanFilter"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter">[docs]</a><span class="k">class</span> <span class="nc">BaseKalmanFilter</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and</span>
+<span class="sd">    :class:`~markovflow.emission_model.EmissionModel`, with given observations.</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">        @inproceedings{grigorievskiy2017parallelizable,</span>
+<span class="sd">            title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},</span>
+<span class="sd">            author={Grigorievskiy, Alexander and Lawrence, Neil and S{\&quot;a}rkk{\&quot;a}, Simo},</span>
+<span class="sd">            booktitle={Int&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+<span class="sd">            pages={1--6},</span>
+<span class="sd">            year={2017},</span>
+<span class="sd">            organization={IEEE}</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The following notation from the above paper is used:</span>
+
+<span class="sd">        * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product</span>
+<span class="sd">        * :math:`R` is the observation covariance</span>
+<span class="sd">        * :math:`Σ = I_N ⊗ R`</span>
+<span class="sd">        * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`</span>
+<span class="sd">        * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`</span>
+<span class="sd">        * :math:`y` is the observation matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_space_model</span><span class="p">:</span> <span class="n">StateSpaceModel</span><span class="p">,</span> <span class="n">emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param state_space_model: Parametrises the latent chain.</span>
+<span class="sd">        :param emission_model: Maps the latent chain to the observations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="c1"># verify observation shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span> <span class="o">=</span> <span class="n">state_space_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emission</span> <span class="o">=</span> <span class="n">emission_model</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseKalmanFilter._r_inv"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter._r_inv">[docs]</a>    <span class="k">def</span> <span class="nf">_r_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Precision of observation model &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BaseKalmanFilter.observations"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Observation vector &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BaseKalmanFilter._k_inv_prior"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter._k_inv_prior">[docs]</a>    <span class="k">def</span> <span class="nf">_k_inv_prior</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Prior precision &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">precision</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BaseKalmanFilter._k_inv_post"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter._k_inv_post">[docs]</a>    <span class="k">def</span> <span class="nf">_k_inv_post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Posterior precision &quot;&quot;&quot;</span>
+
+        <span class="c1"># construct the likelihood precision: Gᵀ Σ⁻¹ G</span>
+        <span class="c1"># HᵀR⁻¹H [state_dim, state_dim]</span>
+        <span class="n">h_t_r_h</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span>
+            <span class="s2">&quot;...ji,...jk,...kl-&gt;...il&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">emission_matrix</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_r_inv</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">emission_matrix</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># The emission matrix is tiled across the time_points, so for a time invariant matrix</span>
+        <span class="c1"># this is equivalent to Gᵀ Σ⁻¹ G = (I_N ⊗ HᵀR⁻¹H),</span>
+        <span class="n">likelihood_precision</span> <span class="o">=</span> <span class="n">SymmetricBlockTriDiagonal</span><span class="p">(</span><span class="n">h_t_r_h</span><span class="p">)</span>
+        <span class="c1"># K⁻¹ + GᵀΣ⁻¹G</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_inv_prior</span> <span class="o">+</span> <span class="n">likelihood_precision</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BaseKalmanFilter._log_det_observation_precision"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter._log_det_observation_precision">[docs]</a>    <span class="k">def</span> <span class="nf">_log_det_observation_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sum of log determinant of the precisions of the observation model &quot;&quot;&quot;</span>
+        <span class="n">num_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">num_data</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_r_inv</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseKalmanFilter.posterior_state_space_model"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter.posterior_state_space_model">[docs]</a>    <span class="k">def</span> <span class="nf">posterior_state_space_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the posterior as a state space model.</span>
+
+<span class="sd">        The marginal means and covariances are given by:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            &amp;μ(Χ) = (K⁻¹ + GᵀΣ⁻¹G)⁻¹[GᵀΣ⁻¹y + K⁻¹μ]\\</span>
+<span class="sd">            &amp;P(X) = K⁻¹ + GᵀΣ⁻¹G</span>
+
+<span class="sd">        ...where :math:`μ` is a block vector of the marginal means.</span>
+
+<span class="sd">        We can derive the state transitions :math:`aₖ` and process noise covariances :math:`qₖ`</span>
+<span class="sd">        from the block tridiagonal matrix (see</span>
+<span class="sd">        :meth:`~markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower`).</span>
+<span class="sd">        Lower case is used to attempt to distinguish the posterior and prior parameters.</span>
+
+<span class="sd">        We then need to calculate :math:`μ₀` and :math:`bₖ` (this is what most of the code in</span>
+<span class="sd">        this function does). This can be calculated from:</span>
+
+<span class="sd">        .. math:: K⁻¹ₚₒₛₜμₚₒₛₜ = GᵀΣ⁻¹y + K⁻¹ₚᵣᵢₒᵣμₚᵣᵢₒᵣ</span>
+
+<span class="sd">        Firstly, we use that for any :class:`~markovflow.state_space_model.StateSpaceModel`:</span>
+
+<span class="sd">        .. math:: K⁻¹μ = A⁻ᵀ Q⁻¹ m</span>
+
+<span class="sd">        ...where :math:`m = [μ₀, b₁,... bₙ]` and::</span>
+
+<span class="sd">            A⁻¹ =  [ I             ]      Q⁻¹ =  [ P₀⁻¹          ]</span>
+<span class="sd">                   [-A₁, I         ]            [    Q₁⁻¹       ]</span>
+<span class="sd">                   [    -A₂, I     ]            [       ᨞      ]</span>
+<span class="sd">                   [         ᨞  ᨞  ]            [         ᨞    ]</span>
+<span class="sd">                   [         -Aₙ, I]            [           Qₙ⁻¹]</span>
+
+<span class="sd">        So:</span>
+
+<span class="sd">        .. math:: mₚₒₛₜ = Qₚₒₛₜ Aₚₒₛₜᵀ [GᵀΣ⁻¹y + Kₚᵣᵢₒᵣ⁻¹mₚᵣᵢₒᵣ]</span>
+
+<span class="sd">        :return: The posterior as a state space model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a_inv_post</span><span class="p">,</span> <span class="n">chol_q_inv_post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_inv_post</span><span class="o">.</span><span class="n">upper_diagonal_lower</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">a_inv_post</span><span class="o">.</span><span class="n">block_sub_diagonal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="c1"># (GᵀΣ⁻¹)y [..., num_transitions + 1, state_dim]</span>
+        <span class="n">obs_proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_back_project_y_to_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">)</span>
+
+        <span class="c1"># Kₚᵣᵢₒᵣ⁻¹μₚᵣᵢₒᵣ (prior parameters) [..., num_transitions + 1, state_dim]</span>
+        <span class="n">k_inv_mu_prior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_inv_prior</span><span class="o">.</span><span class="n">dense_mult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">marginal_means</span><span class="p">)</span>
+
+        <span class="c1"># mₚₒₛₜ = Qₚₒₛₜ Aₚₒₛₜᵀ [GᵀΣ⁻¹y + Kₚᵣᵢₒᵣ⁻¹mₚᵣᵢₒᵣ] [..., num_transitions + 1, state_dim]</span>
+        <span class="n">m_post</span> <span class="o">=</span> <span class="n">chol_q_inv_post</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+            <span class="n">chol_q_inv_post</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">a_inv_post</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">obs_proj</span> <span class="o">+</span> <span class="n">k_inv_mu_prior</span><span class="p">,</span> <span class="n">transpose_left</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="n">transpose_left</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [..., num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">m_post</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">batch_shape</span><span class="o">=</span><span class="n">batch_shape</span><span class="p">)</span>
+
+        <span class="c1"># cholesky of [P₀, Q₁, Q₂, ....] [..., num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">concatted_qs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">chol_q_inv_post</span><span class="o">.</span><span class="n">block_diagonal</span><span class="p">,</span> <span class="n">identities</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">m_post</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">concatted_qs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span>
+            <span class="n">state_transitions</span><span class="o">=-</span><span class="n">a_inv_post</span><span class="o">.</span><span class="n">block_sub_diagonal</span><span class="p">,</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">m_post</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:],</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">concatted_qs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:],</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="BaseKalmanFilter.log_likelihood"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter.log_likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a TensorTlow function to compute the likelihood.</span>
+
+<span class="sd">        We set :math:`y = obs - Hμ` (where :math:`μ` is the vector of marginal state means):</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            log p(obs|params) = &amp;- ᴺ⁄₂log(2π) - ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|)\\</span>
+<span class="sd">                                &amp;- ½ yᵀ(Σ⁻¹ - Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y</span>
+
+<span class="sd">        ...where :math:`N` is the dimensionality of the precision object, that is</span>
+<span class="sd">        ``state_dim * (num_transitions + 1)``.</span>
+
+<span class="sd">        We break up the log likelihood as: cst + term1 + term2 + term3. That is, as:</span>
+
+<span class="sd">            * cst: :math:`- ᴺ⁄₂log(2π)`</span>
+<span class="sd">            * term 1: :math:`- ½ yᵀΣ⁻¹y`</span>
+<span class="sd">            * term 2:</span>
+
+<span class="sd">              .. math::</span>
+<span class="sd">                 ½ yᵀΣ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y = ½ yᵀΣ⁻¹G(LLᵀ)⁻¹GᵀΣ⁻¹)y = ½|L⁻¹(GᵀΣ⁻¹)y|²</span>
+
+<span class="sd">            * term 3:</span>
+
+<span class="sd">              .. math::</span>
+<span class="sd">                 - ½(log |K⁻¹ + GᵀΣ⁻¹G| - log |K⁻¹| - log |Σ⁻¹|) = ½log |K⁻¹| - log |L| + ½log |Σ⁻¹|</span>
+
+<span class="sd">        Note that there are a couple of mistakes in the SpinGP paper for this formula (18):</span>
+
+<span class="sd">            * They have :math:`- ½(... + log |Σ⁻¹|)`. It should be :math:`- ½(... - log |Σ⁻¹|)`</span>
+<span class="sd">            * They have :math:`- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹)y`. It should</span>
+<span class="sd">              be :math:`- ½ yᵀ(... Σ⁻¹G(K⁻¹ + GᵀΣ⁻¹G)⁻¹GᵀΣ⁻¹)y`</span>
+
+<span class="sd">        :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># K⁻¹ + GᵀΣ⁻¹G = LLᵀ.</span>
+        <span class="n">l_post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_inv_post</span><span class="o">.</span><span class="n">cholesky</span>
+        <span class="n">num_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># Hμ [..., num_transitions + 1, output_dim]</span>
+        <span class="n">marginal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">marginal_means</span><span class="p">)</span>
+
+        <span class="c1"># y = obs - Hμ [..., num_transitions + 1, output_dim]</span>
+        <span class="n">disp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">-</span> <span class="n">marginal</span>
+
+        <span class="c1"># cst is the constant term for a gaussian log likelihood</span>
+        <span class="n">cst</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">*</span> <span class="n">num_data</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span>
+        <span class="p">)</span>
+
+        <span class="c1"># term1 is: - ½ yᵀΣ⁻¹y shape [...]</span>
+        <span class="n">term1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...op,...p,...o-&gt;...o&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r_inv</span><span class="p">,</span> <span class="n">disp</span><span class="p">,</span> <span class="n">disp</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># term 2 is: ½|L⁻¹(GᵀΣ⁻¹)y|²</span>
+        <span class="c1"># (GᵀΣ⁻¹)y [..., num_transitions + 1, state_dim]</span>
+        <span class="n">obs_proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_back_project_y_to_state</span><span class="p">(</span><span class="n">disp</span><span class="p">)</span>
+
+        <span class="c1"># ½|L⁻¹(GᵀΣ⁻¹)y|² [...]</span>
+        <span class="n">term2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l_post</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">obs_proj</span><span class="p">,</span> <span class="n">transpose_left</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1">## term 3 is: ½log |K⁻¹| - log |L| + ½ log |Σ⁻¹|</span>
+        <span class="c1"># where log |Σ⁻¹| = num_data * log|R⁻¹|</span>
+        <span class="n">term3</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">log_det_precision</span><span class="p">()</span>
+            <span class="o">-</span> <span class="n">l_post</span><span class="o">.</span><span class="n">abs_log_det</span><span class="p">()</span>
+            <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_det_observation_precision</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">cst</span> <span class="o">+</span> <span class="n">term1</span> <span class="o">+</span> <span class="n">term2</span> <span class="o">+</span> <span class="n">term3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BaseKalmanFilter._back_project_y_to_state"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.BaseKalmanFilter._back_project_y_to_state">[docs]</a>    <span class="k">def</span> <span class="nf">_back_project_y_to_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Back project from the observation space to the state_space, i.e. calculate (GᵀΣ⁻¹)y.</span>
+
+<span class="sd">        :param observations: a tensor y of shape</span>
+<span class="sd">                    batch_shape + [num_data, output_dim]</span>
+<span class="sd">        :return: a tensor (GᵀΣ⁻¹)y of shape</span>
+<span class="sd">                    batch_shape + [num_data, state_dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># GᵀΣ⁻¹, batch_shape + [num_data, output_dim, state_dim]</span>
+        <span class="n">back_projection</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span>
+            <span class="s2">&quot;...ij,...ki-&gt;...kj&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">emission_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r_inv</span>
+        <span class="p">)</span>
+        <span class="c1"># (GᵀΣ⁻¹) y</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...ij,...i-&gt;...j&quot;</span><span class="p">,</span> <span class="n">back_projection</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="KalmanFilter"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilter">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">KalmanFilter</span><span class="p">(</span><span class="n">BaseKalmanFilter</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and</span>
+<span class="sd">    :class:`~markovflow.emission_model.EmissionModel`, with given observations.</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">        @inproceedings{grigorievskiy2017parallelizable,</span>
+<span class="sd">            title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},</span>
+<span class="sd">            author={Grigorievskiy, Alexander and Lawrence, Neil and S{\&quot;a}rkk{\&quot;a}, Simo},</span>
+<span class="sd">            booktitle={Int&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+<span class="sd">            pages={1--6},</span>
+<span class="sd">            year={2017},</span>
+<span class="sd">            organization={IEEE}</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The following notation from the above paper is used:</span>
+
+<span class="sd">        * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product</span>
+<span class="sd">        * :math:`R` is the observation covariance</span>
+<span class="sd">        * :math:`Σ = I_N ⊗ R`</span>
+<span class="sd">        * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`</span>
+<span class="sd">        * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`</span>
+<span class="sd">        * :math:`y` is the observation matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">state_space_model</span><span class="p">:</span> <span class="n">StateSpaceModel</span><span class="p">,</span>
+        <span class="n">emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span><span class="p">,</span>
+        <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">chol_obs_covariance</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param state_space_model: Parametrises the latent chain.</span>
+<span class="sd">        :param emission_model: Maps the latent chain to the observations.</span>
+<span class="sd">        :param observations: Data with shape ``[num_transitions + 1, output_dim]``.</span>
+<span class="sd">        :param chol_obs_covariance: A :data:`~markovflow.base.TensorType` with shape</span>
+<span class="sd">            ``[output_dim, output_dim]`` for the Cholesky factor of the covariance to be</span>
+<span class="sd">            applied to :math:`f` from `emission_model`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">state_space_model</span><span class="p">,</span> <span class="n">emission_model</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
+
+        <span class="c1"># verify observation covariance shape</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">([</span><span class="n">emission_model</span><span class="o">.</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">output_dim</span><span class="p">])</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The shape of the observation covaraiance matrix and the emission</span>
+<span class="s2">                     matrix are not compatible&quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">chol_obs_covariance</span><span class="p">),</span> <span class="n">shape</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="c1"># verify observation shape</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The shape of the observations and the state-space-model parameters</span>
+<span class="s2">                     are not compatible&quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">state_space_model</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">state_space_model</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">output_dim</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">observations</span><span class="p">),</span> <span class="n">shape</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span> <span class="o">=</span> <span class="n">chol_obs_covariance</span>  <span class="c1"># To collect tf.Module trainables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span> <span class="o">=</span> <span class="n">observations</span>  <span class="c1"># batch_shape + [num_transitions + 1, output_dim]</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilter._r_inv"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilter._r_inv">[docs]</a>    <span class="k">def</span> <span class="nf">_r_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Precision of the observation model &quot;&quot;&quot;</span>
+        <span class="c1"># [output_dim, output_dim]</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span><span class="p">,</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_obs_covariance</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilter.observations"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilter.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Observation vector &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span></div></div>
+
+
+<div class="viewcode-block" id="GaussianSites"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.GaussianSites">[docs]</a><span class="k">class</span> <span class="nc">GaussianSites</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is a wrapper around the parameters specifying multiple independent</span>
+<span class="sd">    Gaussian distributions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianSites.means"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.GaussianSites.means">[docs]</a>    <span class="k">def</span> <span class="nf">means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the means of the Gaussians.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianSites.precisions"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.GaussianSites.precisions">[docs]</a>    <span class="k">def</span> <span class="nf">precisions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the precisions of the Gaussians.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianSites.log_det_precisions"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.GaussianSites.log_det_precisions">[docs]</a>    <span class="k">def</span> <span class="nf">log_det_precisions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the sum of the log determinant of the observation precisions.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<div class="viewcode-block" id="UnivariateGaussianSitesNat"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.UnivariateGaussianSitesNat">[docs]</a><span class="k">class</span> <span class="nc">UnivariateGaussianSitesNat</span><span class="p">(</span><span class="n">GaussianSites</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is a wrapper around parameters of univariate Gaussian distributions</span>
+<span class="sd">    in the natural form. That is:</span>
+
+<span class="sd">    .. math:: p(f) = exp(𝞰ᵀφ(f) - A(𝞰))</span>
+
+<span class="sd">    ...where :math:`𝞰=[η₁,η₂]` and :math:`𝛗(f)=[f,f²]`.</span>
+
+<span class="sd">    The mean :math:`μ` and variance :math:`σ²` parameterization is such that:</span>
+
+<span class="sd">    .. math:: μ = -½η₁/η₂, σ²=-½η₂⁻¹</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nat1</span><span class="p">,</span> <span class="n">nat2</span><span class="p">,</span> <span class="n">log_norm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param nat1: first natural parameter [N, D]</span>
+<span class="sd">        :param nat2: second natural parameter [N, D, D]</span>
+<span class="sd">        :param log_norm: normalizer parameter [N, D]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">shape_constraints</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">nat1</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">(</span><span class="n">nat2</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">log_norm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">shape_constraints</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">log_norm</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">])]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span><span class="n">shape_constraints</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">=</span> <span class="n">nat1</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span> <span class="o">=</span> <span class="n">nat1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span> <span class="o">=</span> <span class="n">nat2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_norm</span> <span class="o">=</span> <span class="n">log_norm</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="UnivariateGaussianSitesNat.means"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.UnivariateGaussianSitesNat.means">[docs]</a>    <span class="k">def</span> <span class="nf">means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the means of the Gaussians.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="UnivariateGaussianSitesNat.precisions"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.UnivariateGaussianSitesNat.precisions">[docs]</a>    <span class="k">def</span> <span class="nf">precisions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the precisions of the Gaussians.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="UnivariateGaussianSitesNat.log_det_precisions"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.UnivariateGaussianSitesNat.log_det_precisions">[docs]</a>    <span class="k">def</span> <span class="nf">log_det_precisions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the sum of the log determinant of the observation precisions. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="KalmanFilterWithSites"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSites">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">KalmanFilterWithSites</span><span class="p">(</span><span class="n">BaseKalmanFilter</span><span class="p">):</span>
+
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and</span>
+<span class="sd">    :class:`~markovflow.emission_model.EmissionModel`, with Gaussian sites,</span>
+<span class="sd">    that is time dependent Gaussian Likelihood terms.</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">        @inproceedings{grigorievskiy2017parallelizable,</span>
+<span class="sd">            title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},</span>
+<span class="sd">            author={Grigorievskiy, Alexander and Lawrence, Neil and S{\&quot;a}rkk{\&quot;a}, Simo},</span>
+<span class="sd">            booktitle={Int&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+<span class="sd">            pages={1--6},</span>
+<span class="sd">            year={2017},</span>
+<span class="sd">            organization={IEEE}</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The following notation from the above paper is used:</span>
+
+<span class="sd">        * :math:`G = I_N ⊗ H`, where :math:`⊗` is the Kronecker product</span>
+<span class="sd">        * :math:`R = [R₁, R₂, ... Rₙ]` is the observation covariance</span>
+<span class="sd">        * :math:`Σ = blockdiag[R]`</span>
+<span class="sd">        * :math:`K⁻¹ = A⁻ᵀQ⁻¹A⁻¹` is the precision, where :math:`A⁻ᵀ =  [Aᵀ]⁻¹ = [A⁻¹]ᵀ`</span>
+<span class="sd">        * :math:`L` is the Cholesky of :math:`K⁻¹ + GᵀΣ⁻¹G`. That is, :math:`LLᵀ = K⁻¹ + GᵀΣ⁻¹G`</span>
+<span class="sd">        * :math:`y` is the observation matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">state_space_model</span><span class="p">:</span> <span class="n">StateSpaceModel</span><span class="p">,</span>
+        <span class="n">emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span><span class="p">,</span>
+        <span class="n">sites</span><span class="p">:</span> <span class="n">GaussianSites</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param state_space_model: Parametrises the latent chain.</span>
+<span class="sd">        :param emission_model: Maps the latent chain to the observations.</span>
+<span class="sd">        :param sites: Gaussian sites parameterizing the Gaussian likelihoods.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># verify site shape</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;The shape of the site matrices and the emission</span>
+<span class="s2">                     matrix are not compatible&quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">sites</span><span class="o">.</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">state_space_model</span><span class="p">,</span> <span class="n">emission_model</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSites._r_inv"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSites._r_inv">[docs]</a>    <span class="k">def</span> <span class="nf">_r_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Precisions of the observation model &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">precisions</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSites._log_det_observation_precision"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSites._log_det_observation_precision">[docs]</a>    <span class="k">def</span> <span class="nf">_log_det_observation_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sum of log determinant of the precisions of the observation model &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_r_inv</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSites.observations"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSites.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Observation vector &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">means</span></div></div>
+
+
+<div class="viewcode-block" id="KalmanFilterWithSparseSites"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">KalmanFilterWithSparseSites</span><span class="p">(</span><span class="n">BaseKalmanFilter</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel`</span>
+<span class="sd">    and :class:`~markovflow.emission_model.EmissionModel`, with Gaussian sites, over a time grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_space_model</span><span class="p">:</span> <span class="n">StateSpaceModel</span><span class="p">,</span> <span class="n">emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span><span class="p">,</span> <span class="n">sites</span><span class="p">:</span> <span class="n">GaussianSites</span><span class="p">,</span>
+                 <span class="n">num_grid_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">observations_index</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param state_space_model: Parameterises the latent chain.</span>
+<span class="sd">        :param emission_model: Maps the latent chain to the observations.</span>
+<span class="sd">        :param sites: Gaussian sites over the observations.</span>
+<span class="sd">        :param num_grid_points: number of grid points.</span>
+<span class="sd">        :param observations_index: Index of the observations in the time grid with shape (N,).</span>
+<span class="sd">        :param observations: Sparse observations with shape [n_batch] + (N, output_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">sites</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations_index</span> <span class="o">=</span> <span class="n">observations_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sparse_observations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drop_batch_shape</span><span class="p">(</span><span class="n">observations</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">((</span><span class="n">num_grid_points</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">state_space_model</span><span class="p">,</span> <span class="n">emission_model</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSparseSites._r_inv"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv">[docs]</a>    <span class="k">def</span> <span class="nf">_r_inv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Precisions of the observation model over the time grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data_sites_precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">precisions</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_to_dense</span><span class="p">(</span><span class="n">data_sites_precision</span><span class="p">,</span> <span class="n">output_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span></div>
+
+<div class="viewcode-block" id="KalmanFilterWithSparseSites._drop_batch_shape"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites._drop_batch_shape">[docs]</a>    <span class="k">def</span> <span class="nf">_drop_batch_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check the batch, if present, is equal to 1, and drop it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor_shape</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">_shape_as_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span> <span class="k">return</span> <span class="n">tensor</span>
+        <span class="k">if</span> <span class="n">tensor_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;KalmanFilterWithSparseSites doesn&#39;t support batches&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSparseSites._log_det_observation_precision"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites._log_det_observation_precision">[docs]</a>    <span class="k">def</span> <span class="nf">_log_det_observation_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sum of log determinant of the precisions of the observation model. It only calculates for the data_sites as</span>
+<span class="sd">        other sites precision is anyways zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">logdet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_r_inv_data</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSparseSites.observations"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sparse observation vector &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_to_dense</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_observations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid_shape</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="KalmanFilterWithSparseSites._r_inv_data"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites._r_inv_data">[docs]</a>    <span class="k">def</span> <span class="nf">_r_inv_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Precisions of the observation model for only the data sites.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">precisions</span></div>
+
+<div class="viewcode-block" id="KalmanFilterWithSparseSites.sparse_to_dense"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites.sparse_to_dense">[docs]</a>    <span class="k">def</span> <span class="nf">sparse_to_dense</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">output_shape</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a sparse tensor to a dense one on the basis of observations index, output tensor is of the output_shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations_index</span><span class="p">,</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">output_shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="KalmanFilterWithSparseSites.dense_to_sparse"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites.dense_to_sparse">[docs]</a>    <span class="k">def</span> <span class="nf">dense_to_sparse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a dense tensor to a sparse one on the basis of observations index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tensor_shape</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">expand_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tensor_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+
+        <span class="n">tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather_nd</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations_index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">expand_dims</span><span class="p">:</span>
+            <span class="n">tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tensor</span></div>
+
+<div class="viewcode-block" id="KalmanFilterWithSparseSites.log_likelihood"><a class="viewcode-back" href="../../autoapi/markovflow/kalman_filter/index.html#markovflow.kalman_filter.KalmanFilterWithSparseSites.log_likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct a TensorFlow function to compute the likelihood.</span>
+
+<span class="sd">        For more mathematical details, look at the log_likelihood function of the parent class.</span>
+<span class="sd">        The main difference from the parent class are that the vector of observations is now sparse.        </span>
+
+<span class="sd">        :return: The likelihood as a scalar tensor (we sum over the `batch_shape`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># K⁻¹ + GᵀΣ⁻¹G = LLᵀ.</span>
+        <span class="n">l_post</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k_inv_post</span><span class="o">.</span><span class="n">cholesky</span>
+        <span class="n">num_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Hμ [..., num_transitions + 1, output_dim]</span>
+        <span class="n">marginal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">marginal_means</span><span class="p">)</span>
+        <span class="n">marginal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drop_batch_shape</span><span class="p">(</span><span class="n">marginal</span><span class="p">)</span>
+
+        <span class="c1"># y = obs - Hμ [..., num_transitions + 1, output_dim]</span>
+        <span class="n">disp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">-</span> <span class="n">marginal</span>
+        <span class="n">disp_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_observations</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense_to_sparse</span><span class="p">(</span><span class="n">marginal</span><span class="p">)</span>
+
+        <span class="c1"># cst is the constant term for a gaussian log likelihood</span>
+        <span class="n">cst</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emission</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">*</span> <span class="n">num_data</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span>
+        <span class="p">)</span>
+
+        <span class="n">term1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...op,...p,...o-&gt;...o&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r_inv_data</span><span class="p">,</span> <span class="n">disp_data</span><span class="p">,</span> <span class="n">disp_data</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="c1"># term 2 is: ½|L⁻¹(GᵀΣ⁻¹)y|²</span>
+        <span class="c1"># (GᵀΣ⁻¹)y [..., num_transitions + 1, state_dim]</span>
+        <span class="n">obs_proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_back_project_y_to_state</span><span class="p">(</span><span class="n">disp</span><span class="p">)</span>
+
+        <span class="c1"># ½|L⁻¹(GᵀΣ⁻¹)y|² [...]</span>
+        <span class="n">term2</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l_post</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">obs_proj</span><span class="p">,</span> <span class="n">transpose_left</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1">## term 3 is: ½log |K⁻¹| - log |L| + ½ log |Σ⁻¹|</span>
+        <span class="c1"># where log |Σ⁻¹| = num_data * log|R⁻¹|</span>
+        <span class="n">term3</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">prior_ssm</span><span class="o">.</span><span class="n">log_det_precision</span><span class="p">()</span>
+                <span class="o">-</span> <span class="n">l_post</span><span class="o">.</span><span class="n">abs_log_det</span><span class="p">()</span>
+                <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_det_observation_precision</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">cst</span> <span class="o">+</span> <span class="n">term1</span> <span class="o">+</span> <span class="n">term2</span> <span class="o">+</span> <span class="n">term3</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

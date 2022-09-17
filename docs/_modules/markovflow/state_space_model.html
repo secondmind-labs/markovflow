@@ -1,0 +1,834 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.state_space_model &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.state_space_model</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a state space model.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">TensorType</span>
+<span class="kn">from</span> <span class="nn">gpflow.utilities</span> <span class="kn">import</span> <span class="n">triangular</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">SampleShape</span>
+<span class="kn">from</span> <span class="nn">markovflow.block_tri_diag</span> <span class="kn">import</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">,</span> <span class="n">SymmetricBlockTriDiagonal</span>
+<span class="kn">from</span> <span class="nn">markovflow.gauss_markov</span> <span class="kn">import</span> <span class="n">GaussMarkovDistribution</span><span class="p">,</span> <span class="n">check_compatible</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span><span class="p">,</span> <span class="n">tf_scope_fn_decorator</span>
+
+<span class="n">tfd</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span>
+
+
+<div class="viewcode-block" id="StateSpaceModel"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">StateSpaceModel</span><span class="p">(</span><span class="n">GaussMarkovDistribution</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implements a state space model. This has the following form:</span>
+
+<span class="sd">    .. math:: xₖ₊₁ = Aₖ xₖ + bₖ + qₖ</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">        * :math:`qₖ ~ 𝓝(0, Qₖ)`</span>
+<span class="sd">        * :math:`x₀ ~ 𝓝(μ₀, P₀)`</span>
+<span class="sd">        * :math:`xₖ ∈ ℝ^d`</span>
+<span class="sd">        * :math:`bₖ ∈ ℝ^d`</span>
+<span class="sd">        * :math:`Aₖ ∈ ℝ^{d × d}`</span>
+<span class="sd">        * :math:`Qₖ ∈ ℝ^{d × d}`</span>
+<span class="sd">        * :math:`μ₀ ∈ ℝ^{d × 1}`</span>
+<span class="sd">        * :math:`P₀ ∈ ℝ^{d × d}`</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">        @inproceedings{grigorievskiy2017parallelizable,</span>
+<span class="sd">            title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},</span>
+<span class="sd">            author={Grigorievskiy, Alexander and Lawrence, Neil and S{\&quot;a}rkk{\&quot;a}, Simo},</span>
+<span class="sd">            booktitle={Int&#39;l Workshop on Machine Learning for Signal Processing (MLSP)},</span>
+<span class="sd">            pages={1--6},</span>
+<span class="sd">            year={2017},</span>
+<span class="sd">            organization={IEEE}</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The model samples :math:`x₀` with an initial Gaussian distribution in :math:`ℝ^d`</span>
+<span class="sd">    (in code :math:`d` is `state_dim`).</span>
+
+<span class="sd">    The model then proceeds for :math:`n` (`num_transitions`) to generate :math:`[x₁, ... xₙ]`,</span>
+<span class="sd">    according to the formula above. The marginal distribution of samples at a point :math:`k`</span>
+<span class="sd">    is a Gaussian with mean :math:`μₖ, Pₖ`.</span>
+
+<span class="sd">    This class allows the user to generate samples from this process as well as to calculate the</span>
+<span class="sd">    marginal distributions for each transition.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">initial_mean</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+        <span class="n">chol_initial_covariance</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+        <span class="n">state_transitions</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+        <span class="n">state_offsets</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+        <span class="n">chol_process_covariances</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param initial_mean: A :data:`~markovflow.base.TensorType` containing the initial mean,</span>
+<span class="sd">            with shape ``batch_shape + [state_dim]``.</span>
+<span class="sd">        :param chol_initial_covariance: A :data:`~markovflow.base.TensorType` containing the</span>
+<span class="sd">            Cholesky of the initial covariance, with shape</span>
+<span class="sd">            ``batch_shape + [state_dim, state_dim]``. That is, unless the</span>
+<span class="sd">            initial covariance is zero, in which case it is zero.</span>
+<span class="sd">        :param state_transitions: A :data:`~markovflow.base.TensorType` containing state transition</span>
+<span class="sd">            matrices, with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        :param state_offsets: A :data:`~markovflow.base.TensorType` containing the process means</span>
+<span class="sd">            bₖ, with shape ``batch_shape + [num_transitions, state_dim]``.</span>
+<span class="sd">        :param chol_process_covariances: A :data:`~markovflow.base.TensorType` containing the</span>
+<span class="sd">            Cholesky of the noise covariance matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions, state_dim, state_dim]``. That is, unless the</span>
+<span class="sd">            noise covariance is zero, in which case it is zero.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">initial_mean</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span>
+                <span class="p">(</span><span class="n">chol_initial_covariance</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span>
+                <span class="p">(</span><span class="n">state_transitions</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span>
+                <span class="p">(</span><span class="n">state_offsets</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span>
+                <span class="p">(</span><span class="n">chol_process_covariances</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_transitions&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># assert batch shapes are exactly matching</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">initial_mean</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">chol_initial_covariance</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">)[:</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_offsets</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">chol_process_covariances</span><span class="p">)[:</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="c1"># store the tensors in self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mu_0</span> <span class="o">=</span> <span class="n">initial_mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span> <span class="o">=</span> <span class="n">state_transitions</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span> <span class="o">=</span> <span class="n">chol_initial_covariance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span> <span class="o">=</span> <span class="n">chol_process_covariances</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_b_s</span> <span class="o">=</span> <span class="n">state_offsets</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.event_shape"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.event_shape">[docs]</a>    <span class="k">def</span> <span class="nf">event_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the shape of the event.</span>
+
+<span class="sd">        :return: The shape is ``[num_transitions + 1, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concatenated_state_offsets</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.batch_shape"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.batch_shape">[docs]</a>    <span class="k">def</span> <span class="nf">batch_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the shape of any leading dimensions that come before :attr:`event_shape`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.state_dim"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.num_transitions"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.num_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">num_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of transitions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.cholesky_process_covariances"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.cholesky_process_covariances">[docs]</a>    <span class="k">def</span> <span class="nf">cholesky_process_covariances</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Cholesky of :math:`[Q₁, Q₂, ....]`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with</span>
+<span class="sd">            shape ``[... num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.cholesky_initial_covariance"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.cholesky_initial_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">cholesky_initial_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Cholesky of :math:`P₀`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.initial_covariance"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.initial_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">initial_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return :math:`P₀`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span> <span class="o">@</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.concatenated_cholesky_process_covariance"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.concatenated_cholesky_process_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">concatenated_cholesky_process_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the Cholesky of :math:`[P₀, Q₁, Q₂, ....]`.</span>
+
+<span class="sd">        :return: A tensor with shape ``[... num_transitions + 1, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.state_offsets"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.state_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">state_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state offsets :math:`[b₁, b₂, ....]`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with</span>
+<span class="sd">            shape ``[..., num_transitions, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b_s</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.initial_mean"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.initial_mean">[docs]</a>    <span class="k">def</span> <span class="nf">initial_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the initial mean :math:`μ₀`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mu_0</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.concatenated_state_offsets"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.concatenated_state_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">concatenated_state_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the concatenated state offsets :math:`[μ₀, b₁, b₂, ....]`.</span>
+
+<span class="sd">        :return: A tensor with shape ``[... num_transitions + 1, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_mu_0</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b_s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.state_transitions"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorType</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the concatenated state offsets :math:`[A₀, A₁, A₂, ....]`.</span>
+
+<span class="sd">        :return: A :data:`~markovflow.base.TensorType` with</span>
+<span class="sd">            shape ``[... num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.marginal_means"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.marginal_means">[docs]</a>    <span class="k">def</span> <span class="nf">marginal_means</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean of the marginal distributions at each time point. If:</span>
+
+<span class="sd">        .. math:: xₖ ~ 𝓝(μₖ, Kₖₖ)</span>
+
+<span class="sd">        ...then return :math:`μₖ`.</span>
+
+<span class="sd">        If we let the concatenated state offsets be :math:`m = [μ₀, b₁, b₂, ....]` and :math:`A`</span>
+<span class="sd">        be defined as in equation (5) of the SpInGP paper (see class docstring), then:</span>
+
+<span class="sd">        .. math:: μ = A m = (A⁻¹)⁻¹ m</span>
+
+<span class="sd">        ...which we can do quickly using :meth:`a_inv_block`.</span>
+
+<span class="sd">        :return: The marginal means of the joint Gaussian, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions + 1, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># (A⁻¹)⁻¹ m: batch_shape + [num_transitions + 1, state_dim]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_inv_block</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concatenated_state_offsets</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.marginal_covariances"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.marginal_covariances">[docs]</a>    <span class="k">def</span> <span class="nf">marginal_covariances</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the ordered covariances :math:`Σₖₖ` of the multivariate normal marginal</span>
+<span class="sd">        distributions over consecutive states :math:`xₖ`.</span>
+
+<span class="sd">        :return: The marginal covariances of the joint Gaussian, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="o">.</span><span class="n">cholesky</span><span class="o">.</span><span class="n">block_diagonal_of_inverse</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.covariance_blocks"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.covariance_blocks">[docs]</a>    <span class="k">def</span> <span class="nf">covariance_blocks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the diagonal and lower off-diagonal blocks of the covariance.</span>
+
+<span class="sd">        :return: A tuple of tensors with respective shapes</span>
+<span class="sd">                ``batch_shape + [num_transitions + 1, state_dim]``,</span>
+<span class="sd">                ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">marginal_covariances</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subsequent_covariances</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marginal_covariances</span><span class="p">),</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StateSpaceModel.a_inv_block"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.a_inv_block">[docs]</a>    <span class="k">def</span> <span class="nf">a_inv_block</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return :math:`A⁻¹`.</span>
+
+<span class="sd">        This has the form::</span>
+
+<span class="sd">            A⁻¹ =  [ I             ]</span>
+<span class="sd">                   [-A₁, I         ]</span>
+<span class="sd">                   [    -A₂, I     ]</span>
+<span class="sd">                   [         ᨞  ᨞  ]</span>
+<span class="sd">                   [         -Aₙ, I]</span>
+
+<span class="sd">        ...where :math:`[A₁, ..., Aₙ]` are the state transition matrices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create the diagonal of A⁻¹</span>
+        <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">(),</span> <span class="n">batch_shape</span><span class="o">=</span><span class="n">batch_shape</span><span class="p">)</span>
+        <span class="c1"># A⁻¹</span>
+        <span class="k">return</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.sample"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return sample trajectories.</span>
+
+<span class="sd">        :param sample_shape: The shape (and hence number of) trajectories to sample from</span>
+<span class="sd">            the state space model.</span>
+<span class="sd">        :return: A tensor containing state samples, with shape</span>
+<span class="sd">            ``sample_shape + self.batch_shape + self.event_shape``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sample_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span>
+        <span class="n">full_sample_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">sample_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_shape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="mi">1</span><span class="p">])],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="n">epsilons</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">full_sample_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">concatenated_state_offsets</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concatenated_cholesky_process_covariance</span><span class="p">,</span> <span class="n">epsilons</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">conditional_epsilons</span> <span class="o">=</span> <span class="n">b</span> <span class="o">+</span> <span class="n">z</span>
+
+        <span class="c1"># handle the case of zero sample size: this array has no elements!</span>
+        <span class="k">if</span> <span class="n">conditional_epsilons</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">num_elements</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">conditional_epsilons</span>
+
+        <span class="c1"># (A⁻¹)⁻¹ m: sample_shape + self.batch_shape + self.event_shape</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_inv_block</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">conditional_epsilons</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">samples</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.subsequent_covariances"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.subsequent_covariances">[docs]</a>    <span class="k">def</span> <span class="nf">subsequent_covariances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">marginal_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each pair of subsequent states :math:`xₖ, xₖ₊₁`, return the covariance of their joint</span>
+<span class="sd">        distribution. That is:</span>
+
+<span class="sd">        .. math:: Cov(xₖ₊₁, xₖ) = AₖPₖ</span>
+
+<span class="sd">        :param marginal_covariances: The marginal covariances of each state in the model,</span>
+<span class="sd">            with shape ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.</span>
+<span class="sd">        :return: The covariance between subsequent state, with shape</span>
+<span class="sd">                 ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subsequent_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span> <span class="o">@</span> <span class="n">marginal_covariances</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">subsequent_covs</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">subsequent_covs</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.log_det_precision"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.log_det_precision">[docs]</a>    <span class="k">def</span> <span class="nf">log_det_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the log determinant of the precision matrix. This uses the precision as</span>
+<span class="sd">        defined in the SpInGP paper (see class summary above).</span>
+
+<span class="sd">        Precision is defined as:</span>
+
+<span class="sd">        .. math:: K⁻¹ = (AQAᵀ)⁻¹</span>
+
+<span class="sd">        so:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            log |K⁻¹| &amp;=  log | Q⁻¹ | (since |A| = 1)\\</span>
+<span class="sd">                      &amp;= - log |P₀| - Σₜ log |Qₜ|\\</span>
+<span class="sd">                      &amp;= - 2 * (log |chol_P₀| + Σₜ log |chol_Qₜ|)</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># shape: [...]</span>
+        <span class="n">log_det</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag_part</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag_part</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span><span class="p">))),</span>
+                <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">log_det</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_det</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.create_non_trainable_copy"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.create_non_trainable_copy">[docs]</a>    <span class="k">def</span> <span class="nf">create_non_trainable_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StateSpaceModel&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a non-trainable version of :class:`~markovflow.gauss_markov.GaussMarkovDistribution`.</span>
+
+<span class="sd">        This is to convert a trainable version of this class back to being non-trainable.</span>
+
+<span class="sd">        :return: A Gauss-Markov distribution that is a copy of this one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">initial_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_mean</span><span class="p">)</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">)</span>
+        <span class="n">chol_initial_covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cholesky_initial_covariance</span><span class="p">)</span>
+        <span class="n">chol_process_covariances</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cholesky_process_covariances</span><span class="p">)</span>
+        <span class="n">state_offsets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_offsets</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">initial_mean</span><span class="p">,</span>
+            <span class="n">chol_initial_covariance</span><span class="p">,</span>
+            <span class="n">state_transitions</span><span class="p">,</span>
+            <span class="n">state_offsets</span><span class="p">,</span>
+            <span class="n">chol_process_covariances</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="StateSpaceModel.create_trainable_copy"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.create_trainable_copy">[docs]</a>    <span class="k">def</span> <span class="nf">create_trainable_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;StateSpaceModel&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a trainable version of this state space model.</span>
+
+<span class="sd">        This is primarily for use with variational approaches where we want to optimise</span>
+<span class="sd">        the parameters of a state space model that is initialised from a prior state space model.</span>
+
+<span class="sd">        The initial mean and state transitions are the same.</span>
+
+<span class="sd">        The initial and process covariances are &#39;flattened&#39;. Since they are lower triangular, we</span>
+<span class="sd">        only want to parametrise this part of the matrix. For this purpose we use the</span>
+<span class="sd">        `params.triangular` constraint which is the `tfp.bijectors.FillTriangular` bijector that</span>
+<span class="sd">        converts between a triangular matrix :math:`[dim, dim]` and a flattened vector of</span>
+<span class="sd">        shape :math:`[dim (dim + 1) / 2]`.</span>
+
+<span class="sd">        :return: A state space model that is a copy of this one and a dataclass containing the</span>
+<span class="sd">                 variables that can be trained.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trainable_ssm</span> <span class="o">=</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mu_0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;initial_mean&quot;</span><span class="p">),</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_chol_P_0</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">triangular</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;chol_initial_covariance&quot;</span>
+            <span class="p">),</span>
+            <span class="n">state_transitions</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;state_transitions&quot;</span><span class="p">),</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_b_s</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;state_offsets&quot;</span><span class="p">),</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">triangular</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;chol_process_covariances&quot;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># check that the state space models are the same</span>
+        <span class="n">check_compatible</span><span class="p">(</span><span class="n">trainable_ssm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">trainable_ssm</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel._build_precision"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel._build_precision">[docs]</a>    <span class="k">def</span> <span class="nf">_build_precision</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SymmetricBlockTriDiagonal</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the compact banded representation of the Precision matrix using state space model</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        We construct matrix:</span>
+<span class="sd">            K⁻¹ = A⁻ᵀQ⁻¹A⁻¹</span>
+
+<span class="sd">        Using Q⁻¹ and A⁻¹ defined in equations (6) and (8) in the SpInGP paper (see class docstring)</span>
+
+<span class="sd">        It can be shown that</span>
+
+<span class="sd">        K⁻¹ = | P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁ | -A₁ᵀ Q₁⁻¹          | 0...</span>
+<span class="sd">              | -Q₁⁻¹ A₁          | Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂ |  -A₂ᵀ Q₂⁻¹         | 0...</span>
+<span class="sd">              |   0               | -Q₂⁻¹ A₂          | Q₂⁻¹ + A₃ᵀ Q₃⁻¹ A₃ | -A₃ᵀ Q₃⁻¹| 0...</span>
+<span class="sd">        ....</span>
+
+<span class="sd">        :return: The precision as a `SymmetricBlockTriDiagonal` object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># [Q₁⁻¹A₁, Q₂⁻¹A₂, ....Qₙ⁻¹Aₙ]</span>
+        <span class="c1"># [... num_transitions, state_dim, state_dim]</span>
+        <span class="n">inv_q_a</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chol_Q_s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">)</span>
+        <span class="c1"># [A₁ᵀQ₁⁻¹A₁, A₂ᵀQ₂⁻¹A₂, .... AₙQₙ⁻¹Aₙᵀ]</span>
+        <span class="c1"># [... num_transitions, state_dim, state_dim]</span>
+        <span class="n">aqa</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">,</span> <span class="n">inv_q_a</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># need to pad aqa to make it the same length</span>
+        <span class="c1"># [... 1, state_dim, state_dim]</span>
+        <span class="n">padding_zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cholesky_initial_covariance</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())[</span>
+            <span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Calculate [P₀⁻¹, Q₁⁻¹, Q₂⁻¹, ....]</span>
+        <span class="c1"># First create the identities</span>
+        <span class="c1"># [... num_transitions, state_dim, state_dim]</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">(),</span>
+            <span class="n">batch_shape</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="c1"># now use cholesky solve with the identities to create [P₀⁻¹, Q₁⁻¹, Q₂⁻¹, ....]</span>
+        <span class="c1"># [... num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">concatted_inv_q_s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">concatenated_cholesky_process_covariance</span><span class="p">,</span> <span class="n">identities</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [P₀⁻¹ + A₁ᵀQ₁⁻¹A₁, Q₁⁻¹ + A₂ᵀQ₂⁻¹A₂, .... Qₙ₋₁⁻¹ + AₙQₙ⁻¹Aₙᵀ, Qₙ⁻¹]</span>
+        <span class="c1"># [... num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="n">concatted_inv_q_s</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">aqa</span><span class="p">,</span> <span class="n">padding_zeros</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concatenated_cholesky_process_covariance</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">diag</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">SymmetricBlockTriDiagonal</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="o">-</span><span class="n">inv_q_a</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel._log_pdf_factors"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel._log_pdf_factors">[docs]</a>    <span class="k">def</span> <span class="nf">_log_pdf_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the value of the log of the factors of the probability density function (PDF)</span>
+<span class="sd">        evaluated at a state trajectory::</span>
+
+<span class="sd">            [log p(x₀), log p(x₁|x₀), ..., log p(xₖ₊₁|xₖ)]</span>
+
+<span class="sd">        ...with x₀ ~ 𝓝(μ₀, P₀) and xₖ₊₁|xₖ ~ 𝓝(Aₖ xₖ + bₖ, Qₖ)</span>
+
+<span class="sd">        :states: The state trajectory has shape:</span>
+<span class="sd">            sample_shape + self.batch_shape + self.event_shape</span>
+<span class="sd">        :return: The log PDF of the factors with shape:</span>
+<span class="sd">            sample_shape + self.batch_shape + [self.num_transitions + 1]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">states</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_shape</span><span class="p">)</span>
+
+        <span class="c1"># log p(x₀)</span>
+        <span class="n">initial_pdf</span> <span class="o">=</span> <span class="n">tfd</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span>
+            <span class="n">loc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_mean</span><span class="p">,</span> <span class="n">scale_tril</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cholesky_initial_covariance</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="c1"># [A₁ x₀ + b₁, A₂ x₁ + b₂, ..., Aₖ₊₁ μₖ + bₖ₊₁]</span>
+        <span class="n">conditional_means</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_s</span><span class="p">,</span> <span class="n">states</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b_s</span>
+
+        <span class="c1"># [log p(x₁|x₀), ..., etc]</span>
+        <span class="n">remaining_pdfs</span> <span class="o">=</span> <span class="n">tfd</span><span class="o">.</span><span class="n">MultivariateNormalTriL</span><span class="p">(</span>
+            <span class="n">loc</span><span class="o">=</span><span class="n">conditional_means</span><span class="p">,</span> <span class="n">scale_tril</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cholesky_process_covariances</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">initial_pdf</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">remaining_pdfs</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.log_pdf"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.log_pdf">[docs]</a>    <span class="k">def</span> <span class="nf">log_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the value of the log of the probability density function (PDF)</span>
+<span class="sd">        evaluated at states. That is:</span>
+
+<span class="sd">        .. math:: log p(x) = log p(x₀) + Σₖ log p(xₖ₊₁|xₖ)  (for 0 ⩽ k &lt; n)</span>
+
+<span class="sd">        :param states: The state trajectory, with shape</span>
+<span class="sd">            ``sample_shape + self.batch_shape + self.event_shape``.</span>
+<span class="sd">        :return: The log PDF, with shape ``sample_shape + self.batch_shape``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_pdf_factors</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.kl_divergence"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.kl_divergence">[docs]</a>    <span class="k">def</span> <span class="nf">kl_divergence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">:</span> <span class="n">GaussMarkovDistribution</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the KL divergence of the current Gauss-Markov distribution from the specified</span>
+<span class="sd">        input `dist`. That is:</span>
+
+<span class="sd">        .. math:: KL(dist₁ ∥ dist₂)</span>
+
+<span class="sd">        To do so we first compute the marginal distributions from the Gauss-Markov form:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            dist₁ = 𝓝(μ₁, P⁻¹₁)\\</span>
+<span class="sd">            dist₂ = 𝓝(μ₂, P⁻¹₂)</span>
+
+<span class="sd">        ...where:</span>
+
+<span class="sd">            * :math:`μᵢ` are the marginal means</span>
+<span class="sd">            * :math:`Pᵢ` are the banded precisions</span>
+
+<span class="sd">        The KL divergence is thus given by:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            KL(dist₁ ∥ dist₂) = ½(tr(P₂P₁⁻¹) + (μ₂ - μ₁)ᵀP₂(μ₂ - μ₁) - N - log(|P₂|) + log(|P₁|))</span>
+
+<span class="sd">        ...where :math:`N = (\verb |num_transitions| + 1) * \verb |state_dim|` (that is,</span>
+<span class="sd">        the dimensionality of the Gaussian).</span>
+
+<span class="sd">        :param dist: Another similarly parameterised Gauss-Markov distribution.</span>
+<span class="sd">        :return: A tensor of the KL divergences, with shape ``self.batch_shape``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">check_compatible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span>
+        <span class="n">batch_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span>
+
+        <span class="n">marginal_covs_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginal_covariances</span>
+        <span class="n">precision_2</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">precision</span>
+
+        <span class="c1"># trace term, we use that for any trace tr(AᵀB) = Σᵢⱼ Aᵢⱼ Bᵢⱼ</span>
+        <span class="c1"># and since the P₂ is symmetric block tri diagonal, we only need the block diagonal and</span>
+        <span class="c1"># block sub diagonals from from P₁⁻¹</span>
+        <span class="c1"># this is the sub diagonal of P₁⁻¹, [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">subsequent_covs_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subsequent_covariances</span><span class="p">(</span><span class="n">marginal_covs_1</span><span class="p">)</span>
+        <span class="c1"># trace_sub_diag must be added twice as the matrix is symmetric, [...]</span>
+        <span class="n">trace</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">precision_2</span><span class="o">.</span><span class="n">block_diagonal</span> <span class="o">*</span> <span class="n">marginal_covs_1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">precision_2</span><span class="o">.</span><span class="n">block_sub_diagonal</span> <span class="o">*</span> <span class="n">subsequent_covs_1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">trace</span><span class="p">),</span> <span class="n">batch_shape</span><span class="p">)</span>
+
+        <span class="c1"># (μ₂ - μ₁)ᵀP₂(μ₂ - μ₁)</span>
+        <span class="c1"># [... num_transitions + 1, state_dim]</span>
+        <span class="n">mean_diff</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">marginal_means</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginal_means</span>
+        <span class="c1"># if P₂ = LLᵀ, calculate [Lᵀ(μ₂ - μ₁)] [... num_transitions + 1, state_dim]</span>
+        <span class="n">l_mean_diff</span> <span class="o">=</span> <span class="n">precision_2</span><span class="o">.</span><span class="n">cholesky</span><span class="o">.</span><span class="n">dense_mult</span><span class="p">(</span><span class="n">mean_diff</span><span class="p">,</span> <span class="n">transpose_left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">mahalanobis</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">input_tensor</span><span class="o">=</span><span class="n">l_mean_diff</span> <span class="o">*</span> <span class="n">l_mean_diff</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># [...]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mahalanobis</span><span class="p">),</span> <span class="n">batch_shape</span><span class="p">)</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span>
+
+        <span class="n">k_l</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">trace</span> <span class="o">+</span> <span class="n">mahalanobis</span> <span class="o">-</span> <span class="n">dim</span> <span class="o">-</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_det_precision</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_det_precision</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">k_l</span><span class="p">),</span> <span class="n">batch_shape</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">k_l</span></div>
+
+<div class="viewcode-block" id="StateSpaceModel.normalizer"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.StateSpaceModel.normalizer">[docs]</a>    <span class="k">def</span> <span class="nf">normalizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Conputes the normalizer</span>
+<span class="sd">        Page 36 of Thang Bui</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span>
+        <span class="n">cst</span> <span class="o">=</span> <span class="n">dim</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">log_det</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">log_det_precision</span><span class="p">()</span>
+        <span class="c1"># if P₂ = LLᵀ, calculate [Lᵀ(μ₂ - μ₁)] [... num_transitions + 1, state_dim]</span>
+        <span class="n">l_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="o">.</span><span class="n">cholesky</span><span class="o">.</span><span class="n">dense_mult</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">marginals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">transpose_left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">mahalanobis</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">input_tensor</span><span class="o">=</span><span class="n">l_mean</span> <span class="o">*</span> <span class="n">l_mean</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># [...]</span>
+
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">cst</span> <span class="o">+</span> <span class="n">log_det</span> <span class="o">+</span> <span class="n">mahalanobis</span><span class="p">)</span></div></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="state_space_model_from_covariances"><a class="viewcode-back" href="../../autoapi/markovflow/state_space_model/index.html#markovflow.state_space_model.state_space_model_from_covariances">[docs]</a><span class="k">def</span> <span class="nf">state_space_model_from_covariances</span><span class="p">(</span>
+    <span class="n">initial_mean</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">initial_covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">state_transitions</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">state_offsets</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">process_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a state space model using the full covariance matrices for convenience.</span>
+
+<span class="sd">    :param initial_mean: The initial mean, with shape ``batch_shape + [state_dim]``.</span>
+<span class="sd">    :param initial_covariance: Initial covariance, with shape</span>
+<span class="sd">        ``batch_shape + [state_dim, state_dim]``.</span>
+<span class="sd">    :param state_transitions: State transition matrices, with shape</span>
+<span class="sd">        ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">    :param state_offsets: The process means :math:`bₖ`, with shape</span>
+<span class="sd">        ``batch_shape + [num_transitions, state_dim]``.</span>
+<span class="sd">    :param process_covariances: Noise covariance matrices, with shape</span>
+<span class="sd">        ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">cholesky_or_zero</span><span class="p">(</span><span class="n">covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function takes a number of covariance matrices which have been stacked in the batch</span>
+<span class="sd">        dimensions and, for each matrix if it non-zero computes the Cholesky of the matrix,</span>
+<span class="sd">        otherwise leaves as-is (i.e. a matrix of zeros).</span>
+
+<span class="sd">        :param covariance: tiled covariance matrices, shape</span>
+<span class="sd">                batch_shape + [dim, dim]</span>
+<span class="sd">        :return: tiled matrices each of which is either a Cholesky, or Zero matrix, shape</span>
+<span class="sd">                batch_shape + [dim, dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">covariance</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_greater_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">covariance</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">covariance</span><span class="p">,</span> <span class="n">zeros</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">covariance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">mask_expanded</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">dim</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">batch_identity</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()),</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">covariance</span><span class="p">))</span>
+        <span class="c1"># As all arguments to tf.where are evaluated we need to make sure the Cholesky does not</span>
+        <span class="c1"># fail, even if it is unused. This is all the following line does, is does not affect the</span>
+        <span class="c1"># computation.</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask_expanded</span><span class="p">,</span> <span class="n">batch_identity</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">batch_identity</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask_expanded</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">covariance</span> <span class="o">+</span> <span class="n">fix</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+        <span class="n">initial_mean</span><span class="o">=</span><span class="n">initial_mean</span><span class="p">,</span>
+        <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">cholesky_or_zero</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">),</span>
+        <span class="n">state_transitions</span><span class="o">=</span><span class="n">state_transitions</span><span class="p">,</span>
+        <span class="n">state_offsets</span><span class="o">=</span><span class="n">state_offsets</span><span class="p">,</span>
+        <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">cholesky_or_zero</span><span class="p">(</span><span class="n">process_covariances</span><span class="p">),</span></div>
+    <span class="p">)</span>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

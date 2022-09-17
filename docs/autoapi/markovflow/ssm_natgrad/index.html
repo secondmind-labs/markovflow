@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.ssm_natgrad &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.state_space_model" href="../state_space_model/index.html" />
+    <link rel="prev" title="markovflow.ssm_gaussian_transformations" href="../ssm_gaussian_transformations/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient" class="nav-link">SSMNaturalGradient</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient.minimize" class="nav-link">minimize</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_steps" class="nav-link">_natgrad_steps</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_step" class="nav-link">_natgrad_step</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient.get_config" class="nav-link">get_config</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_dense" class="nav-link">_resource_apply_dense</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_sparse" class="nav-link">_resource_apply_sparse</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.ssm_natgrad">
+<span id="markovflow-ssm-natgrad"></span><h1><a class="reference internal" href="#module-markovflow.ssm_natgrad" title="markovflow.ssm_natgrad"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.ssm_natgrad</span></code></a><a class="headerlink" href="#module-markovflow.ssm_natgrad" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a natural gradient optimiser.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">SSMNaturalGradient</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momentum</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1e-08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">tensorflow.optimizers.Optimizer</span></code></p>
+<p>Represents a natural gradient optimiser. It is also capable of updating
+parameters with momentum, as per the <code class="xref py py-class docutils literal notranslate"><span class="pre">Adam</span></code> optimiser.</p>
+<p>To account for momentum we keep track of a running moving average for <span class="math notranslate nohighlight">\(g̃\)</span> and
+the Fisher norm of <span class="math notranslate nohighlight">\(g̃\)</span>, where <span class="math notranslate nohighlight">\(g̃ = F⁻¹g\)</span> is the natural gradient. This is
+defined as the Euclidean gradient preconditioned by the inverse Fisher information matrix.</p>
+<p>The Fisher norm of the natural gradient is given by:</p>
+<div class="math notranslate nohighlight">
+\[|g̃|_F = g̃ᵀFg̃ = gᵀF⁻¹Fg̃ = gᵀg̃\]</div>
+<p>…which is the inner product between the natural gradient and the Euclidean gradient.</p>
+<p>The moving average for the natural gradient and its norm are given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;mₖ₊₁ = β₁ mₖ + (1 - β₁)g̃ₖ\\
+&amp;vₖ₊₁ = β₂ vₖ + (1 - β₂)|g̃|ₖ\end{split}\]</div>
+<p>The final update is given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;θ̃ₖ₊₁ = θ̃ₖ - γ mₖ / (√vₖ + ε) \verb|(in the momentum case)|\\
+&amp;θ̃ₖ₊₁ = θ̃ₖ - γ g̃ₖ \verb|(if we don't have momentum)|\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gamma</strong> – The learning rate of the optimiser.</p></li>
+<li><p><strong>momentum</strong> – Whether to update with momentum or not.</p></li>
+<li><p><strong>beta1</strong> – The momentum parameter for the moving average of the natural gradient.</p></li>
+<li><p><strong>beta2</strong> – The momentum parameter for the moving average of the norm of natural gradient.</p></li>
+<li><p><strong>epsilon</strong> – A small constant to make sure we do not divide by <span class="math notranslate nohighlight">\(0\)</span>
+in the momentum term.</p></li>
+<li><p><strong>name</strong> – Optional name to give the optimiser.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient.minimize">
+<code class="sig-name descname"><span class="pre">minimize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient.minimize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient.minimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimise the objective function of the model.</p>
+<p>Note the natural gradient optimiser works with variational parameters only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss_fn</strong> – The Loss function.</p></li>
+<li><p><strong>ssm</strong> – A state space model that represents our variational posterior.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_steps">
+<code class="sig-name descname"><span class="pre">_natgrad_steps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient._natgrad_steps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call a natgrad step after wrapping it in a name scope.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss_fn</strong> – A Loss function.</p></li>
+<li><p><strong>ssm</strong> – A state space model that represents our variational posterior.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_step">
+<code class="sig-name descname"><span class="pre">_natgrad_step</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient._natgrad_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient._natgrad_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements equation [10] from</p>
+<dl>
+<dt>&#64;inproceedings{salimbeni18,</dt><dd><dl class="simple">
+<dt>title={Natural Gradients in Practice: Non-Conjugate  Variational Inference in</dt><dd><p>Gaussian Process Models},</p>
+</dd>
+</dl>
+<p>author={Salimbeni, Hugh and Eleftheriadis, Stefanos and Hensman, James},
+booktitle={AISTATS},
+year={2018}</p>
+</dd>
+</dl>
+<p>In addition, for convenience with the rest of MarkovFlow, this code computes ∂L/∂η using
+the chain rule:</p>
+<p>g̃ = ∂L/∂η = [(∂L / ∂[ssm_variables])(∂[ssm_variables] / ∂η)]ᵀ</p>
+<p>In the code η = eta, θ = theta.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss_fn</strong> – Loss function.</p></li>
+<li><p><strong>ssm</strong> – A state space model that represents our variational posterior.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient.get_config">
+<code class="sig-name descname"><span class="pre">get_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient.get_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient.get_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Python dictionary containing the configuration of the optimiser.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_dense">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">_resource_apply_dense</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">handle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient._resource_apply_dense"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_dense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add ops to apply dense gradients to the variable <code class="xref any docutils literal notranslate"><span class="pre">handle</span></code>.</p>
+<dl>
+<dt>Args:</dt><dd><p>grad: a <code class="xref any docutils literal notranslate"><span class="pre">Tensor</span></code> representing the gradient.
+handle: a <code class="xref any docutils literal notranslate"><span class="pre">Tensor</span></code> of dtype <a class="reference external" href="https://docs.python.org/3/library/resource.html#module-resource" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">resource</span></code></a> which points to the variable to be</p>
+<blockquote>
+<div><p>updated.</p>
+</div></blockquote>
+<p>apply_state: A dict which is used across multiple apply calls.</p>
+</dd>
+<dt>Returns:</dt><dd><p>An <code class="xref any docutils literal notranslate"><span class="pre">Operation</span></code> which updates the value of the variable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_sparse">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">_resource_apply_sparse</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">handle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/ssm_natgrad.html#SSMNaturalGradient._resource_apply_sparse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_natgrad.SSMNaturalGradient._resource_apply_sparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add ops to apply sparse gradients to the variable <code class="xref any docutils literal notranslate"><span class="pre">handle</span></code>.</p>
+<p>Similar to <code class="xref any docutils literal notranslate"><span class="pre">_apply_sparse</span></code>, the <code class="xref any docutils literal notranslate"><span class="pre">indices</span></code> argument to this method has been
+de-duplicated. Optimizers which deal correctly with non-unique indices may
+instead override <code class="xref any docutils literal notranslate"><span class="pre">_resource_apply_sparse_duplicate_indices</span></code> to avoid this
+overhead.</p>
+<dl>
+<dt>Args:</dt><dd><p>grad: a <code class="xref any docutils literal notranslate"><span class="pre">Tensor</span></code> representing the gradient for the affected indices.
+handle: a <code class="xref any docutils literal notranslate"><span class="pre">Tensor</span></code> of dtype <a class="reference external" href="https://docs.python.org/3/library/resource.html#module-resource" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">resource</span></code></a> which points to the variable to be</p>
+<blockquote>
+<div><p>updated.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>indices: a <code class="xref any docutils literal notranslate"><span class="pre">Tensor</span></code> of integral type representing the indices for which</dt><dd><p>the gradient is nonzero. Indices are unique.</p>
+</dd>
+</dl>
+<p>apply_state: A dict which is used across multiple apply calls.</p>
+</dd>
+<dt>Returns:</dt><dd><p>An <code class="xref any docutils literal notranslate"><span class="pre">Operation</span></code> which updates the value of the variable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

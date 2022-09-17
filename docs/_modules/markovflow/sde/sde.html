@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.sde.sde &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.sde.sde</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.quadrature</span> <span class="kn">import</span> <span class="n">mvnquad</span>
+
+
+<div class="viewcode-block" id="SDE"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE">[docs]</a><span class="k">class</span> <span class="nc">SDE</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class representing Stochastic Differential Equation.</span>
+
+<span class="sd">    ..math::</span>
+<span class="sd">     &amp;dx(t)/dt = f(x(t),t) + l(x(t),t) w(t)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param state_dim: The output dimension of the kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span> <span class="o">=</span> <span class="n">state_dim</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SDE.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state dimension of the sde.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="SDE.drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.drift">[docs]</a>    <span class="k">def</span> <span class="nf">drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drift function of the SDE i.e. `f(x(t),t)`</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, state_dim)``.</span>
+
+<span class="sd">        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="SDE.diffusion"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.diffusion">[docs]</a>    <span class="k">def</span> <span class="nf">diffusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Diffusion function of the SDE i.e. `l(x(t),t)`</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, 1)``.</span>
+
+<span class="sd">        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.</span>
+
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="SDE.gradient_drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.gradient_drift">[docs]</a>    <span class="k">def</span> <span class="nf">gradient_drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the gradient of the drift wrt the states x(t).</span>
+
+<span class="sd">        ..math:: df(x(t))/dx(t)</span>
+
+<span class="sd">        :param x: states with shape (num_states, state_dim).</span>
+<span class="sd">        :param t: time of states with shape (num_states, 1), defaults to zero.</span>
+
+<span class="sd">        :return: the gradient of the SDE drift with shape (num_states, state_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">GradientTape</span><span class="p">()</span> <span class="k">as</span> <span class="n">tape</span><span class="p">:</span>
+            <span class="n">tape</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">drift_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+            <span class="n">dfx</span> <span class="o">=</span> <span class="n">tape</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">drift_val</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dfx</span></div>
+
+<div class="viewcode-block" id="SDE.expected_drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.expected_drift">[docs]</a>    <span class="k">def</span> <span class="nf">expected_drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_mean</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">q_covar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the Expectation of the drift under the provided Gaussian over states.</span>
+
+<span class="sd">        ..math:: E_q(x(t))[f(x(t))]</span>
+
+<span class="sd">        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).</span>
+<span class="sd">        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).</span>
+
+<span class="sd">        :return: the expectation value with shape (n_batch, num_states, state_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fx</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">drift</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">n_batch</span><span class="p">,</span> <span class="n">n_states</span><span class="p">,</span> <span class="n">state_dim</span> <span class="o">=</span> <span class="n">q_mean</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">q_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q_mean</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+        <span class="n">q_covar</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q_covar</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">mvnquad</span><span class="p">(</span><span class="n">fx</span><span class="p">,</span> <span class="n">q_mean</span><span class="p">,</span> <span class="n">q_covar</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="n">n_batch</span><span class="p">,</span> <span class="n">n_states</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="SDE.expected_gradient_drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.SDE.expected_gradient_drift">[docs]</a>    <span class="k">def</span> <span class="nf">expected_gradient_drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_mean</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">q_covar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">         Calculates the Expectation of the gradient of the drift under the provided Gaussian over states</span>
+
+<span class="sd">        ..math:: E_q(.)[f&#39;(x(t))]</span>
+
+<span class="sd">        :param q_mean: mean of Gaussian over states with shape (n_batch, num_states, state_dim).</span>
+<span class="sd">        :param q_covar: covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).</span>
+
+<span class="sd">        :return: the expectation value with shape (n_batch, num_states, state_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_batch</span><span class="p">,</span> <span class="n">n_states</span><span class="p">,</span> <span class="n">state_dim</span> <span class="o">=</span> <span class="n">q_mean</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">q_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q_mean</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+        <span class="n">q_covar</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">q_covar</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">mvnquad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gradient_drift</span><span class="p">,</span> <span class="n">q_mean</span><span class="p">,</span> <span class="n">q_covar</span><span class="p">,</span> <span class="n">H</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">val</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="n">n_batch</span><span class="p">,</span> <span class="n">n_states</span><span class="p">,</span> <span class="n">state_dim</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">val</span></div></div>
+
+
+<div class="viewcode-block" id="OrnsteinUhlenbeckSDE"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.OrnsteinUhlenbeckSDE">[docs]</a><span class="k">class</span> <span class="nc">OrnsteinUhlenbeckSDE</span><span class="p">(</span><span class="n">SDE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ornstein-Uhlenbeck SDE represented by</span>
+
+<span class="sd">    ..math:: dx(t) = -λ x(t) dt + dB(t), the spectral density of the Brownian motion is specified by q.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decay</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Ornstein-Uhlenbeck SDE.</span>
+
+<span class="sd">        :param decay: λ, a tensor with shape ``(1, 1)``.</span>
+<span class="sd">        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OrnsteinUhlenbeckSDE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">state_dim</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decay</span> <span class="o">=</span> <span class="n">decay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
+
+<div class="viewcode-block" id="OrnsteinUhlenbeckSDE.drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.OrnsteinUhlenbeckSDE.drift">[docs]</a>    <span class="k">def</span> <span class="nf">drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drift of the Ornstein-Uhlenbeck process</span>
+<span class="sd">        ..math:: f(x(t), t) = -λ x(t)</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, 1)``.</span>
+
+<span class="sd">        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">decay</span> <span class="o">*</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="OrnsteinUhlenbeckSDE.diffusion"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.OrnsteinUhlenbeckSDE.diffusion">[docs]</a>    <span class="k">def</span> <span class="nf">diffusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Diffusion of the Ornstein-Uhlenbeck process</span>
+<span class="sd">        ..math:: l(x(t), t) = sqrt(q)</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, 1)``.</span>
+
+<span class="sd">        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DoubleWellSDE"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.DoubleWellSDE">[docs]</a><span class="k">class</span> <span class="nc">DoubleWellSDE</span><span class="p">(</span><span class="n">SDE</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Double-Well SDE represented by</span>
+
+<span class="sd">    ..math:: dx(t) = f(x(t)) dt + dB(t),</span>
+
+<span class="sd">    where f(x(t)) = 4 x(t) (1 - x(t)^2) and the spectral density of the Brownian motion is specified by q.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Double-Well SDE.</span>
+
+<span class="sd">        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DoubleWellSDE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">state_dim</span><span class="o">=</span><span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
+
+<div class="viewcode-block" id="DoubleWellSDE.drift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.DoubleWellSDE.drift">[docs]</a>    <span class="k">def</span> <span class="nf">drift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drift of the double-well process</span>
+<span class="sd">        ..math:: f(x(t), t) = 4 x(t) (1 - x(t)^2)</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, 1)``.</span>
+
+<span class="sd">        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="k">return</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DoubleWellSDE.diffusion"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/sde/index.html#markovflow.sde.DoubleWellSDE.diffusion">[docs]</a>    <span class="k">def</span> <span class="nf">diffusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Diffusion of the double-well process</span>
+<span class="sd">        ..math:: l(x(t), t) = sqrt(q)</span>
+
+<span class="sd">        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.</span>
+<span class="sd">        :param t: time `t` with shape ``(n_batch, 1)``.</span>
+
+<span class="sd">        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

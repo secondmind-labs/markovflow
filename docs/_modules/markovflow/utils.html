@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.utils &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.utils</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing utility functions.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">tensorflow.compat.v1.linalg</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LinearOperatorBlockDiag</span><span class="p">,</span>
+    <span class="n">LinearOperatorFullMatrix</span><span class="p">,</span>
+    <span class="n">LinearOperatorKronecker</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">auto_namescope_enabled</span>
+
+
+<div class="viewcode-block" id="tf_scope_fn_decorator"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.tf_scope_fn_decorator">[docs]</a><span class="k">def</span> <span class="nf">tf_scope_fn_decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to wrap the function call in a name_scope</span>
+<span class="sd">    of the form &quot;.{name of function}&quot;.</span>
+
+<span class="sd">    The prefix `.` is required because names_scopes cannot be prefixed with `_`.</span>
+
+<span class="sd">    Without this some function names (such as private functions) would raise an error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auto_namescope_enabled</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">fn</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">decorated_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorated_fn</span></div>
+
+
+<div class="viewcode-block" id="tf_scope_class_decorator"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.tf_scope_class_decorator">[docs]</a><span class="k">def</span> <span class="nf">tf_scope_class_decorator</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator to wrap all the methods in a class in a name_scope</span>
+<span class="sd">    of the form &quot;{name of class}.{name of method}&quot;.</span>
+
+<span class="sd">    Do not decorate the top level; TensorBoard renders badly if there is only one block.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">auto_namescope_enabled</span><span class="p">():</span>
+        <span class="k">return</span> <span class="bp">cls</span>
+
+    <span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">scope_name</span><span class="p">):</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">decorated_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="n">scope_name</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">decorated_fn</span>
+
+    <span class="k">for</span> <span class="n">maybe_fn_name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">maybe_fn_name</span><span class="p">)):</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">maybe_fn_name</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">maybe_fn_name</span><span class="p">,</span> <span class="n">decorator</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">maybe_fn_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="bp">cls</span></div>
+
+
+<div class="viewcode-block" id="block_diag"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.block_diag">[docs]</a><span class="k">def</span> <span class="nf">block_diag</span><span class="p">(</span><span class="n">matrices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct block diagonal matrices from a list of batched 2D tensors.</span>
+
+<span class="sd">    :param matrices: A list of tensors with shape ``[..., Nᵢ, Mᵢ]``. That is, a list of</span>
+<span class="sd">        matrices with the same batch dimension.</span>
+<span class="sd">    :return: A matrix with the input matrices stacked along its main diagonal, with</span>
+<span class="sd">        shape ``[..., ∑ᵢ,Nᵢ, ∑ᵢ,Mᵢ]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LinearOperatorBlockDiag</span><span class="p">(</span><span class="n">LinearOperatorFullMatrix</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matrices</span><span class="p">)</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="to_delta_time"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.to_delta_time">[docs]</a><span class="k">def</span> <span class="nf">to_delta_time</span><span class="p">(</span><span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a tensor of time points to differences between the times. This function returns:</span>
+
+<span class="sd">    .. math:: Δtₖ = tₖ₊₁ -  tₖ</span>
+
+<span class="sd">    Time points must be a strictly increasing vector, for example:</span>
+
+<span class="sd">    .. math:: tₖ₊₁ &gt;  tₖ, so Δtₖ &gt; 0</span>
+
+<span class="sd">    :param time_points: A tensor :math:`tₖ` with shape ``[..., a]``.</span>
+<span class="sd">    :return: A tensor :math:`Δtₖ` with shape ``[..., a - 1]``.</span>
+<span class="sd">    :raises InvalidArgumentError: Raises if :math:`Δtₖ ≤ 0`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">delta_t</span> <span class="o">=</span> <span class="n">time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_greater_equal</span><span class="p">(</span><span class="n">delta_t</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">delta_t</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">delta_t</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="kronecker_product"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.kronecker_product">[docs]</a><span class="k">def</span> <span class="nf">kronecker_product</span><span class="p">(</span><span class="n">matrices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the tensor representing the Kronecker product of the argument matrices.</span>
+
+<span class="sd">    :param matrices: The list of matrices to compute the Kronecker product from.</span>
+<span class="sd">    :return: The Kronecker product tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">LinearOperatorKronecker</span><span class="p">([</span><span class="n">LinearOperatorFullMatrix</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matrices</span><span class="p">])</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="augment_square_matrix"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.augment_square_matrix">[docs]</a><span class="k">def</span> <span class="nf">augment_square_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">extra_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fill_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Augment a square matrix to match `state_dim + extra_dim`, where</span>
+<span class="sd">    `state_dim` is the dimensionality of the inner square matrix of matrix.</span>
+
+<span class="sd">    Effectively it creates a block diagonal by padding (if necessary) with an identity or zeros:</span>
+
+<span class="sd">    .. math:: matrix -&gt; [[matrix, 0s], [0s, (I or 0s)]]</span>
+
+<span class="sd">    :param matrix: A tensor with shape ``[..., state_dim, state_dim]``.</span>
+<span class="sd">    :param extra_dim: The extra dimension we want to augment it with. If `extra_dim` is :math:`0`,</span>
+<span class="sd">        the matrix remains unaltered.</span>
+<span class="sd">    :param fill_zeros: Whether to fill with zeros or identity.</span>
+<span class="sd">    :return: A tensor with shape ``[..., max_dim, max_dim]``,</span>
+<span class="sd">        where `max_dim = state_dim + extra_dim`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scalar</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">fill_zeros</span> <span class="k">else</span> <span class="mi">1</span>
+    <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">matrix</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">identity</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">extra_dim</span><span class="p">,</span> <span class="n">batch_shape</span><span class="o">=</span><span class="n">batch_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">block_diag</span><span class="p">([</span><span class="n">matrix</span><span class="p">,</span> <span class="n">scalar</span> <span class="o">*</span> <span class="n">identity</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="augment_matrix"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.augment_matrix">[docs]</a><span class="k">def</span> <span class="nf">augment_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">extra_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Augment a non-square matrix so that the last dimension becomes</span>
+<span class="sd">    `state_dim + extra_dim`, where `state_dim` is the size of the last dimension of the matrix.</span>
+
+<span class="sd">    Effectively it expands the matrix (if necessary) with zeros in the last dimension</span>
+<span class="sd">    to match `max_dim = state_dim + extra_dim`. In other words:</span>
+
+<span class="sd">    .. math:: matrix -&gt; [matrix, 0s]</span>
+
+<span class="sd">    :param matrix: A tensor with shape ``[..., state_dim]``.</span>
+<span class="sd">    :param extra_dim: The extra dimension we want to augment it with. If `extra_dim` is :math:`0`</span>
+<span class="sd">        the matrix remains unaltered.</span>
+<span class="sd">    :return: A tensor with shape ``[..., max_dim]``, where `max_dim = state_dim + extra_dim`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">matrix</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">shape</span><span class="p">,</span> <span class="p">[</span><span class="n">extra_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">matrix</span><span class="p">,</span> <span class="n">zeros</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="batch_base_conditional"><a class="viewcode-back" href="../../autoapi/markovflow/utils/index.html#markovflow.utils.batch_base_conditional">[docs]</a><span class="k">def</span> <span class="nf">batch_base_conditional</span><span class="p">(</span>
+    <span class="n">Kmn</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">Kmm</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">Knn</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">f</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">q_sqrt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">white</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a g1_n and g2_n, and distributions ps and qs such that</span>
+<span class="sd">      p_n(g2_n) = N(g2_n; 0, Kmm)  (independent of n)</span>
+<span class="sd">      p_n(g1_n) = N(g1; 0, knn)</span>
+<span class="sd">      p_n(g1_n | g2_n) = N(g1_n; knm (Kmm⁻¹) g2_n, knn - knm (Kmm⁻¹) kmn)</span>
+
+<span class="sd">    And</span>
+<span class="sd">      q_n(g2_n) = N(g2_n; f_n, q_sqrt_n q_sqrt_nᵀ)</span>
+
+<span class="sd">    This method computes the means and (co)variances of</span>
+<span class="sd">      q_n(g1_n) = ∫ q_n(g2_n) p_n(g1_n| g2_n)</span>
+
+<span class="sd">    :param Kmn: [M, ..., N]</span>
+<span class="sd">    :param Kmm: [M, M]</span>
+<span class="sd">    :param Knn: [..., N, N]  or  N</span>
+<span class="sd">    :param f: [M, N]</span>
+<span class="sd">    :param q_sqrt: If this is a Tensor, it must have shape [N, M, M] (lower</span>
+<span class="sd">        triangular) or [M, N] (diagonal)</span>
+<span class="sd">    :param white: bool</span>
+<span class="sd">    :return: [N,], [N,]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># compute kernel stuff</span>
+    <span class="c1"># get the leadings dims in Kmn to the front of the tensor</span>
+    <span class="c1"># if Kmn has rank two, i.e. [M, N], this is the identity op.</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">Kmn</span><span class="p">)</span>
+    <span class="n">perm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">K</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="n">K</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]),</span>  <span class="c1"># leading dims (...)</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]),</span>  <span class="c1"># [M]</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">K</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">],</span>
+        <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>  <span class="c1"># [N]</span>
+    <span class="n">Kmn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Kmn</span><span class="p">,</span> <span class="n">perm</span><span class="p">)</span>  <span class="c1"># [..., M, N]</span>
+
+    <span class="n">shape_constraints</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">Kmn</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="n">Kmm</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="n">Knn</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">q_sqrt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shape_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">q_sqrt</span><span class="p">,</span> <span class="p">([</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">q_sqrt</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">]))</span>
+        <span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+        <span class="n">shape_constraints</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;base_conditional() arguments &quot;</span>
+        <span class="s2">&quot;[Note that this check verifies the shape of an alternative &quot;</span>
+        <span class="s2">&quot;representation of Kmn. See the docs for the actual expected &quot;</span>
+        <span class="s2">&quot;shape.]&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">leading_dims</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">Kmn</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">Lm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">Kmm</span><span class="p">)</span>  <span class="c1"># [M, M]</span>
+
+    <span class="c1"># Compute the projection matrix A</span>
+    <span class="n">Lm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">Lm</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">leading_dims</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">Lm</span><span class="p">)],</span> <span class="mi">0</span><span class="p">))</span>  <span class="c1"># [..., M, M]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span><span class="n">Lm</span><span class="p">,</span> <span class="n">Kmn</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># [..., M, N]</span>
+
+    <span class="c1"># compute the covariance due to the conditioning</span>
+    <span class="n">fvar</span> <span class="o">=</span> <span class="n">Knn</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">A</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># [..., N]</span>
+
+    <span class="c1"># another backsubstitution in the unwhitened case</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">white</span><span class="p">:</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">adjoint</span><span class="p">(</span><span class="n">Lm</span><span class="p">),</span> <span class="n">A</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># construct the conditional mean</span>
+    <span class="n">fmean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">A</span> <span class="o">*</span> <span class="n">f</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># [N,]</span>
+
+    <span class="k">if</span> <span class="n">q_sqrt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">q_sqrt_dims</span> <span class="o">=</span> <span class="n">q_sqrt</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span>
+        <span class="k">if</span> <span class="n">q_sqrt_dims</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">LTA</span> <span class="o">=</span> <span class="n">q_sqrt</span> <span class="o">*</span> <span class="n">A</span>  <span class="c1"># [N, M]</span>
+        <span class="k">elif</span> <span class="n">q_sqrt_dims</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">band_part</span><span class="p">(</span><span class="n">q_sqrt</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># force lower triangle # [R, M, M]</span>
+            <span class="n">LTA</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;nmo,on-&gt;mn&quot;</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>  <span class="c1"># [M, N]</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bad dimension for q_sqrt: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">q_sqrt</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span><span class="p">))</span>
+
+        <span class="n">fvar</span> <span class="o">=</span> <span class="n">fvar</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">LTA</span><span class="p">),</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># [N,]</span>
+
+    <span class="n">shape_constraints</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">Kmn</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>  <span class="c1"># tensor included again for M, N dimensions</span>
+        <span class="p">(</span><span class="n">fmean</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>
+        <span class="p">(</span><span class="n">fvar</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">]),</span>
+    <span class="p">]</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span><span class="n">shape_constraints</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;base_conditional() return values&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fmean</span><span class="p">,</span> <span class="n">fvar</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

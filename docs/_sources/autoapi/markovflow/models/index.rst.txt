@@ -1,0 +1,1468 @@
+:py:mod:`markovflow.models`
+===========================
+
+.. py:module:: markovflow.models
+
+.. autoapi-nested-parse::
+
+   Package containing ready-to-use GP models.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   gaussian_process_regression/index.rst
+   iwvi/index.rst
+   models/index.rst
+   pep/index.rst
+   sparse_pep/index.rst
+   sparse_variational/index.rst
+   sparse_variational_cvi/index.rst
+   spatio_temporal_variational/index.rst
+   variational/index.rst
+   variational_cvi/index.rst
+
+
+Package Contents
+----------------
+
+.. py:class:: GaussianProcessRegression(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], kernel: markovflow.kernels.SDEKernel, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, chol_obs_covariance: Optional[gpflow.base.TensorType] = None)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowModel`
+
+   Performs GP regression.
+
+   The key reference is Chapter 2 of::
+
+       Gaussian Processes for Machine Learning
+       Carl Edward Rasmussen and Christopher K. I. Williams
+       The MIT Press, 2006. ISBN 0-262-18253-X.
+
+   This class uses the kernel and the time points to create a state space model.
+   GP regression is then a Kalman filter on that state space model using the observations.
+
+   :param kernel: A kernel defining a prior over functions.
+   :param input_data: A tuple of ``(time_points, observations)`` containing the observed data:
+       time points of observations, with shape ``batch_shape + [num_data]``,
+       observations with shape ``batch_shape + [num_data, observation_dim]``.
+   :param chol_obs_covariance: A :data:`~markovflow.base.TensorType` containing
+       the Cholesky factor of the observation noise covariance,
+       with shape ``[observation_dim, observation_dim]``.
+       a default None value will assume independent likelihood variance of 1.0
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+
+   .. py:method:: time_points() -> tensorflow.Tensor
+      :property:
+
+      Return the time points of observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: observations() -> tensorflow.Tensor
+      :property:
+
+      Return the observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: mean_function() -> markovflow.mean_function.MeanFunction
+      :property:
+
+      Return the mean function of the GP.
+
+
+   .. py:method:: loss() -> tensorflow.Tensor
+
+      Return the loss, which is the negative log likelihood.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process for inference.
+
+      For this class, this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`
+      built from the Kalman filter.
+
+
+   .. py:method:: log_likelihood() -> tensorflow.Tensor
+
+      Calculate the log likelihood of the observations given the kernel parameters.
+
+      In other words, :math:`log p(y_{1...T} | ϑ)` for some parameters :math:`ϑ`.
+
+      :return: A scalar tensor (summed over the batch shape and the whole trajectory).
+
+
+
+.. py:class:: ImportanceWeightedVI(kernel: markovflow.kernels.SDEKernel, inducing_points: tensorflow.Tensor, likelihood: gpflow.likelihoods.Likelihood, num_importance_samples: int, initial_distribution: Optional[markovflow.state_space_model.StateSpaceModel] = None, mean_function: Optional[markovflow.mean_function.MeanFunction] = None)
+
+   Bases: :py:obj:`markovflow.models.sparse_variational.SparseVariationalGaussianProcess`
+
+   Performs importance-weighted variational inference (IWVI).
+
+   The `key reference <https://papers.nips.cc/paper/7699-importance-weighting-and-
+   variational-inference.pdf>`_ is::
+
+       @inproceedings{domke2018importance,
+         title={Importance weighting and variational inference},
+         author={Domke, Justin and Sheldon, Daniel R},
+         booktitle={Advances in neural information processing systems},
+         pages={4470--4479},
+         year={2018}
+       }
+
+   The idea is based on the observation that an estimator of the evidence lower bound (ELBO)
+   can be obtained from an importance weight :math:`w`:
+
+   .. math:: L₁ = log w(x₁),    x₁ ~ q(x)
+
+   ...where :math:`x` is the latent variable of the model (a GP, or set of GPs in our case)
+   and the function :math:`w` is:
+
+   .. math:: w(x) = p(y | x) p(x) / q(x)
+
+   It follows that:
+
+   .. math:: ELBO = 𝔼ₓ₁[ L₁ ]
+
+   ...and:
+
+   .. math:: log p(y) = log 𝔼ₓ₁[ w(x₁) ]
+
+   It turns out that there are a series of lower bounds given by taking multiple importance
+   samples:
+
+   .. math:: Lₙ = log (1/n) Σᵢⁿ w(xᵢ),     xᵢ ~ q(x)
+
+   And we have the relation:
+
+   .. math:: log p(y) >= 𝔼[Lₙ] >= 𝔼[Lₙ₋₁] >= ... >= 𝔼[L₁] = ELBO
+
+   This means that we can improve tightness of the ELBO to the log marginal likelihood by
+   increasing :math:`n`, which we refer to in this class as `num_importance_samples`.
+   The trade-offs are:
+
+       * The objective function is now always stochastic, even for cases where the ELBO
+         of the parent class is non-stochastic
+       * We have to do more computations (evaluate the weights :math:`n` times)
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param inducing_points: The points in time on which inference should be performed,
+       with shape ``batch_shape + [num_inducing]``.
+   :param likelihood: A likelihood.
+   :param num_importance_samples: The number of samples for the importance-weighted estimator.
+   :param initial_distribution: An initial configuration for the variational distribution,
+       with shape ``batch_shape + [num_inducing]``.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+
+   .. py:method:: elbo(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Compute the importance-weighted ELBO using K samples. The procedure is::
+
+          for k=1...K:
+              uₖ ~ q(u)
+              sₖ ~ p(s | u)
+              wₖ = p(y | sₖ)p(uₖ) / q(uₖ)
+
+          ELBO = log (1/K) Σₖwₖ
+
+      Everything is computed in log-space for stability. Note that gradients
+      of this ELBO may have high variance with regard to the variational parameters;
+      see the DREGS gradient estimator method.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+      :return: A scalar tensor.
+
+
+   .. py:method:: dregs_objective(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Compute a scalar tensor that, when differentiated using `tf.gradients`,
+      produces the DREGS variance controlled gradient.
+
+      See `"Doubly Reparameterized Gradient Estimators For Monte Carlo Objectives"
+      <https://openreview.net/pdf?id=HkG3e205K7>`_ for a derivation.
+
+      We recommend using these gradients for training variational
+      parameters and gradients of the importance-weighted ELBO for training hyperparameters.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+      :return: A scalar tensor.
+
+
+
+.. py:class:: MarkovFlowModel(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class representing Markovflow models that depend on input data.
+
+   All Markovflow models are :class:`TensorFlow Modules <tf.Module>`, so it is possible to obtain
+   trainable variables via the :attr:`trainable_variables` attribute. You can combine this with
+   the :meth:`loss` method to train the model. For example::
+
+       optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.01)
+       for i in range(iterations):
+           model.optimization_step(optimizer)
+
+   Call the :meth:`predict_f` method to predict marginal function values at future time points.
+   For example::
+
+       mean, variance = model.predict_f(validation_data_tensor)
+
+   .. note:: Markovflow models that extend this class must implement the :meth:`loss`
+      method and :attr:`posterior` attribute.
+
+   .. py:method:: loss() -> tensorflow.Tensor
+      :abstractmethod:
+
+      Obtain the loss, which you can use to train the model.
+      It should always return a scalar.
+
+      :raises NotImplementedError: Must be implemented in derived classes.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Return a posterior process from the model, which can be used for inference.
+
+      :raises NotImplementedError: Must be implemented in derived classes.
+
+
+   .. py:method:: predict_state(new_time_points: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict state at `new_time_points`. Note these time points should be sorted.
+
+      :param new_time_points: Time points to generate observations for, with shape
+          ``batch_shape + [num_new_time_points,]``.
+      :return: Predicted mean and covariance for the new time points, with respective shapes
+          ``batch_shape + [num_new_time_points, state_dim]``
+          ``batch_shape + [num_new_time_points, state_dim, state_dim]``.
+
+
+   .. py:method:: predict_f(new_time_points: tensorflow.Tensor, full_output_cov: bool = False) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict marginal function values at `new_time_points`. Note these
+      time points should be sorted.
+
+      :param new_time_points: Time points to generate observations for, with shape
+          ``batch_shape + [num_new_time_points]``.
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`False`).
+      :return: Predicted mean and covariance for the new time points, with respective shapes
+          ``batch_shape + [num_new_time_points, output_dim]`` and either
+          ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or
+          ``batch_shape + [num_new_time_points, output_dim]``.
+
+
+
+.. py:class:: MarkovFlowSparseModel(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class representing Markovflow models that do not need to store the training
+   data (:math:`X, Y`) in the model to approximate the
+   posterior predictions :math:`p(f*|X, Y, x*)`.
+
+   This currently applies only to sparse variational models.
+
+   The `optimization_step` method should typically be used to train the model. For example::
+
+       input_data = (tf.constant(time_points), tf.constant(observations))
+       optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.01)
+       for i in range(iterations):
+           model.optimization_step(input_data, optimizer)
+
+   Call the :meth:`predict_f` method to predict marginal function values at future time points.
+   For example::
+
+       mean, variance = model.predict_f(validation_data_tensor)
+
+   .. note:: Markovflow models that extend this class must implement the :meth:`loss`
+      method and :attr:`posterior` attribute.
+
+   .. py:method:: loss(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Obtain the loss, which can be used to train the model.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+
+      :raises NotImplementedError: Must be implemented in derived classes.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process from the model, which can be used for inference.
+
+      :raises NotImplementedError: Must be implemented in derived classes.
+
+
+   .. py:method:: predict_state(new_time_points: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict state at `new_time_points`. Note these time points should be sorted.
+
+      :param new_time_points: Time points to generate observations for, with shape
+          ``batch_shape + [num_new_time_points,]``.
+      :return: Predicted mean and covariance for the new time points, with respective shapes
+          ``batch_shape + [num_new_time_points, state_dim]``
+          ``batch_shape + [num_new_time_points, state_dim, state_dim]``.
+
+
+   .. py:method:: predict_f(new_time_points: tensorflow.Tensor, full_output_cov: bool = False) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict marginal function values at `new_time_points`. Note these
+      time points should be sorted.
+
+      :param new_time_points: Time points to generate observations for, with shape
+          ``batch_shape + [num_new_time_points]``.
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`FalseF`).
+      :return: Predicted mean and covariance for the new time points, with respective shapes
+          ``batch_shape + [num_new_time_points, output_dim]`` and either
+          ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or
+          ``batch_shape + [num_new_time_points, output_dim]``.
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data. That is:
+
+      .. math:: log ∫ p(yᵢ=Yᵢ|Fᵢ)q(Fᵢ) dFᵢ
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`False`).
+      :return: Predicted log density at input time points, with shape
+          ``batch_shape + [num_data]``.
+
+
+
+.. py:class:: PowerExpectationPropagation(kernel: markovflow.kernels.SDEKernel, input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], likelihood: markovflow.likelihoods.PEPScalarLikelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, learning_rate=1.0, alpha=1.0)
+
+   Bases: :py:obj:`markovflow.models.variational_cvi.GaussianProcessWithSitesBase`
+
+   This is an approximate inference called Power Expectation Propagation.
+
+   Approximates a the posterior of a model with GP prior and a general likelihood
+   using a Gaussian posterior parameterized with Gaussian sites.
+
+   The following notation is used:
+
+       * x - the time points of the training data.
+       * y - observations corresponding to time points x.
+       * s(.) - the latent state of the Markov chain
+       * f(.) - the noise free predictions of the model
+       * p(y | f) - the likelihood
+       * t(f) - a site (indices will refer to the associated data point)
+       * p(.) the prior distribution
+       * q(.) the variational distribution
+
+   We use the state space formulation of Markovian Gaussian Processes that specifies:
+   the conditional density of neighbouring latent states: p(xₖ₊₁| xₖ)
+   how to read out the latent process from these states: fₖ = H xₖ
+
+   The likelihood links data to the latent process and p(yₖ | fₖ).
+   We would like to approximate the posterior over the latent state space model of this model.
+
+   We parameterize the joint posterior using sites tₖ(fₖ)
+
+       p(x, y) = p(x) ∏ₖ tₖ(fₖ)
+
+   where tₖ(fₖ) are univariate Gaussian sites parameterized in the natural form
+
+       t(f) = exp(𝞰ᵀφ(f) - A(𝞰)), where 𝞰=[η₁,η₂] and 𝛗(f)=[f,f²]
+
+   (note: the subscript k has been omitted for simplicity)
+
+   The site update of the sites are given by the classic EP update rules as described in:
+
+   @techreport{seeger2005expectation,
+     title={Expectation propagation for exponential families},
+     author={Seeger, Matthias},
+     year={2005}
+   }
+
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param input_data: A tuple of ``(time_points, observations)`` containing the observed data:
+       time points of observations, with shape ``batch_shape + [num_data]``,
+       observations with shape ``batch_shape + [num_data, observation_dim]``.
+   :param likelihood: A likelihood.
+       with shape ``batch_shape + [num_inducing]``.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param learning_rate: the learning rate of the algorithm
+   :param alpha: the power as in Power Expectation propagation
+
+   .. py:method:: local_objective(Fmu, Fvar, Y)
+
+      Local objective of the PEP algorithm : log E_q(f) p(y|f)ᵃ 
+
+
+   .. py:method:: local_objective_gradients(Fmu, Fvar)
+
+      Gradients of the local objective of the PEP algorithm wrt to the predictive mean 
+
+
+   .. py:method:: mask_indices(exclude_indices)
+
+      Binary mask (cast to float), 0 for the excluded indices, 1 for the rest 
+
+
+   .. py:method:: compute_cavity_from_marginals(marginals)
+
+      Compute cavity from marginals
+      :param marginals: list of tensors
+
+
+   .. py:method:: compute_cavity()
+
+      The cavity distributions for all data points.
+      This corresponds to the marginal distribution qᐠⁿ(fₙ) of qᐠⁿ(f) = q(f)/tₙ(fₙ)ᵃ
+
+
+   .. py:method:: compute_log_norm()
+
+      Compute log normalizer
+
+
+   .. py:method:: update_sites(site_indices=None)
+
+      Compute the site updates and perform one update step
+      :param site_indices: list of indices to be updated
+
+
+   .. py:method:: elbo() -> tensorflow.Tensor
+
+      Computes the marginal log marginal likelihood of the approximate  joint p(s, y)
+
+
+   .. py:method:: energy()
+
+      PEP Energy 
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data at the new data points.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+          a tensor of inputs with shape ``batch_shape + [num_data]``,
+          a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`False`).
+
+
+
+.. py:class:: SparsePowerExpectationPropagation(kernel: markovflow.kernels.SDEKernel, inducing_points: tensorflow.Tensor, likelihood: markovflow.likelihoods.PEPScalarLikelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, learning_rate=1.0, alpha=1.0)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowSparseModel`
+
+   This is the  Sparse Power Expectation Propagation Algorithm
+
+   Approximates a the posterior of a model with GP prior and a general likelihood
+   using a Gaussian posterior parameterized with Gaussian sites on
+   inducing states u at inducing points z.
+
+   The following notation is used:
+
+       * x - the time points of the training data.
+       * z - the time points of the inducing/pseudo points.
+       * y - observations corresponding to time points x.
+       * s(.) - the continuous time latent state process
+       * u = s(z) - the discrete inducing latent state space model
+       * f(.) - the noise free predictions of the model
+       * p(y | f) - the likelihood
+       * t(u) - a site (indices will refer to the associated data point)
+       * p(.) the prior distribution
+       * q(.) the variational distribution
+
+   We use the state space formulation of Markovian Gaussian Processes that specifies:
+   the conditional density of neighbouring latent states: p(sₖ₊₁| sₖ)
+   how to read out the latent process from these states: fₖ = H sₖ
+
+   The likelihood links data to the latent process and p(yₖ | fₖ).
+   We would like to approximate the posterior over the latent state space model of this model.
+
+   To approximate the posterior, we maximise the evidence lower bound (ELBO) (ℒ) with
+   respect to the parameters of the variational distribution, since::
+
+       log p(y) = ℒ(q) + KL[q(s) ‖ p(s | y)]
+
+   ...where::
+
+       ℒ(q) = ∫ log(p(s, y) / q(s)) q(s) ds
+
+   We parameterize the variational posterior through M sites tₘ(vₘ)
+
+       q(s) = p(s) ∏ₘ  tₘ(vₘ)
+
+   where tₘ(vₘ) are multivariate Gaussian sites on vₘ = [uₘ, uₘ₊₁],
+   i.e. consecutive inducing states.
+
+   The sites are parameterized in the natural form
+
+       t(v) = exp(𝜽ᵀφ(v) - A(𝜽)), where 𝜽=[θ₁, θ₂] and 𝛗(u)=[v, vᵀv]
+
+   with 𝛗(v) are the sufficient statistics and 𝜽 the natural parameters
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param inducing_points: The points in time on which inference should be performed,
+       with shape ``batch_shape + [num_inducing]``.
+   :param likelihood: A likelihood.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param learning_rate: the learning rate
+   :param alpha: power as in Power Expectation Propagation
+
+   .. py:method:: posterior()
+
+      Posterior Process 
+
+
+   .. py:method:: mask_indices(exclude_indices)
+
+      Binary mask to exclude data indices
+      :param exclude_indices:
+
+
+   .. py:method:: back_project_nats(nat1, nat2, time_points)
+
+      back project natural gradient associated to time points to their associated
+      inducing sites.
+
+
+   .. py:method:: local_objective(Fmu, Fvar, Y)
+
+      Local objective of the PEP algorithm : log E_q(f) p(y|f)ᵃ 
+
+
+   .. py:method:: local_objective_gradients(fx_mus, fx_covs, observations, alpha=1.0)
+
+      Gradients of the local objective of the PEP algorithm wrt to the predictive mean 
+
+
+   .. py:method:: fraction_sites(time_points)
+
+      for all segment indexed m of consecutive inducing points [z_m, z_m+1[,
+      this counts the time points t falling in that segment:
+      c(m) = #{t, z_m <= t < z_m+1} and returns 1/c(m) or 0 when c(m)=0
+
+      :param time_points: tensor of shape batch_shape + [num_data]
+      :return: tensor of shape batch_shape + [num_data]
+
+
+   .. py:method:: compute_posterior_ssm(nat1, nat2)
+
+      Computes the variational posterior distribution on the vector of inducing states
+
+
+   .. py:method:: dist_q()
+      :property:
+
+      Computes the variational posterior distribution on the vector of inducing states
+
+
+   .. py:method:: compute_marginals()
+
+      Compute pairwise marginals
+
+
+   .. py:method:: remove_cavity_from_marginals(time_points, marginals)
+
+      Remove cavity from marginals
+      :param time_points:
+      :param marginals: pairwise mean and covariance tensors
+
+
+   .. py:method:: compute_cavity_state(time_points)
+
+      The cavity distributions for data points at input time_points.
+      This corresponds to the marginal distribution qᐠⁿ(fₙ) of qᐠⁿ(s) = q(s)/tₘ(vₘ)ᵝᵃ,
+      where β = a * (1 / #time points `touching` site tₘ)
+
+
+   .. py:method:: compute_cavity(time_points)
+
+      Cavity on f
+      :param time_points: time points
+
+
+   .. py:method:: compute_new_sites(input_data)
+
+      Compute the site updates and perform one update step.
+      :param input_data: A tuple of time points and observations containing the data from which
+          to calculate the the updates:
+          a tensor of inputs with shape ``batch_shape + [num_data]``,
+          a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: compute_log_norm(input_data)
+
+      Compute the site updates and perform one update step.
+      :param input_data: A tuple of time points and observations containing the data from which
+          to calculate the the updates:
+          a tensor of inputs with shape ``batch_shape + [num_data]``,
+          a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: compute_num_data_per_interval(time_points)
+
+      compute fraction of site per data point 
+
+
+   .. py:method:: compute_fraction(time_points)
+
+      compute fraction of site per data point 
+
+
+   .. py:method:: update_sites(input_data)
+
+      apply updates 
+
+
+   .. py:method:: energy(input_data)
+
+      The PEP energy : ∫ ds p(s) 𝚷_m t_m(v_m)
+      :param input_data: input data
+
+
+   .. py:method:: loss(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Return the loss, which is the negative evidence lower bound (ELBO).
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model.
+
+
+   .. py:method:: dist_p() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the prior `GaussMarkovDistribution`.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: classic_elbo(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor])
+
+      Computes the ELBO the classic way:
+          ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+      Note: this is mostly for testing purposes and not to be used for optimization
+
+      :param input_data: A tuple of time points and observations
+      :return: A scalar tensor representing the ELBO.
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data at the new data points.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+          a tensor of inputs with shape ``batch_shape + [num_data]``,
+          a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`False`).
+
+
+
+.. py:class:: SparseVariationalGaussianProcess(kernel: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, inducing_points: tensorflow.Tensor, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, num_data: Optional[int] = None, initial_distribution: Optional[markovflow.gauss_markov.GaussMarkovDistribution] = None)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowSparseModel`
+
+   Approximate a :class:`~markovflow.gauss_markov.GaussMarkovDistribution` with a general
+   likelihood using a Gaussian posterior. Additionally uses a number of pseudo, or inducing,
+   points to represent the distribution over a typically larger number of data points.
+
+   The following notation is used:
+
+       * :math:`x` - the time points of the training data
+       * :math:`z` - the time points of the inducing/pseudo points
+       * :math:`y` - observations corresponding to time points :math:`x`
+       * :math:`s(.)` - the latent state of the Markov chain
+       * :math:`f(.)` - the noise free predictions of the model
+       * :math:`p(y | f)` - the likelihood
+       * :math:`p(.)` - the true distribution
+       * :math:`q(.)` - the variational distribution
+
+   Subscript is used to denote dependence for notational convenience, for
+   example :math:`fₖ === f(k)`.
+
+   With a prior generative model comprising a Gauss-Markov distribution, an emission model and an
+   arbitrary likelihood on the emitted variables, these define:
+
+       * :math:`p(xₖ₊₁| xₖ)`
+       * :math:`fₖ = H xₖ`
+       * :math:`p(yₖ | fₖ)`
+
+   As per a :class:`~markovflow.models.variational.VariationalGaussianProcess`
+   (VGP) model, we have:
+
+   .. math::
+       &log p(y) >= ℒ(q)
+
+       &ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+   ...where :math:`f` is defined over the entire function space.
+
+   Here this reduces to the joint of the evidence lower bound (ELBO) defined over both the
+   data :math:`x` and the inducing points :math:`z`, which we rewrite as:
+
+   .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(f(z)) ‖ p(f(z))]
+
+   This turns the inference problem into an optimisation problem: find the optimal :math:`q`.
+
+   The first term is the variational expectations and have the same form as a VGP model.
+   However, we must now use use the inducing states to predict the marginals of the
+   variational distribution at the original data points.
+
+   The second is the KL from the prior to the approximation, but evaluated at the inducing points.
+
+   The key reference is::
+
+     @inproceedings{,
+         title={Doubly Sparse Variational Gaussian Processes},
+         author={Adam, Eleftheriadis, Artemev, Durrande, Hensman},
+         booktitle={},
+         pages={},
+         year={},
+         organization={}
+     }
+
+   .. note:: Since this class extends :class:`~markovflow.models.models.MarkovFlowSparseModel`,
+      it does not depend on input data. Input data is passed during the optimisation
+      step as a tuple of time points and observations.
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param likelihood: A likelihood.
+   :param inducing_points: The points in time on which inference should be performed,
+       with shape ``batch_shape + [num_inducing]``.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param num_data: The total number of observations.
+       (relevant when feeding in external minibatches).
+   :param initial_distribution: An initial configuration for the variational distribution,
+       with shape ``batch_shape + [num_inducing]``.
+
+   .. py:method:: elbo(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Calculates the evidence lower bound (ELBO) :math:`log p(y)`. We rewrite this as:
+
+      .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(s(z)) ‖ p(s(z))]
+
+      The first term is the 'variational expectation' (VE), and has the same form as per a
+      :class:`~markovflow.models.variational.VariationalGaussianProcess` (VGP) model. However,
+      we must now use the inducing states to predict the marginals of the
+      variational distribution at the original data points.
+
+      The second is the KL divergence from the prior to the approximation, but evaluated at the
+      inducing points.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+
+      :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.
+
+
+   .. py:method:: time_points() -> tensorflow.Tensor
+      :property:
+
+      Return the time points of the sparse process which essentially are the locations of the
+      inducing points.
+
+      :return: A tensor with shape ``batch_shape + [num_inducing]``. Same as inducing inputs.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: likelihood() -> gpflow.likelihoods.Likelihood
+      :property:
+
+      Return the likelihood of the GP.
+
+
+   .. py:method:: mean_function() -> markovflow.mean_function.MeanFunction
+      :property:
+
+      Return the mean function of the GP.
+
+
+   .. py:method:: dist_p() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the prior Gauss-Markov distribution.
+
+
+   .. py:method:: dist_q() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the variational distribution as a Gauss-Markov distribution.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process for inference.
+
+      For this class this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`
+      built from the variational distribution. This will be a locally optimal
+      variational approximation of the posterior after optimisation.
+
+
+   .. py:method:: loss(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Return the loss, which is the negative evidence lower bound (ELBO).
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data at the new data points.
+
+
+
+.. py:class:: SparseCVIGaussianProcess(kernel: markovflow.kernels.SDEKernel, inducing_points: tensorflow.Tensor, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, learning_rate=0.1)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowSparseModel`
+
+   This is an alternative parameterization to the `SparseVariationalGaussianProcess`
+
+   Approximates a the posterior of a model with GP prior and a general likelihood
+   using a Gaussian posterior parameterized with Gaussian sites on
+   inducing states u at inducing points z.
+
+   The following notation is used:
+
+       * x - the time points of the training data.
+       * z - the time points of the inducing/pseudo points.
+       * y - observations corresponding to time points x.
+       * s(.) - the continuous time latent state process
+       * u = s(z) - the discrete inducing latent state space model
+       * f(.) - the noise free predictions of the model
+       * p(y | f) - the likelihood
+       * t(u) - a site (indices will refer to the associated data point)
+       * p(.) the prior distribution
+       * q(.) the variational distribution
+
+   We use the state space formulation of Markovian Gaussian Processes that specifies:
+   the conditional density of neighbouring latent states: p(sₖ₊₁| sₖ)
+   how to read out the latent process from these states: fₖ = H sₖ
+
+   The likelihood links data to the latent process and p(yₖ | fₖ).
+   We would like to approximate the posterior over the latent state space model of this model.
+
+   To approximate the posterior, we maximise the evidence lower bound (ELBO) (ℒ) with
+   respect to the parameters of the variational distribution, since::
+
+       log p(y) = ℒ(q) + KL[q(s) ‖ p(s | y)]
+
+   ...where::
+
+       ℒ(q) = ∫ log(p(s, y) / q(s)) q(s) ds
+
+   We parameterize the variational posterior through M sites tₘ(vₘ)
+
+       q(s) = p(s) ∏ₘ  tₘ(vₘ)
+
+   where tₘ(vₘ) are multivariate Gaussian sites on vₘ = [uₘ, uₘ₊₁],
+   i.e. consecutive inducing states.
+
+   The sites are parameterized in the natural form
+
+       t(v) = exp(𝜽ᵀφ(v) - A(𝜽)), where 𝜽=[θ₁, θ₂] and 𝛗(u)=[Wv, WᵀvᵀvW]
+
+   with 𝛗(v) are the sufficient statistics and 𝜽 the natural parameters
+   and W is the projection of the conditional mean E_p(f|v)[f] = W v
+
+   Each data point indexed k contributes a fraction of the site it belongs to.
+   If vₘ = [uₘ, uₘ₊₁], and zₘ < xₖ <= zₘ₊₁, then xₖ `belongs` to vₘ.
+
+   The natural gradient update of the sites are similar to that of the
+   CVIGaussianProcess except that they apply to a different parameterization of
+   the sites
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param inducing_points: The points in time on which inference should be performed,
+       with shape ``batch_shape + [num_inducing]``.
+   :param likelihood: A likelihood.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param learning_rate: the learning rate.
+
+   .. py:method:: dist_q()
+      :property:
+
+      Computes the variational posterior distribution on the vector of inducing states
+
+
+   .. py:method:: update_sites(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor])
+
+      Perform one joint update of the Gaussian sites
+              𝜽ₘ ← ρ𝜽ₘ + (1-ρ)𝐠ₘ
+
+      Here 𝐠ₘ are the sum of the gradient of the variational expectation for each data point
+      indexed k, projected back to the site vₘ, through the conditional p(fₖ|vₘ)
+      :param input_data: A tuple of time points and observations
+
+
+   .. py:method:: loss(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Obtain a `Tensor` representing the loss, which can be used to train the model.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model.
+
+
+   .. py:method:: posterior()
+      :property:
+
+      Posterior object to predict outside of the training time points 
+
+
+   .. py:method:: local_objective_and_gradients(Fmu, Fvar, Y)
+
+      Returs the local_objective and its gradients wrt to the expectation parameters
+      :param Fmu: means μ [..., latent_dim]
+      :param Fvar: variances σ² [..., latent_dim]
+      :param Y: observations Y [..., observation_dim]
+      :return: local objective and gradient wrt [μ, σ² + μ²]
+
+
+   .. py:method:: local_objective(Fmu, Fvar, Y)
+
+      local loss in CVI
+      :param Fmu: means [..., latent_dim]
+      :param Fvar: variances [..., latent_dim]
+      :param Y: observations [..., observation_dim]
+      :return: local objective [...]
+
+
+   .. py:method:: classic_elbo(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor])
+
+      Computes the ELBO the classic way:
+          ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+      Note: this is mostly for testing purposes and not to be used for optimization
+
+      :param input_data: A tuple of time points and observations
+      :return: A scalar tensor representing the ELBO.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: dist_p() -> markovflow.state_space_model.StateSpaceModel
+      :property:
+
+      Return the prior `GaussMarkovDistribution`.
+
+
+   .. py:method:: likelihood() -> gpflow.likelihoods.Likelihood
+      :property:
+
+      Return the likelihood of the GP.
+
+
+
+.. py:class:: SpatioTemporalSparseVariational(inducing_space, inducing_time, kernel_space: gpflow.kernels.Kernel, kernel_time: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, num_data=None)
+
+   Bases: :py:obj:`SpatioTemporalBase`
+
+   Model for Variational Spatio-temporal GP regression using a factor kernel
+   k_space_time((s,t),(s',t')) = k_time(t,t') * k_space(s,s')
+
+   where k_time is a Markovian kernel.
+
+       The following notation is used:
+       * X=(x,t) - the space-time points of the training data.
+       * zₛ - the space inducing/pseudo points.
+       * zₜ - the time inducing/pseudo points.
+       * y - observations corresponding to points X.
+       * f(.,.) the spatio-temporal process
+       * x(.,.) the SSM formulation of the spatio-temporal process
+       * u(.) = x(zₛ,.) - the spatio-temporal SSM marginalized at zₛ
+       * p(y | f) - the likelihood
+       * p(.) the prior distribution
+       * q(.) the variational distribution
+
+   This can be seen as the temporal extension of gpflow.SVGP,
+   where instead of fixed inducing variables u, they are now time dependent u(t)
+   and follow a Markov chain.
+
+   for a fixed set of spatial inducing inputs zₛ
+   p(x(zₛ, .)) is a continuous time process of state dimension Mₛd
+   for a fixed time slice t, p(x(.,t)) ~ GP(0, kₛ)
+
+   The following conditional independence holds:
+   p(x(s,t) | x(zₛ, .)) = p(x(s,t) | s(zₛ, t)), i.e.,
+   prediction at a new point at time t given x(zₛ, .) only depends on s(zₛ, t)
+
+   This builds a spatially sparse process as
+   q(x(.,.)) = q(x(zₛ, .)) p(x(.,.) |x(zₛ, .)),
+   where the multi-output temporal process q(x(zₛ, .)) is also sparse
+   q(x(zₛ, .)) = q(x(zₛ, zₜ)) p(x(zₛ,.) |x(zₛ,  zₜ))
+
+   the marginal q(x(zₛ, zₜ)) is a multivariate Gaussian distribution
+   parameterized as a state space model.
+
+   :param inducing_space: inducing space points [Ms, D]
+   :param inducing_time: inducing time points [Mt,]
+   :param kernel_space: Gpflow space kernel
+   :param kernel_time: Markovflow time kernel
+   :param likelihood: a likelihood object
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param num_data: number of observations
+
+   .. py:method:: dist_q() -> markovflow.state_space_model.StateSpaceModel
+      :property:
+
+      Posterior state space model on inducing states 
+
+
+   .. py:method:: dist_p() -> markovflow.state_space_model.StateSpaceModel
+      :property:
+
+      Prior state space model on inducing states 
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Posterior process 
+
+
+
+.. py:class:: SpatioTemporalSparseCVI(inducing_space, inducing_time, kernel_space: gpflow.kernels.Kernel, kernel_time: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, num_data=None, learning_rate=0.1)
+
+   Bases: :py:obj:`SpatioTemporalBase`
+
+   Model for Spatio-temporal GP regression using a factor kernel
+   k_space_time((s,t),(s',t')) = k_time(t,t') * k_space(s,s')
+
+   where k_time is a Markovian kernel.
+
+       The following notation is used:
+       * X=(x,t) - the space-time points of the training data.
+       * zₛ - the space inducing/pseudo points.
+       * zₜ - the time inducing/pseudo points.
+       * y - observations corresponding to points X.
+       * f(.,.) the spatio-temporal process
+       * x(.,.) the SSM formulation of the spatio-temporal process
+       * u(.) = x(zₛ,.) - the spatio-temporal SSM marginalized at zₛ
+       * p(y | f) - the likelihood
+       * p(.) the prior distribution
+       * q(.) the variational distribution
+
+   This can be seen as the spatial extension of markovflow's SparseCVIGaussianProcess
+   for temporal (only) Gaussian Processes.
+   The inducing variables u(x,t) are now space and time dependent.
+
+   for a fixed set of space points zₛ
+   p(x(zₛ, .)) is a continuous time process of state dimension Mₛd
+   for a fixed time slice t, p(x(.,t)) ~ GP(0, kₛ)
+
+   The following conditional independence holds:
+   p(x(s,t) | x(zₛ, .)) = p(x(s,t) | s(zₛ, t)), i.e.,
+   prediction at a new point at time t given x(zₛ, .) only depends on s(zₛ, t)
+
+   This builds a spatially sparse process as
+   q(x(.,.)) = q(x(zₛ, .)) p(x(.,.) |x(zₛ, .)),
+   where the multi-output temporal process q(x(zₛ, .)) is also sparse
+   q(x(zₛ, .)) = q(x(zₛ, zₜ)) p(x(zₛ,.) |x(zₛ,  zₜ))
+
+   the marginal q(x(zₛ, zₜ)) is parameterized as the product
+   q(x(zₛ, zₜ)) = p(x(zₛ, zₜ)) t(x(zₛ, zₜ))
+   where p(x(zₛ, zₜ)) is a state space model and t(x(zₛ, zₜ)) are sites.
+
+   :param inducing_space: inducing space points [Ms, D]
+   :param inducing_time: inducing time points [Mt,]
+   :param kernel_space: Gpflow space kernel
+   :param kernel_time: Markovflow time kernel
+   :param likelihood: a likelihood object
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param num_data: The total number of observations.
+       (relevant when feeding in external minibatches).
+   :param learning_rate: the learning rate.
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Posterior object to predict outside of the training time points 
+
+
+   .. py:method:: dist_q() -> markovflow.state_space_model.StateSpaceModel
+      :property:
+
+      Computes the variational posterior distribution on the vector of inducing states
+
+
+   .. py:method:: dist_p() -> markovflow.state_space_model.StateSpaceModel
+      :property:
+
+      Computes the prior distribution on the vector of inducing states
+
+
+   .. py:method:: projection_inducing_states_to_observations(input_data: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Compute the projection matrix from of the conditional mean of f(x,t) | s(t)
+      :param input_data: Time point and associated spatial dimension to generate observations for,
+       with shape ``batch_shape + [space_dim + 1, num_time_points]``.
+      :return: The projection matrix with shape [num_time_points, obs_dim, num_inducing_time x state_dim ]
+
+
+   .. py:method:: update_sites(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> None
+
+      Perform one joint update of the Gaussian sites
+              𝜽ₘ ← ρ𝜽ₘ + (1-ρ)𝐠ₘ
+
+      Here 𝐠ₘ are the sum of the gradient of the variational expectation for each data point
+      indexed k, projected back to the site vₘ = [uₘ, uₘ₊₁], through the conditional p(fₖ|vₘ)
+      :param input_data: A tuple of time points and observations
+
+
+   .. py:method:: local_objective_and_gradients(Fmu: tensorflow.Tensor, Fvar: tensorflow.Tensor, Y: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Returs the local_objective and its gradients wrt to the expectation parameters
+      :param Fmu: means μ [..., latent_dim]
+      :param Fvar: variances σ² [..., latent_dim]
+      :param Y: observations Y [..., observation_dim]
+      :return: local objective and gradient wrt [μ, σ² + μ²]
+
+
+   .. py:method:: local_objective(Fmu: tensorflow.Tensor, Fvar: tensorflow.Tensor, Y: tensorflow.Tensor) -> tensorflow.Tensor
+
+      local loss in CVI
+      :param Fmu: means [..., latent_dim]
+      :param Fvar: variances [..., latent_dim]
+      :param Y: observations [..., observation_dim]
+      :return: local objective [...]
+
+
+
+.. py:class:: VariationalGaussianProcess(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], kernel: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, initial_distribution: Optional[markovflow.gauss_markov.GaussMarkovDistribution] = None)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowModel`
+
+   Approximates a :class:`~markovflow.gauss_markov.GaussMarkovDistribution`
+   with a general likelihood using a Gaussian posterior.
+
+   The following notation is used:
+
+       * :math:`x` - the time points of the training data
+       * :math:`y` - observations corresponding to time points :math:`x`
+       * :math:`s(.)` - the latent state of the Markov chain
+       * :math:`f(.)` - the noise free predictions of the model
+       * :math:`p(y | f)` - the likelihood
+       * :math:`p(.)` - the true distribution
+       * :math:`q(.)` - the variational distribution
+
+   Subscript is used to denote dependence for notational convenience,
+   for example :math:`fₖ === f(k)`.
+
+   With a prior generative model comprising a Gauss-Markov distribution, an emission model and an
+   arbitrary likelihood on the emitted variables, these define:
+
+       * :math:`p(xₖ₊₁| xₖ)`
+       * :math:`fₖ = H xₖ`
+       * :math:`p(yₖ | fₖ)`
+
+   We would like to approximate the posterior of this generative model with a parametric
+   model :math:`q`, comprising of the same distribution as the prior.
+
+   To approximate the posterior, we maximise the evidence lower bound (ELBO) :math:`ℒ` with
+   respect to the parameters of the variational distribution, since:
+
+   .. math:: log p(y) = ℒ(q) + KL[q ‖ p(f | y)]
+
+   ...where:
+
+   .. math:: ℒ(q) = ∫ log(p(f, y) / q(f)) q(f) df
+
+   Since the last term is non-negative, the ELBO provides a lower bound to the log-likelihood of
+   the model. This bound is exact when :math:`KL[q ‖ p(f | y)] = 0`; that is, our approximation is
+   sufficiently flexible to capture the true posterior.
+
+   This turns the inference into an optimisation problem: find the optional :math:`q`.
+
+   To calculate the ELBO, we rewrite it as:
+
+   .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+   The first term is the 'variational expectation' of the model likelihood;
+   the second is the KL from the prior to the approximation.
+
+   :param input_data: A tuple of ``(time_points, observations)`` containing the observed data:
+       time points of observations, with shape ``batch_shape + [num_data]``,
+       observations with shape ``batch_shape + [num_data, observation_dim]``.
+   :param kernel: A kernel that defines a prior over functions.
+   :param likelihood: A likelihood.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param initial_distribution: An initial configuration for the variational distribution,
+       with shape ``batch_shape + [num_inducing]``.
+
+   .. py:method:: elbo() -> tensorflow.Tensor
+
+      Calculate the evidence lower bound (ELBO) :math:`log p(y)`. We rewrite the ELBO as:
+
+      .. math:: ℒ(q(x)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(sₓ) ‖ p(sₓ)]
+
+      The first term is the 'variational expectation' (VE); the second is the KL divergence from
+      the prior to the approximation.
+
+      :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.
+
+
+   .. py:method:: time_points() -> tensorflow.Tensor
+      :property:
+
+      Return the time points of our observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: observations() -> tensorflow.Tensor
+      :property:
+
+      Return the observations.
+
+      :return: A tensor with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: likelihood() -> gpflow.likelihoods.Likelihood
+      :property:
+
+      Return the likelihood of the GP.
+
+
+   .. py:method:: mean_function() -> markovflow.mean_function.MeanFunction
+      :property:
+
+      Return the mean function of the GP.
+
+
+   .. py:method:: dist_p() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the prior Gauss-Markov distribution.
+
+
+   .. py:method:: dist_q() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the variational distribution as a Gauss-Markov distribution.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process for inference.
+
+      For this class this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`
+      built from the variational distribution. This will be a locally optimal variational
+      approximation of the posterior after optimisation.
+
+
+   .. py:method:: loss() -> tensorflow.Tensor
+
+      Return the loss, which is the negative ELBO.
+
+
+
+.. py:class:: CVIGaussianProcess(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], kernel: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, learning_rate=0.1)
+
+   Bases: :py:obj:`GaussianProcessWithSitesBase`
+
+   Provides an alternative parameterization to a
+   :class:`~markovflow.models.variational.VariationalGaussianProcess`.
+
+   This class approximates the posterior of a model with a GP prior and a general likelihood
+   using a Gaussian posterior parameterized with Gaussian sites.
+
+   The following notation is used:
+
+       * :math:`x` - the time points of the training data
+       * :math:`y` - observations corresponding to time points :math:`x`
+       * :math:`s(.)` - the latent state of the Markov chain
+       * :math:`f(.)` - the noise free predictions of the model
+       * :math:`p(y | f)` - the likelihood
+       * :math:`t(f)` - a site (indices will refer to the associated data point)
+       * :math:`p(.)` the prior distribution
+       * :math:`q(.)` the variational distribution
+
+   We use the state space formulation of Markovian Gaussian Processes that specifies:
+
+   * The conditional density of neighbouring latent states :math:`p(sₖ₊₁| sₖ)`
+   * How to read out the latent process from these states :math:`fₖ = H sₖ`
+
+   The likelihood links data to the latent process and :math:`p(yₖ | fₖ)`.
+   We would like to approximate the posterior over the latent state space model of this model.
+
+   To approximate the posterior, we maximise the evidence lower bound (ELBO) :math:`ℒ` with
+   respect to the parameters of the variational distribution, since:
+
+   .. math:: log p(y) = ℒ(q) + KL[q(s) ‖ p(s | y)]
+
+   ...where:
+
+   .. math:: ℒ(q) = ∫ log(p(s, y) / q(s)) q(s) ds
+
+   We parameterize the variational posterior through sites :math:`tₖ(fₖ)`:
+
+   .. math:: q(s) = p(s) ∏ₖ tₖ(fₖ)
+
+   ...where :math:`tₖ(fₖ)` are univariate Gaussian sites parameterized in the natural form:
+
+   .. math:: t(f) = exp(𝜽ᵀφ(f) - A(𝜽))
+
+   ...and where :math:`𝜽=[θ₁,θ₂]` and :math:`𝛗(f)=[f,f²]`.
+
+   Here, :math:`𝛗(f)` are the sufficient statistics and :math:`𝜽` are the natural parameters.
+   Note that the subscript :math:`k` has been omitted for simplicity.
+
+   The natural gradient update of the sites can be shown to be the gradient of the
+   variational expectations:
+
+   .. math:: 𝐠 = ∇[𝞰][∫ log(p(y=Y|f)) q(f) df]
+
+   ...with respect to the expectation parameters:
+
+   .. math:: 𝞰 = E[𝛗(f)] = [μ, σ² + μ²]
+
+   That is, :math:`𝜽 ← ρ𝜽 + (1-ρ)𝐠`, where :math:`ρ` is the learning rate.
+
+   The key reference is::
+
+     @inproceedings{khan2017conjugate,
+       title={Conjugate-Computation Variational Inference: Converting Variational Inference
+              in Non-Conjugate Models to Inferences in Conjugate Models},
+       author={Khan, Mohammad and Lin, Wu},
+       booktitle={Artificial Intelligence and Statistics},
+       pages={878--887},
+       year={2017}
+     }
+
+   :param input_data: A tuple containing the observed data:
+
+       * Time points of observations with shape ``batch_shape + [num_data]``
+       * Observations with shape ``batch_shape + [num_data, observation_dim]``
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param learning_rate: The learning rate of the algorithm.
+
+   .. py:method:: local_objective(Fmu: tensorflow.Tensor, Fvar: tensorflow.Tensor, Y: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Calculate local loss in CVI.
+
+      :param Fmu: Means with shape ``[..., latent_dim]``.
+      :param Fvar: Variances with shape ``[..., latent_dim]``.
+      :param Y: Observations with shape ``[..., observation_dim]``.
+      :return: A local objective with shape ``[...]``.
+
+
+   .. py:method:: local_objective_and_gradients(Fmu: tensorflow.Tensor, Fvar: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the local objective and its gradients with regard to the expectation parameters.
+
+      :param Fmu: Means :math:`μ` with shape ``[..., latent_dim]``.
+      :param Fvar: Variances :math:`σ²` with shape ``[..., latent_dim]``.
+      :return: A local objective and gradient with regard to :math:`[μ, σ² + μ²]`.
+
+
+   .. py:method:: update_sites() -> None
+
+      Perform one joint update of the Gaussian sites. That is:
+
+      .. math:: 𝜽 ← ρ𝜽 + (1-ρ)𝐠
+
+
+   .. py:method:: elbo() -> tensorflow.Tensor
+
+      Calculate the evidence lower bound (ELBO) :math:`log p(y)`.
+
+      This is done by computing the marginal of the model in which the likelihood terms were
+      replaced by the Gaussian sites.
+
+      :return: A scalar tensor representing the ELBO.
+
+
+   .. py:method:: classic_elbo() -> tensorflow.Tensor
+
+      Compute the ELBO the classic way. That is:
+
+      .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+      .. note:: This is mostly for testing purposes and should not be used for optimization.
+
+      :return: A scalar tensor representing the ELBO.
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data at the new data points.
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+          a tensor of inputs with shape ``batch_shape + [num_data]``,
+          a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+      :param full_output_cov: Either full output covariance (`True`) or marginal
+          variances (`False`).
+
+
+

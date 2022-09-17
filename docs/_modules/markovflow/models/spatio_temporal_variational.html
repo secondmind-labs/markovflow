@@ -1,0 +1,747 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.spatio_temporal_variational &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.spatio_temporal_variational</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for sparse spatio temporal variational inference&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">gpflow</span>
+<span class="kn">import</span> <span class="nn">gpflow.kernels</span> <span class="k">as</span> <span class="nn">gpfk</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">Parameter</span>
+
+<span class="kn">import</span> <span class="nn">markovflow.kernels</span> <span class="k">as</span> <span class="nn">mfk</span>
+<span class="kn">from</span> <span class="nn">markovflow.conditionals</span> <span class="kn">import</span> <span class="n">conditional_statistics</span>
+<span class="kn">from</span> <span class="nn">markovflow.emission_model</span> <span class="kn">import</span> <span class="n">EmissionModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">IndependentMultiOutput</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.models</span> <span class="kn">import</span> <span class="n">MarkovFlowSparseModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.variational_cvi</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">back_project_nats</span><span class="p">,</span>
+    <span class="n">gradient_transformation_mean_var_to_expectation</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">ConditionalProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">PosteriorProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.ssm_gaussian_transformations</span> <span class="kn">import</span> <span class="n">naturals_to_ssm_params</span>
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">batch_base_conditional</span>
+
+
+<div class="viewcode-block" id="SparseSpatioTemporalKernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SparseSpatioTemporalKernel">[docs]</a><span class="k">class</span> <span class="nc">SparseSpatioTemporalKernel</span><span class="p">(</span><span class="n">IndependentMultiOutput</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A spatio-temporal kernel  k(s,t) can be built from the product of a spatial kernel kₛ(s)</span>
+<span class="sd">    and a Markovian temporal kernel kₜ(t), i.e. k(s,t) = kₛ(s) kₜ(t)</span>
+
+<span class="sd">    A GP f(.)∈ ℝ^m  with kernel  k(Z,.)  [with space marginalized to locations Z]</span>
+<span class="sd">    can be build as f(.) = chol(Kₛ(Z, Z)) @ [H s₁(.),..., H sₘ(.)],</span>
+
+<span class="sd">    where s₁(.),...,sₘ(.) are iid SDEs from the equivalent representation of markovian kernel kₜ(t)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_space</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span> <span class="n">kernel_time</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span> <span class="n">inducing_space</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernel_space: spatial kernel</span>
+<span class="sd">        :param kernel_time: temporal kernel</span>
+<span class="sd">        :param inducing_space: spatial inducing points</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_space</span> <span class="o">=</span> <span class="n">kernel_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_time</span> <span class="o">=</span> <span class="n">kernel_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inducing_space</span> <span class="o">=</span> <span class="n">inducing_space</span>
+
+        <span class="c1"># the output dim of the ssm is the number of spatial inducing points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">=</span> <span class="n">inducing_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">kernel_time</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="SparseSpatioTemporalKernel.generate_emission_model"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SparseSpatioTemporalKernel.generate_emission_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_emission_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmissionModel</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the emission matrix :math:`H`.</span>
+<span class="sd">        This is the direct sum of the shared m child emission matrices H,</span>
+<span class="sd">        pre-multiplied by the Cholesky factor of the spatial kernel evaluated at Zₛ.</span>
+<span class="sd">            chol(Kₛ(Zₛ, Zₛ)) @ [H,..., H]</span>
+
+<span class="sd">        :param time_points: The time points over which the emission model is defined, with shape</span>
+<span class="sd">                        ``batch_shape + [num_data]``.</span>
+<span class="sd">        :return: The emission model associated with this kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">emission_matrix</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_space</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">EmissionModel</span><span class="p">(</span><span class="n">emission_matrix</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">H</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SparseSpatioTemporalKernel.state_to_space_conditional_projection"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SparseSpatioTemporalKernel.state_to_space_conditional_projection">[docs]</a>    <span class="k">def</span> <span class="nf">state_to_space_conditional_projection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the matrix P, in the conditional mean E[f(x,t)|s(t)] = P s(t)</span>
+<span class="sd">        It is given by combining</span>
+<span class="sd">        E[f(x,t)|f(Zₛ)] =  Kₛ(x, Zₛ)Kₛ(Zₛ, Zₛ)⁻¹f(Zₛ)</span>
+<span class="sd">        E[f(Zₛ)|s(t)] =  chol(Kₛ(Zₛ, Zₛ)) @ [H,..., H] s(t)</span>
+<span class="sd">        leading to</span>
+<span class="sd">        E[f(x,t)|s(t)] = Kₛ(x, Zₛ)Kₛ(Zₛ, Zₛ)⁻¹ chol(Kₛ(Zₛ, Zₛ)) @ [H,..., H] s(t)</span>
+<span class="sd">            =  Kₛ(x, Zₛ) chol(Kₛ(Zₛ, Zₛ))⁻ᵀ @ [H,..., H] s(t)</span>
+<span class="sd">        :param inputs: Time point and associated spatial dimension to generate observations for,</span>
+<span class="sd">         with shape ``batch_shape + [space_dim + 1, num_new_time_points]``.</span>
+<span class="sd">        :return: The projection tensor with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, obs_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">space_points</span><span class="p">,</span> <span class="n">time_points</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">emission_matrix</span>
+        <span class="n">chol_Kmm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_space</span><span class="p">))</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span><span class="n">chol_Kmm</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">adjoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># N x Ms x sd</span>
+        <span class="n">Knm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_space</span><span class="p">(</span><span class="n">space_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_space</span><span class="p">)</span>  <span class="c1"># N x Ms</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">Knm</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">C</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># N x 1 x sd</span></div></div>
+
+
+<div class="viewcode-block" id="SpatioTemporalBase"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase">[docs]</a><span class="k">class</span> <span class="nc">SpatioTemporalBase</span><span class="p">(</span><span class="n">MarkovFlowSparseModel</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for Spatio-temporal GP regression using a factor kernel</span>
+<span class="sd">    k_space_time((s,t),(s&#39;,t&#39;)) = k_time(t,t&#39;) * k_space(s,s&#39;)</span>
+
+<span class="sd">    where k_time is a Markovian kernel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">inducing_space</span><span class="p">,</span>
+        <span class="n">kernel_space</span><span class="p">:</span> <span class="n">gpfk</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+        <span class="n">kernel_time</span><span class="p">:</span> <span class="n">mfk</span><span class="o">.</span><span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param inducing_space: inducing space points [Ms, D]</span>
+<span class="sd">        :param kernel_space: Gpflow space kernel</span>
+<span class="sd">        :param kernel_time: Markovflow time kernel</span>
+<span class="sd">        :param likelihood: a likelihood object</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel_space</span> <span class="o">=</span> <span class="n">kernel_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel_time</span> <span class="o">=</span> <span class="n">kernel_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_space</span> <span class="o">=</span> <span class="n">inducing_space</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_inducing_space</span> <span class="o">=</span> <span class="n">inducing_space</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">SparseSpatioTemporalKernel</span><span class="p">(</span>
+            <span class="n">kernel_time</span><span class="o">=</span><span class="n">kernel_time</span><span class="p">,</span> <span class="n">kernel_space</span><span class="o">=</span><span class="n">kernel_space</span><span class="p">,</span> <span class="n">inducing_space</span><span class="o">=</span><span class="n">inducing_space</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SpatioTemporalBase.space_time_predict_f"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.space_time_predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">space_time_predict_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict marginal function values at `inputs`. Note the</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        :param inputs: Time point and associated spatial dimension to generate observations for,</span>
+<span class="sd">         with shape</span>
+<span class="sd">            ``batch_shape + [space_dim + 1, num_new_time_points]``.</span>
+
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]`` and either</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># split space and time dimension</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># predict ssm at time points. latent ssm has state dimension : state_dim x Ms</span>
+        <span class="c1"># and is projected to an output dimesion : Ms</span>
+        <span class="n">mean_u</span><span class="p">,</span> <span class="n">cov_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">new_time_points</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">chol_cov_u</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">cov_u</span><span class="p">)</span>  <span class="c1"># Ms x Ms</span>
+
+        <span class="c1"># use space conditional</span>
+        <span class="n">Kmn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inducing_space</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>  <span class="c1"># Ms x N</span>
+        <span class="n">Kmm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inducing_space</span><span class="p">)</span>  <span class="c1"># Ms x Ms</span>
+        <span class="n">Knn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel_space</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">full_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># N x 1</span>
+
+        <span class="n">mean_f</span><span class="p">,</span> <span class="n">var_f</span> <span class="o">=</span> <span class="n">batch_base_conditional</span><span class="p">(</span>
+            <span class="n">Kmn</span><span class="p">,</span> <span class="n">Kmm</span><span class="p">,</span> <span class="n">Knn</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">mean_u</span><span class="p">),</span> <span class="n">q_sqrt</span><span class="o">=</span><span class="n">chol_cov_u</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">mean_f</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">var_f</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalBase.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the loss, which is the negative evidence lower bound (ELBO).</span>
+
+<span class="sd">        :param input_data: A tuple of space-time points and observations containing the data</span>
+<span class="sd">            at which to calculate the loss for training the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">elbo</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Posterior &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Posterior state space model on inducing states &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Prior state space model on inducing states &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalBase.elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.elbo">[docs]</a>    <span class="k">def</span> <span class="nf">elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the evidence lower bound (ELBO) log p(y)</span>
+
+<span class="sd">        :param input_data: A tuple of space-time points and observations containing data at which</span>
+<span class="sd">            to calculate the loss for training the model.</span>
+<span class="sd">        :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+
+        <span class="c1"># predict the variational posterior at the original time points.</span>
+        <span class="c1"># calculate sₓ ~ q(sₓ) given that we know q(s(z)), x, z,</span>
+        <span class="c1"># and then project to function space fₓ = H*sₓ ~ q(fₓ).</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_time_predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfx</span>
+        <span class="n">ve_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>
+        <span class="c1"># KL[q(s(z))|| p(s(z))]</span>
+        <span class="n">kl_fz</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="p">))</span>
+        <span class="c1"># Return ELBO({fₓ, fz}) = VE(fₓ) - KL[q(s(z)) || p(s(z))]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_data</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_data</span><span class="p">,</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">minibatch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">num_data</span> <span class="o">/</span> <span class="n">minibatch_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ve_fx</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">-</span> <span class="n">kl_fz</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalBase.predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_log_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log density of the data at the new data points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_time_predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.kernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.kernel">[docs]</a>    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SDEKernel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the kernel of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.inducing_time"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.inducing_time">[docs]</a>    <span class="k">def</span> <span class="nf">inducing_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the temporal inducing inputs of the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalBase.inducing_space"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalBase.inducing_space">[docs]</a>    <span class="k">def</span> <span class="nf">inducing_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the spatial inducing inputs of the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_space</span></div></div>
+
+
+<div class="viewcode-block" id="SpatioTemporalSparseVariational"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseVariational">[docs]</a><span class="k">class</span> <span class="nc">SpatioTemporalSparseVariational</span><span class="p">(</span><span class="n">SpatioTemporalBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for Variational Spatio-temporal GP regression using a factor kernel</span>
+<span class="sd">    k_space_time((s,t),(s&#39;,t&#39;)) = k_time(t,t&#39;) * k_space(s,s&#39;)</span>
+
+<span class="sd">    where k_time is a Markovian kernel.</span>
+
+<span class="sd">        The following notation is used:</span>
+<span class="sd">        * X=(x,t) - the space-time points of the training data.</span>
+<span class="sd">        * zₛ - the space inducing/pseudo points.</span>
+<span class="sd">        * zₜ - the time inducing/pseudo points.</span>
+<span class="sd">        * y - observations corresponding to points X.</span>
+<span class="sd">        * f(.,.) the spatio-temporal process</span>
+<span class="sd">        * x(.,.) the SSM formulation of the spatio-temporal process</span>
+<span class="sd">        * u(.) = x(zₛ,.) - the spatio-temporal SSM marginalized at zₛ</span>
+<span class="sd">        * p(y | f) - the likelihood</span>
+<span class="sd">        * p(.) the prior distribution</span>
+<span class="sd">        * q(.) the variational distribution</span>
+
+<span class="sd">    This can be seen as the temporal extension of gpflow.SVGP,</span>
+<span class="sd">    where instead of fixed inducing variables u, they are now time dependent u(t)</span>
+<span class="sd">    and follow a Markov chain.</span>
+
+<span class="sd">    for a fixed set of spatial inducing inputs zₛ</span>
+<span class="sd">    p(x(zₛ, .)) is a continuous time process of state dimension Mₛd</span>
+<span class="sd">    for a fixed time slice t, p(x(.,t)) ~ GP(0, kₛ)</span>
+
+<span class="sd">    The following conditional independence holds:</span>
+<span class="sd">    p(x(s,t) | x(zₛ, .)) = p(x(s,t) | s(zₛ, t)), i.e.,</span>
+<span class="sd">    prediction at a new point at time t given x(zₛ, .) only depends on s(zₛ, t)</span>
+
+<span class="sd">    This builds a spatially sparse process as</span>
+<span class="sd">    q(x(.,.)) = q(x(zₛ, .)) p(x(.,.) |x(zₛ, .)),</span>
+<span class="sd">    where the multi-output temporal process q(x(zₛ, .)) is also sparse</span>
+<span class="sd">    q(x(zₛ, .)) = q(x(zₛ, zₜ)) p(x(zₛ,.) |x(zₛ,  zₜ))</span>
+
+<span class="sd">    the marginal q(x(zₛ, zₜ)) is a multivariate Gaussian distribution</span>
+<span class="sd">    parameterized as a state space model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">inducing_space</span><span class="p">,</span>
+        <span class="n">inducing_time</span><span class="p">,</span>
+        <span class="n">kernel_space</span><span class="p">:</span> <span class="n">gpfk</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+        <span class="n">kernel_time</span><span class="p">:</span> <span class="n">mfk</span><span class="o">.</span><span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param inducing_space: inducing space points [Ms, D]</span>
+<span class="sd">        :param inducing_time: inducing time points [Mt,]</span>
+<span class="sd">        :param kernel_space: Gpflow space kernel</span>
+<span class="sd">        :param kernel_time: Markovflow time kernel</span>
+<span class="sd">        :param likelihood: a likelihood object</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param num_data: number of observations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">inducing_space</span><span class="p">,</span> <span class="n">kernel_space</span><span class="p">,</span> <span class="n">kernel_time</span><span class="p">,</span> <span class="n">likelihood</span><span class="p">,</span> <span class="n">mean_function</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_data</span> <span class="o">=</span> <span class="n">num_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span> <span class="o">=</span> <span class="n">inducing_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_inducing_time</span> <span class="o">=</span> <span class="n">inducing_time</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="o">.</span><span class="n">create_trainable_copy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span> <span class="o">=</span> <span class="n">ConditionalProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="p">,</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_time</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseVariational.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseVariational.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseVariational.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseVariational.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_p</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseVariational.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseVariational.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Posterior process &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span></div></div>
+
+
+<div class="viewcode-block" id="SpatioTemporalSparseCVI"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI">[docs]</a><span class="k">class</span> <span class="nc">SpatioTemporalSparseCVI</span><span class="p">(</span><span class="n">SpatioTemporalBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Model for Spatio-temporal GP regression using a factor kernel</span>
+<span class="sd">    k_space_time((s,t),(s&#39;,t&#39;)) = k_time(t,t&#39;) * k_space(s,s&#39;)</span>
+
+<span class="sd">    where k_time is a Markovian kernel.</span>
+
+<span class="sd">        The following notation is used:</span>
+<span class="sd">        * X=(x,t) - the space-time points of the training data.</span>
+<span class="sd">        * zₛ - the space inducing/pseudo points.</span>
+<span class="sd">        * zₜ - the time inducing/pseudo points.</span>
+<span class="sd">        * y - observations corresponding to points X.</span>
+<span class="sd">        * f(.,.) the spatio-temporal process</span>
+<span class="sd">        * x(.,.) the SSM formulation of the spatio-temporal process</span>
+<span class="sd">        * u(.) = x(zₛ,.) - the spatio-temporal SSM marginalized at zₛ</span>
+<span class="sd">        * p(y | f) - the likelihood</span>
+<span class="sd">        * p(.) the prior distribution</span>
+<span class="sd">        * q(.) the variational distribution</span>
+
+<span class="sd">    This can be seen as the spatial extension of markovflow&#39;s SparseCVIGaussianProcess</span>
+<span class="sd">    for temporal (only) Gaussian Processes.</span>
+<span class="sd">    The inducing variables u(x,t) are now space and time dependent.</span>
+
+<span class="sd">    for a fixed set of space points zₛ</span>
+<span class="sd">    p(x(zₛ, .)) is a continuous time process of state dimension Mₛd</span>
+<span class="sd">    for a fixed time slice t, p(x(.,t)) ~ GP(0, kₛ)</span>
+
+<span class="sd">    The following conditional independence holds:</span>
+<span class="sd">    p(x(s,t) | x(zₛ, .)) = p(x(s,t) | s(zₛ, t)), i.e.,</span>
+<span class="sd">    prediction at a new point at time t given x(zₛ, .) only depends on s(zₛ, t)</span>
+
+<span class="sd">    This builds a spatially sparse process as</span>
+<span class="sd">    q(x(.,.)) = q(x(zₛ, .)) p(x(.,.) |x(zₛ, .)),</span>
+<span class="sd">    where the multi-output temporal process q(x(zₛ, .)) is also sparse</span>
+<span class="sd">    q(x(zₛ, .)) = q(x(zₛ, zₜ)) p(x(zₛ,.) |x(zₛ,  zₜ))</span>
+
+<span class="sd">    the marginal q(x(zₛ, zₜ)) is parameterized as the product</span>
+<span class="sd">    q(x(zₛ, zₜ)) = p(x(zₛ, zₜ)) t(x(zₛ, zₜ))</span>
+<span class="sd">    where p(x(zₛ, zₜ)) is a state space model and t(x(zₛ, zₜ)) are sites.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">inducing_space</span><span class="p">,</span>
+        <span class="n">inducing_time</span><span class="p">,</span>
+        <span class="n">kernel_space</span><span class="p">:</span> <span class="n">gpfk</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+        <span class="n">kernel_time</span><span class="p">:</span> <span class="n">mfk</span><span class="o">.</span><span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param inducing_space: inducing space points [Ms, D]</span>
+<span class="sd">        :param inducing_time: inducing time points [Mt,]</span>
+<span class="sd">        :param kernel_space: Gpflow space kernel</span>
+<span class="sd">        :param kernel_time: Markovflow time kernel</span>
+<span class="sd">        :param likelihood: a likelihood object</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param num_data: The total number of observations.</span>
+<span class="sd">            (relevant when feeding in external minibatches).</span>
+<span class="sd">        :param learning_rate: the learning rate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">inducing_space</span><span class="p">,</span> <span class="n">kernel_space</span><span class="p">,</span> <span class="n">kernel_time</span><span class="p">,</span> <span class="n">likelihood</span><span class="p">,</span> <span class="n">mean_function</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_data</span> <span class="o">=</span> <span class="n">num_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span> <span class="o">=</span> <span class="n">inducing_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_inducing_time</span> <span class="o">=</span> <span class="n">inducing_time</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="c1"># initialize sites</span>
+        <span class="n">num_inducing</span> <span class="o">=</span> <span class="n">inducing_time</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="n">zeros1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_inducing</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">state_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="n">zeros2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_inducing</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">state_dim</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">state_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">zeros1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">zeros2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span> <span class="o">=</span> <span class="n">ConditionalProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="p">,</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_time</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Posterior object to predict outside of the training time points &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the variational posterior distribution on the vector of inducing states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get prior precision</span>
+        <span class="n">prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="o">.</span><span class="n">precision</span>
+
+        <span class="c1"># [..., num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">prec_diag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_diagonal</span>
+        <span class="c1"># [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">prec_subdiag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+
+        <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">state_dim</span>
+
+        <span class="n">summed_lik_nat1_diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:]</span>
+
+        <span class="n">summed_lik_nat2_diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:,</span> <span class="n">sd</span><span class="p">:]</span>
+        <span class="n">summed_lik_nat2_subdiag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span>
+
+        <span class="c1"># conjugate update of the natural parameter: post_nat = prior_nat + lik_nat</span>
+        <span class="n">theta_diag</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">prec_diag</span> <span class="o">+</span> <span class="n">summed_lik_nat2_diag</span>
+        <span class="n">theta_subdiag</span> <span class="o">=</span> <span class="o">-</span><span class="n">prec_subdiag</span> <span class="o">+</span> <span class="n">summed_lik_nat2_subdiag</span> <span class="o">*</span> <span class="mf">2.0</span>
+
+        <span class="n">post_ssm_params</span> <span class="o">=</span> <span class="n">naturals_to_ssm_params</span><span class="p">(</span>
+            <span class="n">theta_linear</span><span class="o">=</span><span class="n">summed_lik_nat1_diag</span><span class="p">,</span> <span class="n">theta_diag</span><span class="o">=</span><span class="n">theta_diag</span><span class="p">,</span> <span class="n">theta_subdiag</span><span class="o">=</span><span class="n">theta_subdiag</span>
+        <span class="p">)</span>
+
+        <span class="n">post_ssm</span> <span class="o">=</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">state_transitions</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">post_ssm</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the prior distribution on the vector of inducing states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.projection_inducing_states_to_observations"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.projection_inducing_states_to_observations">[docs]</a>    <span class="k">def</span> <span class="nf">projection_inducing_states_to_observations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the projection matrix from of the conditional mean of f(x,t) | s(t)</span>
+<span class="sd">        :param input_data: Time point and associated spatial dimension to generate observations for,</span>
+<span class="sd">         with shape ``batch_shape + [space_dim + 1, num_time_points]``.</span>
+<span class="sd">        :return: The projection matrix with shape [num_time_points, obs_dim, num_inducing_time x state_dim ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">inputs_time</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># projection from nearby inducing states to current state (temporal)</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">conditional_statistics</span><span class="p">(</span><span class="n">inputs_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">)</span>
+        <span class="c1"># projection to state space to observation space (spatial)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_to_space_conditional_projection</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ncs,nfc-&gt;nfs&quot;</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.update_sites"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.update_sites">[docs]</a>    <span class="k">def</span> <span class="nf">update_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform one joint update of the Gaussian sites</span>
+<span class="sd">                𝜽ₘ ← ρ𝜽ₘ + (1-ρ)𝐠ₘ</span>
+
+<span class="sd">        Here 𝐠ₘ are the sum of the gradient of the variational expectation for each data point</span>
+<span class="sd">        indexed k, projected back to the site vₘ = [uₘ, uₘ₊₁], through the conditional p(fₖ|vₘ)</span>
+<span class="sd">        :param input_data: A tuple of time points and observations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inputs</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">inputs_time</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_time_predict_f</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+        <span class="c1"># get gradient of variational expectations wrt mu, sigma</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_objective_and_gradients</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span>
+
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">projection_inducing_states_to_observations</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="n">theta_linear</span><span class="p">,</span> <span class="n">lik_nat2</span> <span class="o">=</span> <span class="n">back_project_nats</span><span class="p">(</span><span class="n">grads</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grads</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">P</span><span class="p">)</span>
+
+        <span class="c1"># sum sites together</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span><span class="p">,</span> <span class="n">inputs_time</span><span class="p">)</span>
+        <span class="n">num_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inducing_time</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">summed_theta_linear</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span><span class="n">theta_linear</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">summed_lik_nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span><span class="n">lik_nat2</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># update</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span>
+        <span class="n">new_nat1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span> <span class="o">+</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">summed_theta_linear</span>
+        <span class="n">new_nat2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span> <span class="o">+</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">summed_lik_nat2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">new_nat2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">new_nat1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.local_objective_and_gradients"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.local_objective_and_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective_and_gradients</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returs the local_objective and its gradients wrt to the expectation parameters</span>
+<span class="sd">        :param Fmu: means μ [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variances σ² [..., latent_dim]</span>
+<span class="sd">        :param Y: observations Y [..., observation_dim]</span>
+<span class="sd">        :return: local objective and gradient wrt [μ, σ² + μ²]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">GradientTape</span><span class="p">()</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">watch</span><span class="p">([</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">])</span>
+            <span class="n">local_obj</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">input_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_objective</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">))</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">local_obj</span><span class="p">,</span> <span class="p">[</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">])</span>
+
+        <span class="c1"># turn into gradient wrt μ, σ² + μ²</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">gradient_transformation_mean_var_to_expectation</span><span class="p">([</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">],</span> <span class="n">grads</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">local_obj</span><span class="p">,</span> <span class="n">grads</span></div>
+
+<div class="viewcode-block" id="SpatioTemporalSparseCVI.local_objective"><a class="viewcode-back" href="../../../autoapi/markovflow/models/spatio_temporal_variational/index.html#markovflow.models.SpatioTemporalSparseCVI.local_objective">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        local loss in CVI</span>
+<span class="sd">        :param Fmu: means [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variances [..., latent_dim]</span>
+<span class="sd">        :param Y: observations [..., observation_dim]</span>
+<span class="sd">        :return: local objective [...]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

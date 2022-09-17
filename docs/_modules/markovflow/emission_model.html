@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.emission_model &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.emission_model</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing emission models for projection.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+
+<div class="viewcode-block" id="EmissionModel"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">EmissionModel</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes output from :class:`~markovflow.state_space_model.StateSpaceModel` methods and</span>
+<span class="sd">    linearly projects it into a space of dimension :math:`m` (`output_dim`):</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;fₖ = Hₖ xₖ\\</span>
+<span class="sd">        &amp;x ∈ ℝ^d\\</span>
+<span class="sd">        &amp;f ∈ ℝ^m\\</span>
+<span class="sd">        &amp;H ∈ ℝ^{m × d}</span>
+
+<span class="sd">    This class provides methods for projecting states or covariances, sampling and calculating the</span>
+<span class="sd">    marginals.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emission_matrix</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param emission_matrix: The emission matrix that projects at each time point from the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_dim + [num_data, output_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">emission_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Emission Matrix must be at least 3D but has shape </span><span class="si">{</span><span class="n">emission_matrix</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_H</span> <span class="o">=</span> <span class="n">emission_matrix</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EmissionModel.batch_shape"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.batch_shape">[docs]</a>    <span class="k">def</span> <span class="nf">batch_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the shape of any leading dimension in the emission matrix that comes before</span>
+<span class="sd">        the last three.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EmissionModel.num_data"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.num_data">[docs]</a>    <span class="k">def</span> <span class="nf">num_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of time points that the emission matrix is applied to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EmissionModel.output_dim"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.output_dim">[docs]</a>    <span class="k">def</span> <span class="nf">output_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the dimension of the output after the emission matrix is applied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EmissionModel.state_dim"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state dimension of the :class:`~markovflow.state_space_model.StateSpaceModel`</span>
+<span class="sd">        we emit from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="EmissionModel.emission_matrix"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.emission_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">emission_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the emission matrix.</span>
+
+<span class="sd">        :return: A tensor for the emission matrix, with shape</span>
+<span class="sd">            ``batch_dim + [num_data, output_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span></div>
+
+<div class="viewcode-block" id="EmissionModel.project_state_marginals_to_f"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.project_state_marginals_to_f">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_marginals_to_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project the marginal mean and covariance of states to get means and (co)variance</span>
+<span class="sd">        of :math:`f`.</span>
+
+<span class="sd">        :param means: A tensor of means with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim]``.</span>
+<span class="sd">        :param covariances: A tensor of covariances with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim, state_dim]``.</span>
+<span class="sd">        :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).</span>
+<span class="sd">        :return: The means and covariances with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_data, output_dim]``,</span>
+<span class="sd">            and either ``batch_shape + [num_data, output_dim, output_dim]``</span>
+<span class="sd">            or ``batch_shape + [num_data, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">means</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">project_state_covariance_to_f</span><span class="p">(</span><span class="n">covariances</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">),</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="EmissionModel.project_state_to_f"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.project_state_to_f">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_to_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project a state to :math:`f` by multiplying by :math:`H`.</span>
+
+<span class="sd">        :param state: A tensor with shape ``batch_shape + [num_data, state_dim]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="s2">&quot;num_outputs&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="n">state</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="EmissionModel.project_state_covariance_to_f"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.EmissionModel.project_state_covariance_to_f">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_covariance_to_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project a state covariance :math:`S` to an :math:`f` covariance by calculating</span>
+<span class="sd">        :math:`HSHᵀ` (or its diagonal).</span>
+
+<span class="sd">        :param covariance: A tensor with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim, state_dim]``.</span>
+<span class="sd">        :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).</span>
+<span class="sd">        :return: A tensor either with shape ``batch_shape + [num_data, output_dim, output_dim]``</span>
+<span class="sd">                or ``batch_shape + [num_data, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">covariance</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">:],</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">full_output_cov</span><span class="p">:</span>
+            <span class="c1"># [... output_dim, output_dim]</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...ij,...jk,...lk-&gt;...il&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># [... output_dim]</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span>
+                <span class="s2">&quot;...ij,...ij-&gt;...i&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;...ij,...jk-&gt;...ik&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="n">covariance</span><span class="p">),</span></div></div>
+            <span class="p">)</span>
+
+
+<div class="viewcode-block" id="ComposedPairEmissionModel"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">ComposedPairEmissionModel</span><span class="p">(</span><span class="n">EmissionModel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Linear projection for use with kernels that have an intermediate projection. That is,</span>
+<span class="sd">    there exists a projection from the state space to an intermediate space, and from that space to</span>
+<span class="sd">    the observation space:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;fₖ = Hₒₖ gₖ = Hₒₖ Hₗ xₖ = Hₖ xₖ\\</span>
+<span class="sd">        &amp;gₖ = Hₗ xₖ\\</span>
+<span class="sd">        &amp;x ∈ ℝ^d\\</span>
+<span class="sd">        &amp;g ∈ ℝ^l \verb|, the inner space|\\</span>
+<span class="sd">        &amp;f ∈ ℝ^m \verb|, the outer space|\\</span>
+<span class="sd">        &amp;H ∈ ℝ^{m × d}\\</span>
+<span class="sd">        &amp;Hₒ ∈ ℝ^{m × l}\\</span>
+<span class="sd">        &amp;Hₗ ∈ ℝ^{l × d}</span>
+
+<span class="sd">    This class provides methods for projecting states or covariances, sampling and calculating the</span>
+<span class="sd">    marginals, from state space to both the observation and intermediate space.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">outer_emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span><span class="p">,</span> <span class="n">inner_emission_model</span><span class="p">:</span> <span class="n">EmissionModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param outer_emission_model: The emission model for projecting from the intermediate</span>
+<span class="sd">            space to the observation space.</span>
+<span class="sd">        :param inner_emission_model: The emission model for projecting from state space to the</span>
+<span class="sd">                intermediate space.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span>
+                <span class="s2">&quot;...ij,...jk-&gt;...ik&quot;</span><span class="p">,</span>
+                <span class="n">outer_emission_model</span><span class="o">.</span><span class="n">emission_matrix</span><span class="p">,</span>
+                <span class="n">inner_emission_model</span><span class="o">.</span><span class="n">emission_matrix</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span> <span class="o">=</span> <span class="n">inner_emission_model</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ComposedPairEmissionModel.state_dim"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state dimension of the</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel` we emit from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">state_dim</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ComposedPairEmissionModel.inner_dim"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.inner_dim">[docs]</a>    <span class="k">def</span> <span class="nf">inner_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the output dimension of the inner emission model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">output_dim</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="ComposedPairEmissionModel.inner_emission_matrix"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.inner_emission_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">inner_emission_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the emission matrix used for projecting from the state space</span>
+<span class="sd">        to the intermediate space.</span>
+
+<span class="sd">        :return: A tensor for the emission matrix, with shape</span>
+<span class="sd">            ``batch_dim + [num_data, inner_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">emission_matrix</span></div>
+
+<div class="viewcode-block" id="ComposedPairEmissionModel.project_state_marginals_to_g"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.project_state_marginals_to_g">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_marginals_to_g</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project the marginal mean and covariance of states to get means for :math:`g`.</span>
+
+<span class="sd">        :param means: A tensor of means with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim]``.</span>
+<span class="sd">        :param covariances: A tensor of covariances with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim, state_dim]``.</span>
+<span class="sd">        :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).</span>
+<span class="sd">        :return: The means and covariances with respective shapes</span>
+<span class="sd">                ``batch_shape + [num_data, inner_dim]``,</span>
+<span class="sd">                and either ``batch_shape + [num_data, inner_dim, inner_dim]``</span>
+<span class="sd">                or ``batch_shape + [num_data, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">project_state_marginals_to_f</span><span class="p">(</span>
+            <span class="n">means</span><span class="p">,</span> <span class="n">covariances</span><span class="p">,</span> <span class="n">full_output_cov</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ComposedPairEmissionModel.project_state_to_g"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.project_state_to_g">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_to_g</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project a state to :math:`g` by multiplying by the inner emission matrix.</span>
+
+<span class="sd">        :param state: A tensor with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim]``.</span>
+<span class="sd">        :return: A tensor with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ComposedPairEmissionModel.project_state_covariance_to_g"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.ComposedPairEmissionModel.project_state_covariance_to_g">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_covariance_to_g</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project a state covariance :math:`S` to a :math:`g` covariance by</span>
+<span class="sd">        calculating :math:`HSHᵀ` with the inner :math:`H`.</span>
+
+<span class="sd">        :param covariance: A tensor with shape</span>
+<span class="sd">                    ``batch_shape + [num_data, state_dim, state_dim]``.</span>
+<span class="sd">        :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).</span>
+<span class="sd">        :return: A tensor either with shape</span>
+<span class="sd">                ``batch_shape + [num_data, inner_dim, inner_dim]``</span>
+<span class="sd">                or ``batch_shape + [num_data, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inner_emission_model</span><span class="o">.</span><span class="n">project_state_covariance_to_f</span><span class="p">(</span><span class="n">covariance</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="StackEmissionModel"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.StackEmissionModel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">StackEmissionModel</span><span class="p">(</span><span class="n">EmissionModel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Linear projection for use with a :class:`~markovflow.kernels.sde_kernel.StackKernel`, where we</span>
+<span class="sd">    implicitly assume that we have parallel independent SDEs that model each one of the output</span>
+<span class="sd">    dimensions.</span>
+
+<span class="sd">    In such a scenario we assume that the :math:`m` (`output_dim`) independent SDEs can be broadcast</span>
+<span class="sd">    together so the `output_dim` is part of the `batch_shape` (last dim in the `batch_shape`).</span>
+
+<span class="sd">    So the emission matrix that defines the `StackEmissionModel` has the following shape:</span>
+
+<span class="sd">    ``batch_shape + [num_data, 1, state_dim]``</span>
+
+<span class="sd">    ...where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``.</span>
+<span class="sd">    The singleton pre-last dimension is for the individual `output_dim` of each kernel.</span>
+<span class="sd">    Remember that each kernel explicitly models one of the output dimensions.</span>
+
+<span class="sd">    We effectively run :math:`m` (`output_dim`) independent SDEs as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;fₖ⁽ᵐ⁾ = Hₖ⁽ᵐ⁾ xₖ⁽ᵐ⁾\\</span>
+<span class="sd">        &amp;x⁽ᵐ⁾ ∈ ℝᵈ\\</span>
+<span class="sd">        &amp;f⁽ᵐ⁾∈ ℝ\\</span>
+<span class="sd">        &amp;H⁽ᵐ⁾ ∈ ℝ^{1 × d}</span>
+
+<span class="sd">    This class provides methods for projecting states or covariances and calculating the marginals</span>
+<span class="sd">    from the state space to the observation space. It is acting as the base :class:`EmissionModel`</span>
+<span class="sd">    class with an extra transposition in the end to make sure that the `output_dim` gets moved from</span>
+<span class="sd">    the `batch_shape` to the last dim of the projected matrices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emission_matrix</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param emission_matrix: The emission matrix that projects from the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, 1, state_dim]`` where ``batch_shape = (..., num_kernels)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">emission_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Emission Matrix must be at least 4D but has shape </span><span class="si">{</span><span class="n">emission_matrix</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># assert that all kernels have individual output_dim 1</span>
+        <span class="n">individual_output_dim</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">emission_matrix</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">individual_output_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">emission_matrix</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="StackEmissionModel.output_dim"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.StackEmissionModel.output_dim">[docs]</a>    <span class="k">def</span> <span class="nf">output_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the dimension of the output after the emission matrix is applied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="StackEmissionModel.project_state_to_f"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.StackEmissionModel.project_state_to_f">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_to_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project each of the `num_kernel` states :math:`s` to :math:`f` by multiplying by</span>
+<span class="sd">        the corresponding :math:`H`.</span>
+
+<span class="sd">        :param state: A tensor with shape ``batch_shape + [num_data, state_dim]``</span>
+<span class="sd">            where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape[:-1] + [num_data, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">)),</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="s2">&quot;num_outputs&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">)),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [..., num_kernels, num_data, 1, state_dim] @ [..., num_kernels, num_data, state_dim, 1]</span>
+        <span class="n">projection</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span> <span class="o">@</span> <span class="n">state</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># [..., num_data, output_dim]</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">projection</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StackEmissionModel.project_state_covariance_to_f"><a class="viewcode-back" href="../../autoapi/markovflow/emission_model/index.html#markovflow.emission_model.StackEmissionModel.project_state_covariance_to_f">[docs]</a>    <span class="k">def</span> <span class="nf">project_state_covariance_to_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project a state covariance :math:`S` to an :math:`f` covariance by calculating</span>
+<span class="sd">        :math:`HSHᵀ` (or its diagonal). If it is called with `full_output_cov=True` it will return</span>
+<span class="sd">        the same as `full_output_cov=False` but in a compatible (diagonal) shape.</span>
+
+<span class="sd">        :param covariance: A tensor with shape ``batch_shape + [num_data, state_dim, state_dim]``</span>
+<span class="sd">            where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``</span>
+<span class="sd">        :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).</span>
+<span class="sd">        :return: A tensor either with shape</span>
+<span class="sd">            ``batch_shape[:-1] + [num_data, output_dim, output_dim]``</span>
+<span class="sd">            or ``batch_shape[:-1] + [num_data, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">num_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">covariance</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># N = num_data and D = state_dim</span>
+        <span class="c1"># [..., num_kernels, N, 1, D] * [..., num_kernels, N, D, D] * [..., num_kernels, N, D, 1]</span>
+        <span class="c1"># = [..., num_kernels, N]</span>
+        <span class="n">HcovHT</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_H</span> <span class="o">*</span> <span class="n">covariance</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [..., num_data, output_dim]</span>
+        <span class="n">diag_HcovHT</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">HcovHT</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">full_output_cov</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">diag_HcovHT</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">diag_HcovHT</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

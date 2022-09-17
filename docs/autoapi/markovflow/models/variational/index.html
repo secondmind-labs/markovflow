@@ -1,0 +1,382 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.variational &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.models.variational_cvi" href="../variational_cvi/index.html" />
+    <link rel="prev" title="markovflow.models.spatio_temporal_variational" href="../spatio_temporal_variational/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess" class="nav-link">VariationalGaussianProcess</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.elbo" class="nav-link">elbo</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.time_points" class="nav-link">time_points</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.observations" class="nav-link">observations</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.kernel" class="nav-link">kernel</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.likelihood" class="nav-link">likelihood</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.mean_function" class="nav-link">mean_function</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.dist_p" class="nav-link">dist_p</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.dist_q" class="nav-link">dist_q</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.posterior" class="nav-link">posterior</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.variational.VariationalGaussianProcess.loss" class="nav-link">loss</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.models.variational">
+<span id="markovflow-models-variational"></span><h1><a class="reference internal" href="#module-markovflow.models.variational" title="markovflow.models.variational"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.models.variational</span></code></a><a class="headerlink" href="#module-markovflow.models.variational" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a model for variational inference, for GP classification.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.models.variational.VariationalGaussianProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">VariationalGaussianProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">likelihood</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.likelihoods.Likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../models/index.html#markovflow.models.models.MarkovFlowModel" title="markovflow.models.models.MarkovFlowModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.models.models.MarkovFlowModel</span></code></a></p>
+<p>Approximates a <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussMarkovDistribution</span></code></a>
+with a general likelihood using a Gaussian posterior.</p>
+<p>The following notation is used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x\)</span> - the time points of the training data</p></li>
+<li><p><span class="math notranslate nohighlight">\(y\)</span> - observations corresponding to time points <span class="math notranslate nohighlight">\(x\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(s(.)\)</span> - the latent state of the Markov chain</p></li>
+<li><p><span class="math notranslate nohighlight">\(f(.)\)</span> - the noise free predictions of the model</p></li>
+<li><p><span class="math notranslate nohighlight">\(p(y | f)\)</span> - the likelihood</p></li>
+<li><p><span class="math notranslate nohighlight">\(p(.)\)</span> - the true distribution</p></li>
+<li><p><span class="math notranslate nohighlight">\(q(.)\)</span> - the variational distribution</p></li>
+</ul>
+</div></blockquote>
+<p>Subscript is used to denote dependence for notational convenience,
+for example <span class="math notranslate nohighlight">\(fₖ === f(k)\)</span>.</p>
+<p>With a prior generative model comprising a Gauss-Markov distribution, an emission model and an
+arbitrary likelihood on the emitted variables, these define:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(p(xₖ₊₁| xₖ)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(fₖ = H xₖ\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(p(yₖ | fₖ)\)</span></p></li>
+</ul>
+</div></blockquote>
+<p>We would like to approximate the posterior of this generative model with a parametric
+model <span class="math notranslate nohighlight">\(q\)</span>, comprising of the same distribution as the prior.</p>
+<p>To approximate the posterior, we maximise the evidence lower bound (ELBO) <span class="math notranslate nohighlight">\(ℒ\)</span> with
+respect to the parameters of the variational distribution, since:</p>
+<div class="math notranslate nohighlight">
+\[log p(y) = ℒ(q) + KL[q ‖ p(f | y)]\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[ℒ(q) = ∫ log(p(f, y) / q(f)) q(f) df\]</div>
+<p>Since the last term is non-negative, the ELBO provides a lower bound to the log-likelihood of
+the model. This bound is exact when <span class="math notranslate nohighlight">\(KL[q ‖ p(f | y)] = 0\)</span>; that is, our approximation is
+sufficiently flexible to capture the true posterior.</p>
+<p>This turns the inference into an optimisation problem: find the optional <span class="math notranslate nohighlight">\(q\)</span>.</p>
+<p>To calculate the ELBO, we rewrite it as:</p>
+<div class="math notranslate nohighlight">
+\[ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]\]</div>
+<p>The first term is the ‘variational expectation’ of the model likelihood;
+the second is the KL from the prior to the approximation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> – A tuple of <code class="docutils literal notranslate"><span class="pre">(time_points,</span> <span class="pre">observations)</span></code> containing the observed data:
+time points of observations, with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code>,
+observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – A kernel that defines a prior over functions.</p></li>
+<li><p><strong>likelihood</strong> – A likelihood.</p></li>
+<li><p><strong>mean_function</strong> – The mean function for the GP. Defaults to no mean function.</p></li>
+<li><p><strong>initial_distribution</strong> – An initial configuration for the variational distribution,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_inducing]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.elbo">
+<code class="sig-name descname"><span class="pre">elbo</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.elbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.elbo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the evidence lower bound (ELBO) <span class="math notranslate nohighlight">\(log p(y)\)</span>. We rewrite the ELBO as:</p>
+<div class="math notranslate nohighlight">
+\[ℒ(q(x)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(sₓ) ‖ p(sₓ)]\]</div>
+<p>The first term is the ‘variational expectation’ (VE); the second is the KL divergence from
+the prior to the approximation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A scalar tensor (summed over the batch_shape dimension) representing the ELBO.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.time_points">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">time_points</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.time_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.time_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the time points of our observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.observations">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">observations</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.observations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.observations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.kernel">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">kernel</span></code> &#x2192; <a class="reference internal" href="../../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the kernel of the GP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.likelihood">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">likelihood</span></code> &#x2192; <span class="pre">gpflow.likelihoods.Likelihood</span><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.likelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the likelihood of the GP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.mean_function">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">mean_function</span></code> &#x2192; <a class="reference internal" href="../../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.mean_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.mean_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the mean function of the GP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.dist_p">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">dist_p</span></code> &#x2192; <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.dist_p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.dist_p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the prior Gauss-Markov distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.dist_q">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">dist_q</span></code> &#x2192; <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.dist_q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.dist_q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variational distribution as a Gauss-Markov distribution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.posterior">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">posterior</span></code> &#x2192; <a class="reference internal" href="../../posterior/index.html#markovflow.posterior.PosteriorProcess" title="markovflow.posterior.PosteriorProcess"><span class="pre">markovflow.posterior.PosteriorProcess</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.posterior"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a posterior process for inference.</p>
+<p>For this class this is the <a class="reference internal" href="../../posterior/index.html#markovflow.posterior.AnalyticPosteriorProcess" title="markovflow.posterior.AnalyticPosteriorProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalyticPosteriorProcess</span></code></a>
+built from the variational distribution. This will be a locally optimal variational
+approximation of the posterior after optimisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.variational.VariationalGaussianProcess.loss">
+<code class="sig-name descname"><span class="pre">loss</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/variational.html#VariationalGaussianProcess.loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.variational.VariationalGaussianProcess.loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the loss, which is the negative ELBO.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

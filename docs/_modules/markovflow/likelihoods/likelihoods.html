@@ -1,0 +1,468 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.likelihoods.likelihoods &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.likelihoods.likelihoods</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing base classes for likelihoods.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">gpflow</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_fn_decorator</span>
+
+
+<div class="viewcode-block" id="Likelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.Likelihood">[docs]</a><span class="k">class</span> <span class="nc">Likelihood</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class for likelihoods.</span>
+
+<span class="sd">    A likelihood defines the observation model relating the observed variables :math:`Y`</span>
+<span class="sd">    to the latent variables :math:`F` of a generative model. The observation model is specified</span>
+<span class="sd">    through its conditional density :math:`p(Y|F)`.</span>
+
+<span class="sd">    In order to perform variational inference with non-Gaussian likelihoods, a &#39;variational</span>
+<span class="sd">    expectation&#39; should be computed under a Gaussian distribution :math:`q(F) ~ N(μ, Σ)`.</span>
+<span class="sd">    This can be defined as:</span>
+
+<span class="sd">    .. math:: ∫ q(F) log p(Y|F) dF</span>
+
+<span class="sd">    Note that the predictive density:</span>
+
+<span class="sd">    .. math:: ∫ q(F) p(Y|F) dF</span>
+
+<span class="sd">    ...is a useful metric to evaluate the quality of a Gaussian approximation</span>
+<span class="sd">    :math:`q(F) ~ N(μ, Σ)` to the posterior density :math:`p(F|Y)`.</span>
+
+<span class="sd">    .. note:: Implementations of this class should typically avoid performing computation in their</span>
+<span class="sd">        `__init__` method. Performing computation in the constructor conflicts with</span>
+<span class="sd">        running in TensorFlow&#39;s eager mode (and computation of gradients etc).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Likelihood.log_probability_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.Likelihood.log_probability_density">[docs]</a>    <span class="k">def</span> <span class="nf">log_probability_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log probability density :math:`log p(Y|F)`.</span>
+
+<span class="sd">        :param fs: A conditioning variable, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param observations: A conditioned variable,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :return: A tensor representing :math:`log p(yᵢ | fᵢ)`,</span>
+<span class="sd">            with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Likelihood.variational_expectations"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.Likelihood.variational_expectations">[docs]</a>    <span class="k">def</span> <span class="nf">variational_expectations</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate a variational expectation for each observation:</span>
+
+<span class="sd">        .. math:: ∫ log(p(yᵢ|fᵢ)) q(fᵢ) df</span>
+
+<span class="sd">        ...where :math:`q(f) ~ N(μ, P)`.</span>
+
+<span class="sd">        Note that :math:`p(y |f)` is defined by the type of likelihood function, as</span>
+<span class="sd">        specified by the observation model.</span>
+
+<span class="sd">        This term is used when calculating the evidence lower bound (ELBO):</span>
+
+<span class="sd">        .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ|fᵢ)) q(fᵢ) df - KL[q(F) ‖ p(F)]</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with</span>
+<span class="sd">            shape ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :param observations: The :math:`y` values at which to evaluate the log probability,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Likelihood.predict_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.Likelihood.predict_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict the density.</span>
+
+<span class="sd">        That is, calculate :math:`∫ q(F) p(Y|F) dF` of a Gaussian</span>
+<span class="sd">        approximation :math:`q(F) ~ N(μ, Σ)` to the posterior density :math:`p(F|Y)`.</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`, with shape</span>
+<span class="sd">            ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for each state of the</span>
+<span class="sd">            :class:`~markovflow.state_space_model.StateSpaceModel`,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :param observations: The :math:`y` values at which to evaluate the log probability,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Likelihood.predict_mean_and_var"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.Likelihood.predict_mean_and_var">[docs]</a>    <span class="k">def</span> <span class="nf">predict_mean_and_var</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the means and covariances of the posterior predictive distribution over outputs</span>
+<span class="sd">        :math:`y*` at :math:`x*`.</span>
+
+<span class="sd">        The (in most case intractable) density is given by:</span>
+
+<span class="sd">        .. math:: p(y* | x*, x, y) = ∫ p(y* | f*) p(f* | x*, x, y) df*</span>
+
+<span class="sd">        ...where:</span>
+
+<span class="sd">            * :math:`p(f* | x*, x, y)` is Gaussian with moments `f_means` and `f_covariances`</span>
+<span class="sd">            * :math:`p(y* | f*)` is defined by the likelihood</span>
+
+<span class="sd">        :param f_means: The marginal :math:`f` means for some arbitrary predicted time points,</span>
+<span class="sd">            with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">        :param f_covariances: The marginal :math:`f` covariances for some arbitrary predicted time</span>
+<span class="sd">            points, with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">        :return: A tuple of tensors containing observation means and covariances, with</span>
+<span class="sd">            respective shapes</span>
+<span class="sd">            ``batch_shape + [num_time_points, obs_dim]``,</span>
+<span class="sd">            ``batch_shape + [num_time_points, obs_dim, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<div class="viewcode-block" id="PEPScalarLikelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood">[docs]</a><span class="k">class</span> <span class="nc">PEPScalarLikelihood</span><span class="p">(</span><span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">ScalarLikelihood</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around GPflow likelihoods, adding</span>
+<span class="sd">    functionality to compute Power Expectation Propagation updates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">ScalarLikelihood</span><span class="p">,</span> <span class="n">num_gauss_hermite_points</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param base: base likelihood object</span>
+<span class="sd">        :param num_gauss_hermite_points: number of Gauss-Hermite points</span>
+<span class="sd">        :param kwargs: additional arguments dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadrature</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">quadrature</span><span class="o">.</span><span class="n">NDiagGHQuadrature</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_gauss_hermite_points</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PEPScalarLikelihood._scalar_log_prob"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood._scalar_log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">_scalar_log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute log p(Y|F).</span>
+<span class="sd">        :param F: function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PEPScalarLikelihood._scalar_alpha_prob"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood._scalar_alpha_prob">[docs]</a>    <span class="k">def</span> <span class="nf">_scalar_alpha_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute p(Y|F)</span>
+<span class="sd">        :param F: function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param alpha: scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scalar_log_prob</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">alpha</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PEPScalarLikelihood.log_expected_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood.log_expected_density">[docs]</a>    <span class="k">def</span> <span class="nf">log_expected_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar)</span>
+<span class="sd">        :param Fmu: mean function evaluation Tenself._quadrature_reduction(</span>
+<span class="sd">                self.quadrature.logspace(self._scalar_log_prob, Fmu, Fvar, Y=Y)</span>
+<span class="sd">        )sor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., observation_dim]:</span>
+<span class="sd">        :param alpha: scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PEPScalarLikelihood.grad_log_expected_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood.grad_log_expected_density">[docs]</a>    <span class="k">def</span> <span class="nf">grad_log_expected_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Noting I(q) = log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar),</span>
+<span class="sd">        this computes ∇I(q) and ∇∇I(q), where the gradient is wrt Fmu.</span>
+<span class="sd">        :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., observation_dim]:</span>
+<span class="sd">        :param alpha: scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">GradientTape</span><span class="p">()</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="n">Fmu</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">GradientTape</span><span class="p">()</span> <span class="k">as</span> <span class="n">gg</span><span class="p">:</span>
+                <span class="n">gg</span><span class="o">.</span><span class="n">watch</span><span class="p">(</span><span class="n">Fmu</span><span class="p">)</span>
+                <span class="n">led</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_expected_density</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+            <span class="n">dled_dfmu</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">led</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">)</span>
+        <span class="n">d2led_dfmu2</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">dled_dfmu</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">led</span><span class="p">,</span> <span class="p">(</span><span class="n">dled_dfmu</span><span class="p">,</span> <span class="n">d2led_dfmu2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PEPScalarLikelihood._conditional_mean"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood._conditional_mean">[docs]</a>    <span class="k">def</span> <span class="nf">_conditional_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The conditional mean of Y|F &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="PEPScalarLikelihood._conditional_variance"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPScalarLikelihood._conditional_variance">[docs]</a>    <span class="k">def</span> <span class="nf">_conditional_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The conditional variance of Y|F &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<div class="viewcode-block" id="PEPGaussian"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPGaussian">[docs]</a><span class="k">class</span> <span class="nc">PEPGaussian</span><span class="p">(</span><span class="n">PEPScalarLikelihood</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper around the univariate Gaussian Likelihood.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">Gaussian</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param base: A Gaussian Likelihood object</span>
+<span class="sd">        :param kwargs: dictionary of additional parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">likelihoods</span><span class="o">.</span><span class="n">Gaussian</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PEPGaussian.log_expected_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPGaussian.log_expected_density">[docs]</a>    <span class="k">def</span> <span class="nf">log_expected_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(f;Fmu, Fvar)</span>
+
+<span class="sd">        log ∫ p(y=Y|f)ᵃ q(f) df</span>
+<span class="sd">        =  log ∫ N(y; f, σ²) ᵃ N(f; Fmu, Fvar) df</span>
+<span class="sd">        =  log N(y; Fmu, σ² + Fvar)</span>
+
+<span class="sd">        :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param alpha: scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span>
+            <span class="n">gpflow</span><span class="o">.</span><span class="n">logdensities</span><span class="o">.</span><span class="n">gaussian</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">variance</span> <span class="o">+</span> <span class="n">Fvar</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PEPGaussian.grad_log_expected_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPGaussian.grad_log_expected_density">[docs]</a>    <span class="k">def</span> <span class="nf">grad_log_expected_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Noting I(q) = log ∫ p(y=Y|f)ᵃ q(f) df, where  q(f) = N(Fmu, Fvar),</span>
+<span class="sd">        this computes ∇I(q) and ∇∇I(q), where the gradient is wrt Fmu.</span>
+<span class="sd">        :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., observation_dim]:</span>
+<span class="sd">        :param alpha: scalar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_expected_density</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">variance</span> <span class="o">+</span> <span class="n">Fvar</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">Y</span> <span class="o">-</span> <span class="n">Fmu</span><span class="p">)</span> <span class="o">/</span> <span class="n">var</span><span class="p">,</span> <span class="o">-</span><span class="n">alpha</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">var</span><span class="p">)</span>  <span class="c1"># * (1. - ((Y - Fmu) ** 2) / var)</span>
+        <span class="k">return</span> <span class="n">val</span><span class="p">,</span> <span class="n">grads</span></div>
+
+<div class="viewcode-block" id="PEPGaussian._conditional_mean"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPGaussian._conditional_mean">[docs]</a>    <span class="k">def</span> <span class="nf">_conditional_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The conditional mean of Y|F &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="PEPGaussian._conditional_variance"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.PEPGaussian._conditional_variance">[docs]</a>    <span class="k">def</span> <span class="nf">_conditional_variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The conditional variance of Y|F &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="check_input_shapes"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/likelihoods/index.html#markovflow.likelihoods.check_input_shapes">[docs]</a><span class="k">def</span> <span class="nf">check_input_shapes</span><span class="p">(</span>
+    <span class="n">f_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">observations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">expected_obs_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">f_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check that the shapes of inputs to likelihood methods are valid.</span>
+
+<span class="sd">    :param f_means: A tensor with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">    :param observations: A tensor with shape ``batch_shape + [num_data, obs_dim]``.</span>
+<span class="sd">    :param expected_obs_dim: The expected number of dimensions.</span>
+<span class="sd">    :param f_covariances: A tensor with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="n">expected_obs_dim</span><span class="p">)),</span>
+        <span class="p">(</span><span class="n">f_means</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="n">expected_obs_dim</span><span class="p">)),</span>
+    <span class="p">]</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span><span class="n">shape_list</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">f_covariances</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shape_list_cov</span> <span class="o">=</span> <span class="p">[(</span><span class="n">f_covariances</span><span class="p">,</span> <span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;num_data&quot;</span><span class="p">,</span> <span class="n">expected_obs_dim</span><span class="p">,</span> <span class="n">expected_obs_dim</span><span class="p">))]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span><span class="n">shape_list_cov</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

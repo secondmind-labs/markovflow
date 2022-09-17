@@ -1,0 +1,387 @@
+:py:mod:`markovflow.state_space_model`
+======================================
+
+.. py:module:: markovflow.state_space_model
+
+.. autoapi-nested-parse::
+
+   Module containing a state space model.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: StateSpaceModel(initial_mean: gpflow.base.TensorType, chol_initial_covariance: gpflow.base.TensorType, state_transitions: gpflow.base.TensorType, state_offsets: gpflow.base.TensorType, chol_process_covariances: gpflow.base.TensorType)
+
+   Bases: :py:obj:`markovflow.gauss_markov.GaussMarkovDistribution`
+
+   Implements a state space model. This has the following form:
+
+   .. math:: xₖ₊₁ = Aₖ xₖ + bₖ + qₖ
+
+   ...where:
+
+       * :math:`qₖ ~ 𝓝(0, Qₖ)`
+       * :math:`x₀ ~ 𝓝(μ₀, P₀)`
+       * :math:`xₖ ∈ ℝ^d`
+       * :math:`bₖ ∈ ℝ^d`
+       * :math:`Aₖ ∈ ℝ^{d × d}`
+       * :math:`Qₖ ∈ ℝ^{d × d}`
+       * :math:`μ₀ ∈ ℝ^{d × 1}`
+       * :math:`P₀ ∈ ℝ^{d × d}`
+
+   The key reference is::
+
+       @inproceedings{grigorievskiy2017parallelizable,
+           title={Parallelizable sparse inverse formulation Gaussian processes (SpInGP)},
+           author={Grigorievskiy, Alexander and Lawrence, Neil and S{"a}rkk{"a}, Simo},
+           booktitle={Int'l Workshop on Machine Learning for Signal Processing (MLSP)},
+           pages={1--6},
+           year={2017},
+           organization={IEEE}
+       }
+
+   The model samples :math:`x₀` with an initial Gaussian distribution in :math:`ℝ^d`
+   (in code :math:`d` is `state_dim`).
+
+   The model then proceeds for :math:`n` (`num_transitions`) to generate :math:`[x₁, ... xₙ]`,
+   according to the formula above. The marginal distribution of samples at a point :math:`k`
+   is a Gaussian with mean :math:`μₖ, Pₖ`.
+
+   This class allows the user to generate samples from this process as well as to calculate the
+   marginal distributions for each transition.
+
+   :param initial_mean: A :data:`~markovflow.base.TensorType` containing the initial mean,
+       with shape ``batch_shape + [state_dim]``.
+   :param chol_initial_covariance: A :data:`~markovflow.base.TensorType` containing the
+       Cholesky of the initial covariance, with shape
+       ``batch_shape + [state_dim, state_dim]``. That is, unless the
+       initial covariance is zero, in which case it is zero.
+   :param state_transitions: A :data:`~markovflow.base.TensorType` containing state transition
+       matrices, with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+   :param state_offsets: A :data:`~markovflow.base.TensorType` containing the process means
+       bₖ, with shape ``batch_shape + [num_transitions, state_dim]``.
+   :param chol_process_covariances: A :data:`~markovflow.base.TensorType` containing the
+       Cholesky of the noise covariance matrices, with shape
+       ``batch_shape + [num_transitions, state_dim, state_dim]``. That is, unless the
+       noise covariance is zero, in which case it is zero.
+
+   .. py:method:: event_shape() -> tensorflow.Tensor
+      :property:
+
+      Return the shape of the event.
+
+      :return: The shape is ``[num_transitions + 1, state_dim]``.
+
+
+   .. py:method:: batch_shape() -> tensorflow.TensorShape
+      :property:
+
+      Return the shape of any leading dimensions that come before :attr:`event_shape`.
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension.
+
+
+   .. py:method:: num_transitions() -> tensorflow.Tensor
+      :property:
+
+      Return the number of transitions.
+
+
+   .. py:method:: cholesky_process_covariances() -> gpflow.base.TensorType
+      :property:
+
+      Return the Cholesky of :math:`[Q₁, Q₂, ....]`.
+
+      :return: A :data:`~markovflow.base.TensorType` with
+          shape ``[... num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: cholesky_initial_covariance() -> gpflow.base.TensorType
+      :property:
+
+      Return the Cholesky of :math:`P₀`.
+
+      :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim, state_dim]``.
+
+
+   .. py:method:: initial_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return :math:`P₀`.
+
+      :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim, state_dim]``.
+
+
+   .. py:method:: concatenated_cholesky_process_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the Cholesky of :math:`[P₀, Q₁, Q₂, ....]`.
+
+      :return: A tensor with shape ``[... num_transitions + 1, state_dim, state_dim]``.
+
+
+   .. py:method:: state_offsets() -> gpflow.base.TensorType
+      :property:
+
+      Return the state offsets :math:`[b₁, b₂, ....]`.
+
+      :return: A :data:`~markovflow.base.TensorType` with
+          shape ``[..., num_transitions, state_dim]``.
+
+
+   .. py:method:: initial_mean() -> gpflow.base.TensorType
+      :property:
+
+      Return the initial mean :math:`μ₀`.
+
+      :return: A :data:`~markovflow.base.TensorType` with shape ``[..., state_dim]``.
+
+
+   .. py:method:: concatenated_state_offsets() -> tensorflow.Tensor
+      :property:
+
+      Return the concatenated state offsets :math:`[μ₀, b₁, b₂, ....]`.
+
+      :return: A tensor with shape ``[... num_transitions + 1, state_dim]``.
+
+
+   .. py:method:: state_transitions() -> gpflow.base.TensorType
+      :property:
+
+      Return the concatenated state offsets :math:`[A₀, A₁, A₂, ....]`.
+
+      :return: A :data:`~markovflow.base.TensorType` with
+          shape ``[... num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: marginal_means() -> tensorflow.Tensor
+      :property:
+
+      Return the mean of the marginal distributions at each time point. If:
+
+      .. math:: xₖ ~ 𝓝(μₖ, Kₖₖ)
+
+      ...then return :math:`μₖ`.
+
+      If we let the concatenated state offsets be :math:`m = [μ₀, b₁, b₂, ....]` and :math:`A`
+      be defined as in equation (5) of the SpInGP paper (see class docstring), then:
+
+      .. math:: μ = A m = (A⁻¹)⁻¹ m
+
+      ...which we can do quickly using :meth:`a_inv_block`.
+
+      :return: The marginal means of the joint Gaussian, with shape
+          ``batch_shape + [num_transitions + 1, state_dim]``.
+
+
+   .. py:method:: marginal_covariances() -> tensorflow.Tensor
+      :property:
+
+      Return the ordered covariances :math:`Σₖₖ` of the multivariate normal marginal
+      distributions over consecutive states :math:`xₖ`.
+
+      :return: The marginal covariances of the joint Gaussian, with shape
+          ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.
+
+
+   .. py:method:: covariance_blocks() -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Return the diagonal and lower off-diagonal blocks of the covariance.
+
+      :return: A tuple of tensors with respective shapes
+              ``batch_shape + [num_transitions + 1, state_dim]``,
+              ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: a_inv_block() -> markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal
+      :property:
+
+      Return :math:`A⁻¹`.
+
+      This has the form::
+
+          A⁻¹ =  [ I             ]
+                 [-A₁, I         ]
+                 [    -A₂, I     ]
+                 [         ᨞  ᨞  ]
+                 [         -Aₙ, I]
+
+      ...where :math:`[A₁, ..., Aₙ]` are the state transition matrices.
+
+
+   .. py:method:: sample(sample_shape: markovflow.base.SampleShape) -> tensorflow.Tensor
+
+      Return sample trajectories.
+
+      :param sample_shape: The shape (and hence number of) trajectories to sample from
+          the state space model.
+      :return: A tensor containing state samples, with shape
+          ``sample_shape + self.batch_shape + self.event_shape``.
+
+
+   .. py:method:: subsequent_covariances(marginal_covariances: tensorflow.Tensor) -> tensorflow.Tensor
+
+      For each pair of subsequent states :math:`xₖ, xₖ₊₁`, return the covariance of their joint
+      distribution. That is:
+
+      .. math:: Cov(xₖ₊₁, xₖ) = AₖPₖ
+
+      :param marginal_covariances: The marginal covariances of each state in the model,
+          with shape ``batch_shape + [num_transitions + 1, state_dim, state_dim]``.
+      :return: The covariance between subsequent state, with shape
+               ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: log_det_precision() -> tensorflow.Tensor
+
+      Calculate the log determinant of the precision matrix. This uses the precision as
+      defined in the SpInGP paper (see class summary above).
+
+      Precision is defined as:
+
+      .. math:: K⁻¹ = (AQAᵀ)⁻¹
+
+      so:
+
+      .. math::
+          log |K⁻¹| &=  log | Q⁻¹ | (since |A| = 1)\\
+                    &= - log |P₀| - Σₜ log |Qₜ|\\
+                    &= - 2 * (log |chol_P₀| + Σₜ log |chol_Qₜ|)
+
+      :return: A tensor with shape ``batch_shape``.
+
+
+   .. py:method:: create_non_trainable_copy() -> StateSpaceModel
+
+      Create a non-trainable version of :class:`~markovflow.gauss_markov.GaussMarkovDistribution`.
+
+      This is to convert a trainable version of this class back to being non-trainable.
+
+      :return: A Gauss-Markov distribution that is a copy of this one.
+
+
+   .. py:method:: create_trainable_copy() -> StateSpaceModel
+
+      Create a trainable version of this state space model.
+
+      This is primarily for use with variational approaches where we want to optimise
+      the parameters of a state space model that is initialised from a prior state space model.
+
+      The initial mean and state transitions are the same.
+
+      The initial and process covariances are 'flattened'. Since they are lower triangular, we
+      only want to parametrise this part of the matrix. For this purpose we use the
+      `params.triangular` constraint which is the `tfp.bijectors.FillTriangular` bijector that
+      converts between a triangular matrix :math:`[dim, dim]` and a flattened vector of
+      shape :math:`[dim (dim + 1) / 2]`.
+
+      :return: A state space model that is a copy of this one and a dataclass containing the
+               variables that can be trained.
+
+
+   .. py:method:: _build_precision() -> markovflow.block_tri_diag.SymmetricBlockTriDiagonal
+
+      Compute the compact banded representation of the Precision matrix using state space model
+      parameters.
+
+      We construct matrix:
+          K⁻¹ = A⁻ᵀQ⁻¹A⁻¹
+
+      Using Q⁻¹ and A⁻¹ defined in equations (6) and (8) in the SpInGP paper (see class docstring)
+
+      It can be shown that
+
+      K⁻¹ = | P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁ | -A₁ᵀ Q₁⁻¹          | 0...
+            | -Q₁⁻¹ A₁          | Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂ |  -A₂ᵀ Q₂⁻¹         | 0...
+            |   0               | -Q₂⁻¹ A₂          | Q₂⁻¹ + A₃ᵀ Q₃⁻¹ A₃ | -A₃ᵀ Q₃⁻¹| 0...
+      ....
+
+      :return: The precision as a `SymmetricBlockTriDiagonal` object
+
+
+   .. py:method:: _log_pdf_factors(states: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the value of the log of the factors of the probability density function (PDF)
+      evaluated at a state trajectory::
+
+          [log p(x₀), log p(x₁|x₀), ..., log p(xₖ₊₁|xₖ)]
+
+      ...with x₀ ~ 𝓝(μ₀, P₀) and xₖ₊₁|xₖ ~ 𝓝(Aₖ xₖ + bₖ, Qₖ)
+
+      :states: The state trajectory has shape:
+          sample_shape + self.batch_shape + self.event_shape
+      :return: The log PDF of the factors with shape:
+          sample_shape + self.batch_shape + [self.num_transitions + 1]
+
+
+   .. py:method:: log_pdf(states) -> tensorflow.Tensor
+
+      Return the value of the log of the probability density function (PDF)
+      evaluated at states. That is:
+
+      .. math:: log p(x) = log p(x₀) + Σₖ log p(xₖ₊₁|xₖ)  (for 0 ⩽ k < n)
+
+      :param states: The state trajectory, with shape
+          ``sample_shape + self.batch_shape + self.event_shape``.
+      :return: The log PDF, with shape ``sample_shape + self.batch_shape``.
+
+
+   .. py:method:: kl_divergence(dist: markovflow.gauss_markov.GaussMarkovDistribution) -> tensorflow.Tensor
+
+      Return the KL divergence of the current Gauss-Markov distribution from the specified
+      input `dist`. That is:
+
+      .. math:: KL(dist₁ ∥ dist₂)
+
+      To do so we first compute the marginal distributions from the Gauss-Markov form:
+
+      .. math::
+          dist₁ = 𝓝(μ₁, P⁻¹₁)\\
+          dist₂ = 𝓝(μ₂, P⁻¹₂)
+
+      ...where:
+
+          * :math:`μᵢ` are the marginal means
+          * :math:`Pᵢ` are the banded precisions
+
+      The KL divergence is thus given by:
+
+      .. math::
+          KL(dist₁ ∥ dist₂) = ½(tr(P₂P₁⁻¹) + (μ₂ - μ₁)ᵀP₂(μ₂ - μ₁) - N - log(|P₂|) + log(|P₁|))
+
+      ...where :math:`N = (\verb |num_transitions| + 1) * \verb |state_dim|` (that is,
+      the dimensionality of the Gaussian).
+
+      :param dist: Another similarly parameterised Gauss-Markov distribution.
+      :return: A tensor of the KL divergences, with shape ``self.batch_shape``.
+
+
+   .. py:method:: normalizer()
+
+      Conputes the normalizer
+      Page 36 of Thang Bui
+      :return:
+
+
+
+.. py:function:: state_space_model_from_covariances(initial_mean: tensorflow.Tensor, initial_covariance: tensorflow.Tensor, state_transitions: tensorflow.Tensor, state_offsets: tensorflow.Tensor, process_covariances: tensorflow.Tensor) -> StateSpaceModel
+
+   Construct a state space model using the full covariance matrices for convenience.
+
+   :param initial_mean: The initial mean, with shape ``batch_shape + [state_dim]``.
+   :param initial_covariance: Initial covariance, with shape
+       ``batch_shape + [state_dim, state_dim]``.
+   :param state_transitions: State transition matrices, with shape
+       ``batch_shape + [num_transitions, state_dim, state_dim]``.
+   :param state_offsets: The process means :math:`bₖ`, with shape
+       ``batch_shape + [num_transitions, state_dim]``.
+   :param process_covariances: Noise covariance matrices, with shape
+       ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+

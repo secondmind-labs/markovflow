@@ -1,0 +1,760 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kernels.matern &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.kernels.periodic" href="../periodic/index.html" />
+    <link rel="prev" title="markovflow.kernels.latent_exp_generated" href="../latent_exp_generated/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.matern.Matern12" class="nav-link">Matern12</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.state_transitions" class="nav-link">state_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.feedback_matrix" class="nav-link">feedback_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.steady_state_covariance" class="nav-link">steady_state_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.lengthscale" class="nav-link">lengthscale</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern12.variance" class="nav-link">variance</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck" class="nav-link">OrnsteinUhlenbeck</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.state_transitions" class="nav-link">state_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.feedback_matrix" class="nav-link">feedback_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.steady_state_covariance" class="nav-link">steady_state_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.decay" class="nav-link">decay</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.OrnsteinUhlenbeck.diffusion" class="nav-link">diffusion</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.matern.Matern32" class="nav-link">Matern32</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32._lambda" class="nav-link">_lambda</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.state_transitions" class="nav-link">state_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.feedback_matrix" class="nav-link">feedback_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.steady_state_covariance" class="nav-link">steady_state_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.lengthscale" class="nav-link">lengthscale</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern32.variance" class="nav-link">variance</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.matern.Matern52" class="nav-link">Matern52</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52._lambda" class="nav-link">_lambda</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.state_transitions" class="nav-link">state_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.feedback_matrix" class="nav-link">feedback_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.steady_state_covariance" class="nav-link">steady_state_covariance</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.lengthscale" class="nav-link">lengthscale</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.matern.Matern52.variance" class="nav-link">variance</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.matern._check_lengthscale_and_variance" class="nav-link">_check_lengthscale_and_variance</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.kernels.matern">
+<span id="markovflow-kernels-matern"></span><h1><a class="reference internal" href="#module-markovflow.kernels.matern" title="markovflow.kernels.matern"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.kernels.matern</span></code></a><a class="headerlink" href="#module-markovflow.kernels.matern" title="Permalink to this headline">¶</a></h1>
+<p>Module containing the Matern family of kernels.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.kernels.matern.Matern12">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Matern12</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lengthscale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sde_kernel/index.html#markovflow.kernels.sde_kernel.StationaryKernel" title="markovflow.kernels.sde_kernel.StationaryKernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.kernels.sde_kernel.StationaryKernel</span></code></a></p>
+<p>Represents the Matern1/2 kernel. This kernel has the formula:</p>
+<div class="math notranslate nohighlight">
+\[C(x, x') = σ² exp(-|x - x'| / ℓ)\]</div>
+<p>…where lengthscale <span class="math notranslate nohighlight">\(ℓ\)</span> and signal variance <span class="math notranslate nohighlight">\(σ²\)</span> are kernel parameters.</p>
+<p>This defines an SDE where:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;F = - 1/ℓ\\
+&amp;L = 1\end{split}\]</div>
+<p>…so that <span class="math notranslate nohighlight">\(Aₖ = exp(-Δtₖ/ℓ)\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lengthscale</strong> – A value for the lengthscale parameter.</p></li>
+<li><p><strong>variance</strong> – A value for the variance parameter.</p></li>
+<li><p><strong>output_dim</strong> – The output dimension of the kernel.</p></li>
+<li><p><strong>jitter</strong> – A small non-negative number to add into a matrix’s diagonal to
+maintain numerical stability during inversion.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension of the kernel, which is always one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.state_transitions">
+<code class="sig-name descname"><span class="pre">state_transitions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_deltas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.state_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.state_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state transition matrices kernel.</p>
+<p>The state dimension is one, so the matrix exponential reduces to a standard one:</p>
+<div class="math notranslate nohighlight">
+\[Aₖ = exp(-Δtₖ/ℓ)\]</div>
+<p>Because this is a stationary kernel, <code class="xref any docutils literal notranslate"><span class="pre">transition_times</span></code> is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transition_times</strong> – A tensor of times at which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>. Ignored.</p></li>
+<li><p><strong>time_deltas</strong> – A tensor of time gaps for which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.feedback_matrix">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">feedback_matrix</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.feedback_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.feedback_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the feedback matrix <span class="math notranslate nohighlight">\(F\)</span>. This is where:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + L w(t)\]</div>
+<p>For this kernel, note that <span class="math notranslate nohighlight">\(F = - 1 / ℓ\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.steady_state_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">steady_state_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.steady_state_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.steady_state_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the steady state covariance <span class="math notranslate nohighlight">\(P∞\)</span>. For this kernel,
+this is the variance hyperparameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.lengthscale">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">lengthscale</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.lengthscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.lengthscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the lengthscale parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern12.variance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">variance</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern12.variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern12.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variance parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">OrnsteinUhlenbeck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">diffusion</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sde_kernel/index.html#markovflow.kernels.sde_kernel.StationaryKernel" title="markovflow.kernels.sde_kernel.StationaryKernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.kernels.sde_kernel.StationaryKernel</span></code></a></p>
+<p>Represents the Ornstein–Uhlenbeck kernel.
+This is an alternative parameterization of the Matern1/2 kernel.
+This kernel has the formula:</p>
+<div class="math notranslate nohighlight">
+\[C(x, x') = q/2λ exp(-λ|x - x'|)\]</div>
+<p>…where decay <span class="math notranslate nohighlight">\(λ\)</span> and diffusion coefficient <span class="math notranslate nohighlight">\(q\)</span> are kernel parameters.</p>
+<p>This defines an SDE where:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;F = - λ\\
+&amp;L = q\end{split}\]</div>
+<p>…so that <span class="math notranslate nohighlight">\(Aₖ = exp(-λ Δtₖ)\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>decay</strong> – A value for the decay parameter.</p></li>
+<li><p><strong>diffusion</strong> – A value for the diffusion parameter.</p></li>
+<li><p><strong>output_dim</strong> – The output dimension of the kernel.</p></li>
+<li><p><strong>jitter</strong> – A small non-negative number to add into a matrix’s diagonal to
+maintain numerical stability during inversion.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension of the kernel, which is always one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.state_transitions">
+<code class="sig-name descname"><span class="pre">state_transitions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_deltas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.state_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.state_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state transition matrices kernel.</p>
+<p>The state dimension is one, so the matrix exponential reduces to a standard one:</p>
+<div class="math notranslate nohighlight">
+\[Aₖ = exp(-λ Δtₖ)\]</div>
+<p>Because this is a stationary kernel, <code class="xref any docutils literal notranslate"><span class="pre">transition_times</span></code> is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transition_times</strong> – A tensor of times at which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>. Ignored.</p></li>
+<li><p><strong>time_deltas</strong> – A tensor of time gaps for which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.feedback_matrix">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">feedback_matrix</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.feedback_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.feedback_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the feedback matrix <span class="math notranslate nohighlight">\(F\)</span>. This is where:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + L w(t)\]</div>
+<p>For this kernel, note that <span class="math notranslate nohighlight">\(F = -λ\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.steady_state_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">steady_state_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.steady_state_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.steady_state_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the steady state covariance <span class="math notranslate nohighlight">\(P∞\)</span>. For this kernel,
+this is q/2λ.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.decay">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">decay</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.decay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the decay parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.OrnsteinUhlenbeck.diffusion">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">diffusion</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#OrnsteinUhlenbeck.diffusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.OrnsteinUhlenbeck.diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the diffusion parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kernels.matern.Matern32">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Matern32</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lengthscale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sde_kernel/index.html#markovflow.kernels.sde_kernel.StationaryKernel" title="markovflow.kernels.sde_kernel.StationaryKernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.kernels.sde_kernel.StationaryKernel</span></code></a></p>
+<p>Represents the Matern3/2 kernel. This kernel has the formula:</p>
+<div class="math notranslate nohighlight">
+\[C(x, x') = σ² (1 + λ|x - x'|) exp(λ|x - x'|)\]</div>
+<p>…where <span class="math notranslate nohighlight">\(λ = √3 / ℓ\)</span>, and lengthscale <span class="math notranslate nohighlight">\(ℓ\)</span> and signal variance <span class="math notranslate nohighlight">\(σ²\)</span>
+are kernel parameters.</p>
+<p>The transition matrix <span class="math notranslate nohighlight">\(F\)</span> in the SDE form for this kernel is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}F = &amp;[[0, 1]\\
+    &amp;[[-λ², -2λ]]\end{split}\]</div>
+<p>Covariance for the initial state is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P∞ = [&amp;[1, 0],\\
+      &amp;[0, λ²]] * \verb|variance|\end{split}\]</div>
+<p>…where <a class="reference internal" href="#markovflow.kernels.matern.Matern32.variance" title="markovflow.kernels.matern.Matern32.variance"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">variance</span></code></a> is a kernel parameter.</p>
+<p>Since the characteristic equation for the feedback matrix <span class="math notranslate nohighlight">\(F\)</span> for this kernel
+is <span class="math notranslate nohighlight">\((λI + F)² = 0\)</span>, the state transition matrix is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Aₖ &amp;= expm(FΔtₖ)\\
+   &amp;= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+   &amp;= exp(-λΔtₖ) (I + (λI + F)Δtₖ)\end{split}\]</div>
+<p>…where <span class="math notranslate nohighlight">\(expm\)</span> is the matrix exponential operator. Note that all higher order terms of
+<span class="math notranslate nohighlight">\(expm((λI + F)Δtₖ)\)</span> disappear.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lengthscale</strong> – A value for the lengthscale parameter.</p></li>
+<li><p><strong>variance</strong> – A value for the variance parameter.</p></li>
+<li><p><strong>output_dim</strong> – The output dimension of the kernel.</p></li>
+<li><p><strong>jitter</strong> – A small non-negative number to add into a matrix’s diagonal to
+maintain numerical stability during inversion.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32._lambda">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_lambda</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32._lambda"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32._lambda" title="Permalink to this definition">¶</a></dt>
+<dd><p>λ the scalar used elsewhere in the docstrings</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension of the kernel, which is always two.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.state_transitions">
+<code class="sig-name descname"><span class="pre">state_transitions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_deltas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.state_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.state_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state transition matrices for the kernel.</p>
+<p>Because this is a stationary kernel, <code class="xref any docutils literal notranslate"><span class="pre">transition_times</span></code> is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transition_times</strong> – A tensor of times at which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>. Ignored.</p></li>
+<li><p><strong>time_deltas</strong> – A tensor of time gaps for which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.feedback_matrix">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">feedback_matrix</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.feedback_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.feedback_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the feedback matrix <span class="math notranslate nohighlight">\(F\)</span>. This is where:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + L w(t)\]</div>
+<p>For this kernel, note that:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}F = &amp;[0    &amp;1]\\
+    &amp;[-λ²  &amp;-2λ]\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.steady_state_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">steady_state_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.steady_state_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.steady_state_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the steady state covariance <span class="math notranslate nohighlight">\(P∞\)</span>. This is given by:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}P∞ = σ² [&amp;[1, 0],\\
+         &amp;[0, λ²]]\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.lengthscale">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">lengthscale</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.lengthscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.lengthscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the lengthscale parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern32.variance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">variance</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern32.variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern32.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variance parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.kernels.matern.Matern52">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Matern52</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lengthscale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sde_kernel/index.html#markovflow.kernels.sde_kernel.StationaryKernel" title="markovflow.kernels.sde_kernel.StationaryKernel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.kernels.sde_kernel.StationaryKernel</span></code></a></p>
+<p>Represents the Matern5/2 kernel. This kernel has the formula:</p>
+<div class="math notranslate nohighlight">
+\[C(x, x') = σ² (1 + λ|x - x'| + λ²|x - x'|²/3) exp(λ|x - x'|)\]</div>
+<p>…where <span class="math notranslate nohighlight">\(λ = √5 / ℓ\)</span>, and lengthscale <span class="math notranslate nohighlight">\(ℓ\)</span> and signal variance <span class="math notranslate nohighlight">\(σ²\)</span>
+are kernel parameters.</p>
+<p>The transition matrix <span class="math notranslate nohighlight">\(F\)</span> in the SDE form for this kernel is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>F = [  0,    1,   0]
+    [  0,    0,   1]
+    [-λ³, -3λ², -3λ]
+</pre></div>
+</div>
+<p>Covariance for the initial state is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>P∞ = σ² [    1,    0, -λ²/3]
+        [    0, λ²/3,     0]
+        [-λ²/3,    0,    λ⁴]
+</pre></div>
+</div>
+<p>Since the characteristic equation for the feedback matrix <span class="math notranslate nohighlight">\(F\)</span> for this kernel
+is <span class="math notranslate nohighlight">\((λI + F)³ = 0\)</span>, the state transition matrix is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Aₖ &amp;= expm(FΔtₖ)\\
+   &amp;= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+   &amp;= exp(-λΔtₖ) (I + (λI + F)Δtₖ + (λI + F)²Δtₖ²/2)\end{split}\]</div>
+<p>…where <span class="math notranslate nohighlight">\(expm\)</span> is the matrix exponential operator. Note that all
+higher order terms disappear.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lengthscale</strong> – A value for the lengthscale parameter.</p></li>
+<li><p><strong>variance</strong> – A value for the variance parameter.</p></li>
+<li><p><strong>output_dim</strong> – The output dimension of the kernel.</p></li>
+<li><p><strong>jitter</strong> – A small non-negative number to add into a matrix’s diagonal to
+maintain numerical stability during inversion.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52._lambda">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">_lambda</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52._lambda"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52._lambda" title="Permalink to this definition">¶</a></dt>
+<dd><p>λ the scalar used elsewhere in the docstrings</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.state_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension of the kernel, which is always three.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.state_transitions">
+<code class="sig-name descname"><span class="pre">state_transitions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transition_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_deltas</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.state_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.state_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state transition matrices for the kernel.</p>
+<p>Because this is a stationary kernel, <code class="xref any docutils literal notranslate"><span class="pre">transition_times</span></code> is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transition_times</strong> – A tensor of times at which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>. Ignored.</p></li>
+<li><p><strong>time_deltas</strong> – A tensor of time gaps for which to produce matrices, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.feedback_matrix">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">feedback_matrix</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.feedback_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.feedback_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the feedback matrix <span class="math notranslate nohighlight">\(F\)</span>. This is where:</p>
+<div class="math notranslate nohighlight">
+\[dx(t)/dt = F x(t) + L w(t)\]</div>
+<p>For this kernel, note that:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>F = [[  0,    1,   0]
+     [  0,    0,   1]
+     [-λ³, -3λ², -3λ]]
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.steady_state_covariance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">steady_state_covariance</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.steady_state_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.steady_state_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the steady state covariance <span class="math notranslate nohighlight">\(P∞\)</span>. This is given by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>P∞ = σ² [    1,    0, -λ²/3]
+        [    0, λ²/3,     0]
+        [-λ²/3,    0,    λ⁴]
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.lengthscale">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">lengthscale</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.lengthscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.lengthscale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the lengthscale parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.matern.Matern52.variance">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">variance</span></code> &#x2192; <span class="pre">gpflow.Parameter</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#Matern52.variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern.Matern52.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the variance parameter. This is a GPflow
+<a class="reference external" href="https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter">Parameter</a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.kernels.matern._check_lengthscale_and_variance">
+<code class="sig-name descname"><span class="pre">_check_lengthscale_and_variance</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lengthscale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/matern.html#_check_lengthscale_and_variance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.matern._check_lengthscale_and_variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify that the lengthscale and variance are positive</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,581 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.mean_function &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.mean_function</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing mean functions.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.block_tri_diag</span> <span class="kn">import</span> <span class="n">LowerTriangularBlockTriDiagonal</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span><span class="p">,</span> <span class="n">to_delta_time</span>
+
+
+<div class="viewcode-block" id="MeanFunction"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.MeanFunction">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">MeanFunction</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class for mean functions.</span>
+
+<span class="sd">    Represents the action :math:`u(t)` added to the latent states:</span>
+
+<span class="sd">    .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)</span>
+
+<span class="sd">    ...resulting in the the mean function:</span>
+
+<span class="sd">    .. math:: dμ(t)/dt = F μ(t) + u(t)</span>
+
+<span class="sd">    We can then solve the pure SDE:</span>
+
+<span class="sd">    .. math:: dg(t)/dt = F g(t)+ L w(t)</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">    .. math:: g(t) = x(t) - μ(t)</span>
+
+<span class="sd">    This class provides a very general interface for the function :math:`μ(t)`.</span>
+
+<span class="sd">    .. note:: Implementations of this class should typically avoid performing computation</span>
+<span class="sd">       in their `__init__` method. Performing computation in the constructor conflicts with</span>
+<span class="sd">       running in TensorFlow&#39;s eager mode.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MeanFunction.__call__"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.MeanFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span></div></div>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function evaluated at the given time points.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``[... num_data]``.</span>
+<span class="sd">        :return: The mean function evaluated at the time points, with shape</span>
+<span class="sd">            ``[... num_data, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="ZeroMeanFunction"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.ZeroMeanFunction">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">ZeroMeanFunction</span><span class="p">(</span><span class="n">MeanFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a mean function that is zero everywhere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param obs_dim: The dimension of the zeros to output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span> <span class="o">=</span> <span class="n">obs_dim</span>
+
+<div class="viewcode-block" id="ZeroMeanFunction.__call__"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.ZeroMeanFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function evaluated at the given time points.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``[... num_data]``.</span>
+<span class="sd">        :return: The mean function evaluated at the time points, with shape</span>
+<span class="sd">            ``[... num_data, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_points</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">time_points</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="LinearMeanFunction"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.LinearMeanFunction">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">LinearMeanFunction</span><span class="p">(</span><span class="n">MeanFunction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a mean function that is linear. That is, where :math:`m(t) = a * t`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coefficient</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">obs_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param coefficient: The linear coefficient.</span>
+<span class="sd">        :param obs_dim: The output dimension of the mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coefficient</span> <span class="o">=</span> <span class="n">coefficient</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span> <span class="o">=</span> <span class="n">obs_dim</span>
+
+<div class="viewcode-block" id="LinearMeanFunction.__call__"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.LinearMeanFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function evaluated at the given time points.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``[... num_data]``.</span>
+<span class="sd">        :return: The mean function evaluated at the time points</span>
+<span class="sd">            with shape ``[... num_data, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_points</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coefficient</span> <span class="o">*</span> <span class="n">time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">shape</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ImpulseMeanFunction"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.ImpulseMeanFunction">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">ImpulseMeanFunction</span><span class="p">(</span><span class="n">MeanFunction</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a mean function that is an impulse action. This is given by:</span>
+
+<span class="sd">    .. math:: u(t) = Σₖ uₖ δ(t - tₖ)</span>
+
+<span class="sd">    ...in:</span>
+
+<span class="sd">    .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)</span>
+
+<span class="sd">    ...and then:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;μ_(t) = 0                               &amp;     t ≤ t₀\\</span>
+<span class="sd">        &amp;μ₀(t) = exp(F (t - t₀)) u₀              &amp;t₀ &lt; t ≤ t₁\\</span>
+<span class="sd">        &amp;μₖ(t) = exp(F (t - tₖ))(μₖ₋₁(tₖ) + uₖ)  &amp;tₖ &lt; t ≤ tₖ₊₁</span>
+
+<span class="sd">    Or:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;μ₋₁(t) = 0                   &amp;     t ≤ t₀\\</span>
+<span class="sd">        &amp;μₖ(t) = exp(F (t - tₖ))aₖ    &amp;tₖ &lt; t ≤ tₖ₊₁</span>
+
+<span class="sd">    If we let:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;a₋₁ = 0\\</span>
+<span class="sd">        &amp;a₀ =  u₀\\</span>
+<span class="sd">        &amp;aₖ = Aₖaₖ₋₁ + uₖ</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">    .. math:: Aₖ = exp(F (tₖ - tₖ₋₁))</span>
+
+<span class="sd">    ...then we can write this as a :class:`LowerTriangularBlockTriDiagonal` equation::</span>
+
+<span class="sd">        [ I             ] a₀   u₀</span>
+<span class="sd">        [-A₁, I         ] a₁   u₁</span>
+<span class="sd">        [    -A₂, I     ] a₂ = u₂</span>
+<span class="sd">        [         ᨞  ᨞  ] ⋮     ⋮</span>
+<span class="sd">        [         -Aₙ, I] aₙ   uₙ</span>
+
+<span class="sd">    We can then determine the :math:`aₖ` using a matrix solve.</span>
+
+<span class="sd">    .. note:: The effect of the action is not seen until fractionally after it is applied. That is,</span>
+<span class="sd">       if an impulse is applied at time :math:`t`, :math:`μ(t)` will not see the effect</span>
+<span class="sd">       but :math:`μ(t + ε)` will.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">action_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">state_perturbations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param action_times: The times at which actions occur, with shape ``[... num_actions]``.</span>
+<span class="sd">        :param state_perturbations: The magnitude of the impulse, with shape</span>
+<span class="sd">            ``[... num_actions, state_dim]``.</span>
+<span class="sd">        :param kernel: The kernel that is used to generate this mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_perturbations</span> <span class="o">=</span> <span class="n">state_perturbations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_shape</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># TODO: make this use tf.shape, must replace if statements with tf.cond</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">action_times</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_perturbations</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># we don&#39;t handle placeholders</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span> <span class="o">=</span> <span class="n">action_times</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_impulses</span> <span class="o">=</span> <span class="n">state_perturbations</span>
+
+        <span class="c1"># add dummy time point before the first for the initial zero function [... num_actions + 1]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">action_times</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">action_times</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_a_k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># [... num_actions, state_dim, state_dim]</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_perturbations</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">batch_shape</span><span class="o">=</span><span class="n">shape</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># No A_s if there is only one action</span>
+            <span class="n">A_s</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># [-exp(F (t₁ - t₀)), -exp(F (t₂ - t₁)) ... ] [... num_actions-1, state_dim, state_dim]</span>
+
+            <span class="n">A_s</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">to_delta_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="c1"># see the class docstring [... num_actions + 1, state_dim]</span>
+        <span class="c1"># concat with zeros to generate the initial zero function</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impulses</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]),</span>
+                <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="n">A_s</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_impulses</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ImpulseMeanFunction.__call__"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.ImpulseMeanFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function evaluated at the given time points.</span>
+
+<span class="sd">        For each time point, we find the index of the function associated with it; that is,</span>
+<span class="sd">        the closest previous impulse.</span>
+
+<span class="sd">        This index is then used to find the parameters of the function:</span>
+
+<span class="sd">        .. math:: μₖ(t) = exp(F (t - tₖ))aₖ</span>
+
+<span class="sd">        ...where :math:`tₖ &lt; t ≤ tₖ₊₁`.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``[... num_data]``.</span>
+<span class="sd">        :return: The mean function evaluated at the time points, with</span>
+<span class="sd">            shape ``[... num_data, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_batch</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># find the index that each of the time points corresponds to [... num_data]</span>
+        <span class="c1"># need to slice data because of the way searchsorted returns indices</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="c1"># (t - tₖ) get time from the start of the corresponding interval [... num_data, state_dim]</span>
+        <span class="n">delta_times</span> <span class="o">=</span> <span class="n">time_points</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">num_batch</span>
+        <span class="p">)</span>
+
+        <span class="c1"># aₖ get the coefficient for this time point [..., num_data, state_dim, 1]</span>
+        <span class="n">a_k</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a_k</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">num_batch</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="c1"># μₖ(t) = exp(F (t - tₖ))aₖ  [... num_data, state_dim]  tₖ &lt; t ≤ tₖ₊₁</span>
+        <span class="n">state_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span><span class="n">time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">delta_times</span><span class="p">),</span> <span class="n">a_k</span>
+        <span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">state_mean</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="StepMeanFunction"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.StepMeanFunction">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">StepMeanFunction</span><span class="p">(</span><span class="n">MeanFunction</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a mean function that is a step action. This is given by:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;u(t) = 0       &amp;t ≤ t₀\\</span>
+<span class="sd">        &amp;u(t) = uₖ      &amp;tₖ &lt; t ≤ tₖ₊₁</span>
+
+<span class="sd">    ...in:</span>
+
+<span class="sd">    .. math:: dx(t)/dt = F x(t) + u(t) + L w(t)</span>
+
+<span class="sd">    Then:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;μ_(t) = 0                                              &amp;   t ≤ t₀\\</span>
+<span class="sd">        &amp;μ₀(t) = -F⁻¹u₀ + exp(F (t - t₀))F⁻¹u₀                  &amp;t₀ &lt; t ≤ t₁\\</span>
+<span class="sd">        &amp;μₖ(t) = -F⁻¹uₖ + exp(F (t - tₖ))(F⁻¹uₖ + μₖ₋₁(tₖ))     &amp;tₖ &lt; t ≤ tₖ₊₁</span>
+
+<span class="sd">    Or:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;μ₋₁(t) = 0                           &amp;     t ≤ t₀\\</span>
+<span class="sd">        &amp;μₖ(t) = aₖ + exp(F (t - tₖ))bₖ       &amp;tₖ &lt; t ≤ tₖ₊₁</span>
+
+<span class="sd">    If we let:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;a₋₁ =  b₋₁ = 0\\</span>
+<span class="sd">        &amp;aₖ =  -F⁻¹uₖ\\</span>
+<span class="sd">        &amp;bₖ = -aₖ + μₖ₋₁(tₖ) = Aₖbₖ₋₁ + aₖ₋₁ - aₖ</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">    .. math:: Aₖ = exp(F (tₖ - tₖ₋₁))</span>
+
+<span class="sd">    ...we can write this as a :class:`LowerTriangularBlockTriDiagonal` equation::</span>
+
+<span class="sd">        [ I             ] b₀   [a₋₁ - a₀]</span>
+<span class="sd">        [-A₁, I         ] b₁   [a₀ - a₁]</span>
+<span class="sd">        [    -A₂, I     ] b₂ = [a₁ - a₂]</span>
+<span class="sd">        [         ᨞  ᨞  ] ⋮         ⋮</span>
+<span class="sd">        [         -Aₙ, I] bₙ   [aₙ₋₁ - aₙ]</span>
+
+<span class="sd">    We can then determine the :math:`bₖ` using a matrix solve.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">state_perturbations</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param action_times: The times at which actions occur, with shape ``[... num_actions]``.</span>
+<span class="sd">        :param state_perturbations: The magnitude of the impulse, with shape</span>
+<span class="sd">            ``[... num_actions, obs_dim]``.</span>
+<span class="sd">        :param kernel: The kernel that is used to generate this mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_shape</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># TODO: use tf.shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span> <span class="o">=</span> <span class="n">state_perturbations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">action_times</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_perturbations</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># we don&#39;t handle placeholders</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span> <span class="o">=</span> <span class="n">action_times</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_perturbations</span> <span class="o">=</span> <span class="n">state_perturbations</span>
+
+        <span class="c1"># add dummy time point before the first for the initial zero function [... num_actions + 1]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">action_times</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="n">action_times</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_a_k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="c1"># [... num_actions, state_dim]</span>
+        <span class="n">F_broadcast</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">feedback_matrix</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="c1"># [F⁻¹u₀, F⁻¹u₁, F⁻¹u₂ ... ] [... num_actions, state_dim]</span>
+        <span class="n">F_inv_perturb</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">F_broadcast</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_perturbations</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># [0, -F⁻¹u₀, -F⁻¹u₁, -F⁻¹u₂ ...] [... num_actions + 1, state_dim]</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">F_inv_perturb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]),</span> <span class="o">-</span><span class="n">F_inv_perturb</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_b_k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># [-a₀, a₀ - a₁, a₁ - a₂, ... ] [... num_actions, state_dim]</span>
+        <span class="n">a_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_k</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_k</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># [... num_actions, state_dim, state_dim]</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_perturbations</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">batch_shape</span><span class="o">=</span><span class="n">shape</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_actions</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># No A_s if there is only one action</span>
+            <span class="n">A_s</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># [-exp(F (t₁ - t₀)), -exp(F (t₂ - t₁)) ... ] [... num_actions-1, state_dim, state_dim]</span>
+            <span class="n">A_s</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">to_delta_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_times_without_initial</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="c1"># see the class docstring [... num_actions + 1, state_dim]</span>
+        <span class="c1"># concat with zeros to generate the initial zero function</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">a_diff</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]),</span>
+                <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="n">A_s</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">a_diff</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="StepMeanFunction.__call__"><a class="viewcode-back" href="../../autoapi/markovflow/mean_function/index.html#markovflow.mean_function.StepMeanFunction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function evaluated at the given time points.</span>
+
+<span class="sd">        For each time point, we find the index of the function associated with it; that is,</span>
+<span class="sd">        the closest previous step (call it :math:`k`).</span>
+
+<span class="sd">        This index is then used to find the parameters of the function:</span>
+
+<span class="sd">        .. math:: μₖ(t) = aₖ + exp(F (t - tₖ))bₖ</span>
+
+<span class="sd">        ...where :math:`tₖ &lt; t ≤ tₖ₊₁`.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``[... num_data]``.</span>
+<span class="sd">        :return: The mean function evaluated at the time points, with</span>
+<span class="sd">            shape ``[... num_data, obs_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_batch</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="c1"># find the index that each of the time points corresponds to [... num_data]</span>
+        <span class="c1"># need to slice data because of the way searchsorted returns indices</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="c1"># (t - tₖ) the time from the start of the corresponding interval [... num_data, state_dim]</span>
+        <span class="n">delta_times</span> <span class="o">=</span> <span class="n">time_points</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_action_times</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">num_batch</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get the constant part for this time point [..., num_data, state_dim]</span>
+        <span class="n">a_k</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a_k</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">num_batch</span><span class="p">)</span>
+        <span class="c1"># get the coefficient of the exponential term [..., num_data, state_dim, 1]</span>
+        <span class="n">b_k</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_b_k</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">num_batch</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="c1"># μₖ(t) = aₖ + exp(F (t - tₖ))bₖ     tₖ &lt; t ≤ tₖ₊₁</span>
+        <span class="n">state_mean</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">a_k</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">delta_times</span><span class="p">),</span> <span class="n">b_k</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">state_mean</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

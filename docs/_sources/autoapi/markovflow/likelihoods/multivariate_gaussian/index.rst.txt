@@ -1,0 +1,125 @@
+:py:mod:`markovflow.likelihoods.multivariate_gaussian`
+======================================================
+
+.. py:module:: markovflow.likelihoods.multivariate_gaussian
+
+.. autoapi-nested-parse::
+
+   Module containing a multivariate Gaussian likelihood.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: MultivariateGaussian(chol_covariance: gpflow.base.TensorType)
+
+   Bases: :py:obj:`markovflow.likelihoods.likelihoods.Likelihood`
+
+   Represents a multivariate Gaussian likelihood. For example:
+
+   .. math:: p(yᵢ | fᵢ) = 𝓝(yᵢ; fᵢ, Σ= LLᵀ)
+
+   See also the documentation for the base
+   :class:`~markovflow.likelihoods.likelihoods.Likelihood` class.
+
+   :param chol_covariance: A :data:`~markovflow.base.TensorType` containing the Cholesky
+       factor of the covariance of the Gaussian noise, with shape ``[obs_dim, obs_dim]``.
+
+   .. py:method:: obs_dim() -> int
+      :property:
+
+      Return the dimensionality of each observation.
+
+
+   .. py:method:: log_probability_density(fs: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Compute the log probability density :math:`log p(Y|F)`.
+
+      For a multivariate Gaussian, this is :math:`log 𝓝(yᵢ; fᵢ, Σ)`.
+
+      :param fs: A tensor representing a conditioning variable, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param observations: A tensor representing a conditioned variable,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor representing :math:`log p(yᵢ | fᵢ)`,
+          with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: variational_expectations(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Calculate a variational expectation for each observation:
+
+      .. math:: ∫ q(fᵢ) log p(yᵢ|fᵢ) dfᵢ
+
+      ...where:
+
+          * :math:`q(fᵢ) ~ N(μᵢ, Σᵢ)`
+          * :math:`p(y |f)` is a general likelihood function
+
+      For a multivariate Gaussian this is:
+
+      .. math:: ∫ 𝓝(fᵢ; μᵢ, Sᵢ) log𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = -½ Tr(Σ⁻¹Sᵢ) + log𝓝(yᵢ; μᵢ, Σ)
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :return: A tensor with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: predict_density(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor, observations: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Predict a density. This calculates:
+
+      .. math:: ∫ q(F) p(Y|F) dF
+
+      ...of a Gaussian approximation :math:`q(F) ~ N(μ, Σ)` to the posterior
+      density :math:`p(F|Y)`.
+
+      For a multivariate Gaussian this is:
+
+      .. math:: log ∫ 𝓝(fᵢ; μᵢ, Sᵢ) 𝓝(yᵢ; fᵢ, Σ= LLᵀ) dfᵢ = log 𝓝(yᵢ; μᵢ, Σ + Sᵢ)
+
+      :param f_means: The marginal :math:`f` means for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for each state of the
+          :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+          ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :param observations: The :math:`y` values at which to evaluate the log probability,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+
+
+   .. py:method:: predict_mean_and_var(f_means: tensorflow.Tensor, f_covariances: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Predict the observation means and covariances given the f-space means and covariances.
+
+      That is, calculate:
+
+      .. math:: p(y* | x*, x, y) = ∫ p(y* | f*) p(f* | x*, x, y) df*
+
+      ...where:
+
+          * `f_means` and `f_covariances` is our representation of :math:`p(f* | x*, x, y)`
+          * :math:`p(y* | f*)` is defined by the likelihood
+
+      For a multivariate Gaussian this is:
+
+      .. math:: p(y* | x*, x, y) = ∫ 𝓝(f*; μ*, S*) 𝓝(y*; f*, Σ= LLᵀ) dfᵢ = 𝓝(y*; μ*, Σ + S*)
+
+      :param f_means: The marginal :math:`f` means for some arbitrary predicted time points,
+          with shape ``batch_shape + [num_data, obs_dim]``.
+      :param f_covariances: The marginal :math:`f` covariances for some arbitrary predicted
+          time points, with shape ``batch_shape + [num_data, obs_dim, obs_dim]``.
+      :return: A tuple of tensors containing observation means and covariances, with
+          respective shapes
+          ``batch_shape + [num_time_points, obs_dim]``,
+          ``batch_shape + [num_time_points, obs_dim, obs_dim]``.
+
+
+

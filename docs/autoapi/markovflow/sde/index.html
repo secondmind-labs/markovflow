@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.sde &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.sde.drift" href="drift/index.html" />
+    <link rel="prev" title="markovflow.models.variational_cvi" href="../models/variational_cvi/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#submodules" class="nav-link">Submodules</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#package-contents" class="nav-link">Package Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.sde.SDE" class="nav-link">SDE</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.state_dim" class="nav-link">state_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.drift" class="nav-link">drift</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.diffusion" class="nav-link">diffusion</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.gradient_drift" class="nav-link">gradient_drift</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.expected_drift" class="nav-link">expected_drift</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.SDE.expected_gradient_drift" class="nav-link">expected_gradient_drift</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.sde.OrnsteinUhlenbeckSDE" class="nav-link">OrnsteinUhlenbeckSDE</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.OrnsteinUhlenbeckSDE.drift" class="nav-link">drift</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.OrnsteinUhlenbeckSDE.diffusion" class="nav-link">diffusion</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.sde.DoubleWellSDE" class="nav-link">DoubleWellSDE</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.DoubleWellSDE.drift" class="nav-link">drift</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.DoubleWellSDE.diffusion" class="nav-link">diffusion</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.sde">
+<span id="markovflow-sde"></span><h1><a class="reference internal" href="#module-markovflow.sde" title="markovflow.sde"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.sde</span></code></a><a class="headerlink" href="#module-markovflow.sde" title="Permalink to this headline">¶</a></h1>
+<p>Package containing SDE classes and related functions.</p>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="drift/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.sde.drift</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="sde_utils/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.sde.sde_utils</span></code></a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="package-contents">
+<h2>Package Contents<a class="headerlink" href="#package-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.sde.SDE">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">SDE</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/sde/sde.html#SDE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.SDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class representing Stochastic Differential Equation.</p>
+<dl class="simple">
+<dt>..math::</dt><dd><p>&amp;dx(t)/dt = f(x(t),t) + l(x(t),t) w(t)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_dim</strong> – The output dimension of the kernel.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.sde.SDE.state_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">state_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="headerlink" href="#markovflow.sde.SDE.state_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the state dimension of the sde.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.SDE.drift">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.SDE.drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drift function of the SDE i.e. <code class="xref any docutils literal notranslate"><span class="pre">f(x(t),t)</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Drift value i.e. <code class="xref any docutils literal notranslate"><span class="pre">f(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.SDE.diffusion">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">diffusion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.SDE.diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Diffusion function of the SDE i.e. <code class="xref any docutils literal notranslate"><span class="pre">l(x(t),t)</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Diffusion value i.e. <code class="xref any docutils literal notranslate"><span class="pre">l(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.SDE.gradient_drift">
+<code class="sig-name descname"><span class="pre">gradient_drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">tf.zeros((1,</span> <span class="pre">1))</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.SDE.gradient_drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the gradient of the drift wrt the states x(t).</p>
+<p>..math:: df(x(t))/dx(t)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – states with shape (num_states, state_dim).</p></li>
+<li><p><strong>t</strong> – time of states with shape (num_states, 1), defaults to zero.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the gradient of the SDE drift with shape (num_states, state_dim).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.SDE.expected_drift">
+<code class="sig-name descname"><span class="pre">expected_drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_covar</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.SDE.expected_drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Expectation of the drift under the provided Gaussian over states.</p>
+<p>..math:: E_q(x(t))[f(x(t))]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_mean</strong> – mean of Gaussian over states with shape (n_batch, num_states, state_dim).</p></li>
+<li><p><strong>q_covar</strong> – covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the expectation value with shape (n_batch, num_states, state_dim).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.SDE.expected_gradient_drift">
+<code class="sig-name descname"><span class="pre">expected_gradient_drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_covar</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.SDE.expected_gradient_drift" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Calculates the Expectation of the gradient of the drift under the provided Gaussian over states</p>
+</div></blockquote>
+<p>..math:: E_q(.)[f’(x(t))]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q_mean</strong> – mean of Gaussian over states with shape (n_batch, num_states, state_dim).</p></li>
+<li><p><strong>q_covar</strong> – covariance of Gaussian over states with shape (n_batch, num_states, state_dim, state_dim).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the expectation value with shape (n_batch, num_states, state_dim).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.sde.OrnsteinUhlenbeckSDE">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">OrnsteinUhlenbeckSDE</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">tf.ones((1,</span> <span class="pre">1))</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/sde/sde.html#OrnsteinUhlenbeckSDE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.OrnsteinUhlenbeckSDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.sde.SDE" title="markovflow.sde.SDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SDE</span></code></a></p>
+<p>Ornstein-Uhlenbeck SDE represented by</p>
+<p>..math:: dx(t) = -λ x(t) dt + dB(t), the spectral density of the Brownian motion is specified by q.</p>
+<p>Initialize the Ornstein-Uhlenbeck SDE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>decay</strong> – λ, a tensor with shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">1)</span></code>.</p></li>
+<li><p><strong>q</strong> – spectral density of the Brownian motion <code class="docutils literal notranslate"><span class="pre">(state_dim,</span> <span class="pre">state_dim)</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.sde.OrnsteinUhlenbeckSDE.drift">
+<code class="sig-name descname"><span class="pre">drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.OrnsteinUhlenbeckSDE.drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drift of the Ornstein-Uhlenbeck process
+..math:: f(x(t), t) = -λ x(t)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Drift value i.e. <code class="xref any docutils literal notranslate"><span class="pre">f(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.OrnsteinUhlenbeckSDE.diffusion">
+<code class="sig-name descname"><span class="pre">diffusion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.OrnsteinUhlenbeckSDE.diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Diffusion of the Ornstein-Uhlenbeck process
+..math:: l(x(t), t) = sqrt(q)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Diffusion value i.e. <code class="xref any docutils literal notranslate"><span class="pre">l(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.sde.DoubleWellSDE">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">DoubleWellSDE</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">tf.ones((1,</span> <span class="pre">1))</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/sde/sde.html#DoubleWellSDE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.DoubleWellSDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.sde.SDE" title="markovflow.sde.SDE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SDE</span></code></a></p>
+<p>Double-Well SDE represented by</p>
+<p>..math:: dx(t) = f(x(t)) dt + dB(t),</p>
+<p>where f(x(t)) = 4 x(t) (1 - x(t)^2) and the spectral density of the Brownian motion is specified by q.</p>
+<p>Initialize the Double-Well SDE.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>q</strong> – spectral density of the Brownian motion <code class="docutils literal notranslate"><span class="pre">(state_dim,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.sde.DoubleWellSDE.drift">
+<code class="sig-name descname"><span class="pre">drift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.DoubleWellSDE.drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drift of the double-well process
+..math:: f(x(t), t) = 4 x(t) (1 - x(t)^2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Drift value i.e. <code class="xref any docutils literal notranslate"><span class="pre">f(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.DoubleWellSDE.diffusion">
+<code class="sig-name descname"><span class="pre">diffusion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="headerlink" href="#markovflow.sde.DoubleWellSDE.diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Diffusion of the double-well process
+..math:: l(x(t), t) = sqrt(q)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – state at <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> i.e. <code class="xref any docutils literal notranslate"><span class="pre">x(t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim)</span></code>.</p></li>
+<li><p><strong>t</strong> – time <code class="xref any docutils literal notranslate"><span class="pre">t</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">1)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Diffusion value i.e. <code class="xref any docutils literal notranslate"><span class="pre">l(x(t),</span> <span class="pre">t)</span></code> with shape <code class="docutils literal notranslate"><span class="pre">(n_batch,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,268 @@
+:py:mod:`markovflow.conditionals`
+=================================
+
+.. py:module:: markovflow.conditionals
+
+.. autoapi-nested-parse::
+
+   Module for evaluating conditional distributions.
+
+
+
+Module Contents
+---------------
+
+.. py:function:: conditional_predict(new_time_points: tensorflow.Tensor, training_time_points: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel, training_pairwise_means: tensorflow.Tensor, training_pairwise_covariances: Optional[tensorflow.Tensor] = None) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+   Given :math:`∀ xₜ ∈` `new_time_points`, compute the means and
+   covariances of the marginal densities:
+
+   .. math:: p(xₜ) = ∫ d[x₋, x₊] p(xₜ|x₋, x₊) q(x₋, x₊; mₜ, Sₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)
+
+   Or, if :math:`Sₜ` is not given, compute the conditional density:
+
+   .. math:: p(xₜ|[x₋, x₊] = mₜ) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)
+
+   .. note:: `new_time_points` and `training_time_points` must be sorted.
+
+   Where:
+
+     - :math:`p` is the density over state trajectories specified by the kernel
+     - :math:`∀ xₜ ∈` `new_time_points`:
+
+       .. math::
+           x₊ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x>xₜ\}\\
+           x₋ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ\}
+
+   Details of the computation of :math:`Pₜ` and :math:`Tₜ` are found
+   in :func:`conditional_statistics`.
+
+   :param new_time_points: Sorted time points to generate observations for, with shape
+           ``batch_shape + [num_new_time_points,]``.
+   :param training_time_points: Sorted time points to condition on, with shape
+           ``batch_shape + [num_training_time_points,]``.
+   :param kernel: A kernel.
+   :param training_pairwise_means: Pairs of states to condition on, with shape
+           ``batch_shape + [num_training_time_points, 2 * state_dim]``.
+   :param training_pairwise_covariances: Covariances of the pairs of states to condition on, with
+           shape ``batch_shape + [num_training_time_points, 2 * state_dim, 2 * state_dim]``.
+   :return: Predicted mean and covariance for the new time points, with respective shapes
+           ``batch_shape + [num_new_time_points, state_dim]``
+           ``batch_shape + [num_new_time_points, state_dim, state_dim]``.
+
+
+.. py:function:: conditional_statistics(new_time_points: tensorflow.Tensor, training_time_points: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+   Given :math:`∀ xₜ ∈` `new_time_points`, compute the statistics :math:`Pₜ` and :math:`Tₜ`
+   of the conditional densities:
+
+   .. math:: p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)
+
+   ...where:
+
+       - :math:`p` is the density over state trajectories specified by the kernel
+       - :math:`∀ xₜ ∈` `new_time_points`:
+
+         .. math::
+               x₊ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x>xₜ \}\\
+               x₋ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ \}
+
+   .. note:: `new_time_points` and `training_time_points` must be sorted.
+
+   :param new_time_points: Sorted time points to generate observations for, with shape
+           ``batch_shape + [num_new_time_points,]``.
+   :param training_time_points: Sorted time points to condition on, with shape
+           ``batch_shape + [num_training_time_points,]``.
+   :param kernel: A kernel.
+   :return: Parameters for the conditional mean and covariance, with respective shapes
+           ``batch_shape + [num_new_time_points, state_dim, 2 * state_dim]``
+           ``batch_shape + [num_new_time_points, state_dim, state_dim]``.
+
+
+.. py:function:: _conditional_statistics_from_transitions(state_transitions_to_t: tensorflow.Tensor, process_covariances_to_t: tensorflow.Tensor, state_transitions_from_t: tensorflow.Tensor, process_covariances_from_t: tensorflow.Tensor, return_precision: bool = False) -> Tuple[tensorflow.Tensor, tensorflow.Tensor, tensorflow.Tensor]
+
+   Implementation details:
+       Given consecutive time differences Δ₁ = t - t₋ and Δ₂ = t₊ - t
+       of ordered triplets t₋ < t < t₊, we denote their values as
+       x₋, xₜ, x₊ and their conditional distributions as
+       p(x₊ | xₜ) = 𝓝(x₊; Aₜ₊xₜ, Qₜ₊)    where     [Aₜ₊ == A_tp, Qₜ₊ == Q_tp]
+       p(xₜ | x₋) = 𝓝(xₜ; A₋ₜx₋, Q₋ₜ)    where     [A₋ₜ == A_mt, Q₋ₜ == Q_mt]
+
+       This computes Dₜ, Eₜ, Tₜ (or Tₜ⁻¹) such that
+       p(xₜ | x₋, x₊) = 𝓝(xₜ; Dₜ @ x₋ + Eₜ @ x₊, Tₜ)
+
+       p(x₊|xₜ, x₋) = p(x₊|xₜ) = 𝓝(Aₜ₊xₜ, Qₜₚ)
+       p(xₜ|x₋) = 𝓝(A₋ₜx₋, Q₋ₜ)
+       p(x₊| x₋) = 𝓝(A₋₊x₋, Q₋₊ = Qₜ₊ + Aₜ₊Q₋ₜAₜ₊ᵀ)
+
+       p([xₜ, x₊]| x₋) = p(x₊| xₜ)p(xₜ|x₋)
+                     = 𝓝([A₋ₜx₋, A₋₊x₋]ᵀ, [[ Q₋ₜ, Q₋ₜAₜ₊ᵀ],
+                                            [ Aₜ₊Q₋ₜ, Q₋₊ ]]
+
+       Given this joint distribution we can obtain the mean and covariance of the
+       conditional distribution of
+       p(xₜ|[x₋, x₊]) = 𝓝(xₜ; A₋ₜx₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹(x₊ - A₋₊x₋), Q₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹Aₜ₊Q₋ₜ)
+                      = 𝓝(xₜ; (A₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹A₋₊)x₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹x₊,
+                               (Q₋ₜ⁻¹ + Aₜ₊ᵀQₜ₊⁻¹Aₜ₊)⁻¹)
+
+   :param state_transitions_to_t: the state transitions from t₋ to t - A₋ₜ
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+   :param process_covariances_to_t: the process covariances from t₋ to t - Q₋ₜ
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+   :param state_transitions_from_t: the state transitions from t to t₊ - A₋ₜ
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+   :param process_covariances_from_t: the process covariances from t to t₊ - Qₜ₊
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+   :param return_precision: bool, defaults to False.
+           if True (resp. False), conditional precision (resp. covariance) is returned
+   :return: parameters for the conditional mean and covariance
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+           ``batch_shape + [num_time_points, state_dim, state_dim]``
+
+
+.. py:function:: _conditional_statistics(new_time_points: tensorflow.Tensor, training_time_points: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel) -> Tuple[tensorflow.Tensor, tensorflow.Tensor, tensorflow.Tensor]
+
+   ∀ xₜ ∈ new_time_points, computes the statistics Pₜ and Tₜ of the conditional densities:
+       p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)
+   where
+     - p is the density over state trajectories specified by the kernel
+     - ∀ xₜ ∈ new_time_points
+            x₊ = arg minₓ { |x-xₜ|, x ∈ training_time_point and x>xₜ }
+            x₋ = arg minₓ { |x-xₜ|, x ∈ training_time_point and x⩽xₜ }
+
+   Warning: `new_time_points` and `training_time_points` must be sorted
+
+   :param new_time_points: sorted time points to generate observations for
+           ``batch_shape + [num_new_time_points,]``
+   :param training_time_points: sorted time points to condition on
+           ``batch_shape + [num_training_time_points,]``
+   :param kernel: a Markovian Kernel
+   :return: parameters for the conditional mean and covariance, and the insertion indices
+           ``batch_shape + [num_new_time_points, state_dim, 2*state_dim]``
+           ``batch_shape + [num_new_time_points, state_dim, state_dim]``
+           ``batch_shape + [num_new_time_points,]``
+
+
+.. py:function:: cyclic_reduction_conditional_statistics(explained_time_points: tensorflow.Tensor, conditioning_time_points: tensorflow.Tensor, kernel: markovflow.kernels.SDEKernel) -> Tuple[tensorflow.Tensor, tensorflow.Tensor, tensorflow.Tensor]
+
+   Compute :math:`Fₜ, Gₜ, Lₜ`. Such that:
+
+   .. math:: p(xᵉₜ | xᶜₜ₋₁,  xᶜₜ₊₁) = 𝓝(xᵉₜ; Fₜ @ xᶜₜ₋₁ + Gₜ @ xᶜₜ₊₁, Tₜ = (Lₜ Lₜᵀ)⁻¹ = Lₜ⁻ᵀLₜ⁻¹)
+
+   ...where superscripts :math:`e` and :math:`c` refer to explained and conditioning respectively.
+
+   .. note:: :math:`xᵉ` and :math:`xᶜ` must be sorted, such that:
+
+       .. math:: xᵉ₀ < xᶜ₀ < xᵉ₁ < ...  < xᵉₜ < xᶜₜ < xᶜₜ₊₁ < xᶜₜ₊₁ < ...
+
+       ...where :math:`len(xᵉ) = len(xᶜ)` or :math:`len(xᵉ) = len(xᶜ) + 1`.
+
+   This computes the conditional statistics :math:`Fₜ, Gₜ, Lₜ`, where
+   :math:`𝔼 xᵉ|xᶜ = - L⁻ᵀ Uᵀ xᶜ`, with::
+
+       Uᵀ = | F₁ᵀ                 [      |]  and  L⁻ᵀ = |L₁⁻ᵀ               |
+            |  G₁ᵀ, F₂ᵀ           [      |]             |   L₂⁻ᵀ            |
+            |     , G₂ᵀ,⋱         [      |]             |      L₃⁻ᵀ         |
+            |           ⋱ ⋱       [      |]             |        ⋱          |
+            |             ⋱ Fₙ₋₁ᵀ [      |]             |          ⋱        |
+            |               Gₙ₋₁ᵀ [ Fₙᵀ  |]             |            Lₙ⁻ᵀ   |
+
+   :math:`L` is the Cholesky factor of the conditional precision :math:`xᵉ|xᶜ`.
+
+   Statistics :math:`F` and :math:`G` are computed from the conditional mean projection
+   parameters :math:`D` and :math:`E` defined by :math:`𝔼 xᵉₙ|xᶜ = Dₙ @ xᶜₙ₋₁ + Eₙ @ xᶜₙ`.
+
+   Solving the system :math:`- (L⁻ᵀ Uᵀ xᶜ)ₙ = Dₙ @ xᶜₙ₋₁ + Eₙ @ xᶜₙ`,
+   we get :math:`Gₙ₋₁ᵀ = -Lₙᵀ Dₙ` and :math:`Fₙᵀ = -Lₙᵀ Eₙ`.
+
+   Details of the system::
+
+       -| L₁⁻ᵀF₁ᵀ xᶜ₁                     | = | E₁ xᶜ₁
+        | L₂⁻ᵀG₁ᵀxᶜ₁  + L₂⁻ᵀ F₂ᵀ xᶜ₂      |   | D₂ xᶜ₁ +   E₂ xᶜ₂
+        | L₃⁻ᵀ G₂ᵀ xᶜ₂ , L₃⁻ᵀ F₃ᵀ xᶜ₃,    |   | D₃ xᶜ₂ +   E₃ xᶜ₃
+        | ⋮                               |   | ⋮
+        | Lₙ⁻ᵀ Gₙ₋₁ᵀxᶜₙ₋₁,   Lₙ⁻ᵀ [Fₙᵀ]xᶜₙ|   | Dₙ xᶜₙ₋₁ +   [Eₙ] xᶜₙ
+
+   Remarks on size:
+
+   * When splitting :math:`x` of size :math:`n` into odd and even, you get
+     :math:`nᵉ = (n+1)//2` and :math:`nᶜ = n//2`
+   * At each level, cyclic reduction statistics have shape:
+
+     .. math::
+        &- F : nᶜ\\
+        &- G : nᵉ - 1\\
+        &- L : nᵉ\\
+
+   Note that:
+
+       * :math:`F₀` is not defined (there is no time point below :math:`xᵉ₀`)
+       * The last element :math:`G` may not be defined if :math:`len(xᵉ) = len(xᶜ)`
+
+   :param explained_time_points: Sorted time points to generate observations for, with shape
+           ``batch_shape + [num_time_points_1,]``.
+   :param conditioning_time_points: Sorted time points to condition on, with shape
+           ``batch_shape + [num_time_points_2,]``.
+   :param kernel:  A kernel.
+   :return: Parameters for the conditional, with respective shapes
+           ``batch_shape + [num_conditioning, state_dim, state_dim]``
+           ``batch_shape + [num_explained - 1, state_dim, state_dim]``
+           ``batch_shape + [num_explained, state_dim, state_dim]``.
+
+
+.. py:function:: base_conditional_predict(conditional_projections: tensorflow.Tensor, conditional_covariances: tensorflow.Tensor, adjacent_states: tensorflow.Tensor, pairwise_state_covariances: Optional[tensorflow.Tensor] = None) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+   Predict state at new time points given conditional statistics.
+
+   Given conditionals statistics :math:`Pₜ, Tₜ` of :math:`p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)`
+   and pairwise marginals :math:`p(xₜ₋, xₜ₊) = 𝓝(mₜ, Sₜ)`,
+   compute marginal mean and covariance of the marginal density:
+
+   .. math:: p(xₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)
+
+   If :math:`Sₜ` is not provided, compute the conditional mean and covariance of the
+   conditional density:
+
+   .. math:: p(xₜ|[xₜ₋, xₜ₊] = mₜ) = 𝓝(Pₜ mₜ, Tₜ)
+
+   :param conditional_projections: :math:`Pₜ` with shape
+           ``batch_shape + [num_time_points, state_dim]``.
+   :param conditional_covariances: :math:`Tₜ` with shape
+           ``batch_shape + [num_time_points, state_dim, state_dim]``.
+   :param adjacent_states: Pairs of states to condition on, with shape
+           ``batch_shape + [num_time_points, 2 * state_dim]``.
+   :param pairwise_state_covariances: Covariances of the pairs of states to condition on,
+           with shape ``batch_shape + [num_time_points, 2 * state_dim, 2 * state_dim]``.
+   :return: Predicted mean and covariance for the time points, with respective shapes
+           ``batch_shape + [num_time_points, state_dim]``
+           ``batch_shape + [num_time_points, state_dim, state_dim]``.
+
+
+.. py:function:: pairwise_marginals(dist: markovflow.gauss_markov.GaussMarkovDistribution, initial_mean: tensorflow.Tensor, initial_covariance: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+   TODO(sam): figure out what the initial mean and covariance should be for non-stationary kernels
+
+   For each pair of subsequent states :math:`xₖ, xₖ₊₁`, return the mean and covariance of
+   their joint distribution. This is assuming we start from, and revert to, the prior:
+
+   .. math::
+       &p(xₖ) = 𝓝(μₖ, Pₖ)  \verb|(we can get this from the marginals method)|\\
+       &p(xₖ₊₁ | xₖ) = 𝓝(Aₖμₖ, Qₖ)
+
+   Then:
+
+   .. math::
+       p(xₖ₊₁, xₖ) = 𝓝([μₖ, μₖ₊₁], [Pₖ, Pₖ Aₖᵀ])\\
+                                    [Aₖ Pₖ, Pₖ₊₁]
+
+   :param dist: The distribution.
+   :param initial_mean:  The prior mean (used to extend the pairwise marginals
+       of the distribution).
+   :param initial_covariance: The prior covariance (used to extend the pairwise marginal of
+       the state space model).
+   :return: Mean and covariance pairs for the marginals, with respective shapes
+           ``batch_shape + [num_transitions + 2, state_dim]``
+           ``batch_shape + [num_transitions + 2, state_dim, state_dim]``.
+
+

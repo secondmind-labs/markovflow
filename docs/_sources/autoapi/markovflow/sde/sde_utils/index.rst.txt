@@ -1,0 +1,90 @@
+:py:mod:`markovflow.sde.sde_utils`
+==================================
+
+.. py:module:: markovflow.sde.sde_utils
+
+.. autoapi-nested-parse::
+
+   Utility functions for SDE
+
+
+
+Module Contents
+---------------
+
+.. py:function:: euler_maruyama(sde: markovflow.sde.SDE, x0: tensorflow.Tensor, time_grid: tensorflow.Tensor) -> tensorflow.Tensor
+
+   Numerical Simulation of SDEs of type: dx(t) = f(x,t)dt + L(x,t)dB(t) using the Euler-Maruyama Method.
+
+   ..math:: x(t+1) = x(t) + f(x,t)dt + L(x,t)*sqrt(dt*q)*N(0,I)
+
+   :param sde: Object of SDE class
+   :param x0: state at start time, t0, with shape ```[num_batch, state_dim]```
+   :param time_grid: A homogeneous time grid for simulation, ```[num_transitions, ]```
+
+   :return: Simulated SDE values, ```[num_batch, num_transitions+1, state_dim]```
+
+   Note: evaluation time grid is [t0, tn], x0 value is appended for t0 time.
+   Thus, simulated values are (num_transitions+1).
+
+
+.. py:function:: handle_tensor_shape(tensor: tensorflow.Tensor, desired_dimensions=2)
+
+   Handle shape of the tensor according to the desired dimensions.
+
+   * if the shape is 1 more and at dimension 0 there is nothing then drop it.
+   * if the shape is 1 less then add a dimension at the start.
+   * else raise an Exception
+
+
+
+.. py:function:: linearize_sde(sde: markovflow.sde.SDE, transition_times: gpflow.base.TensorType, linearization_path: gpflow.probability_distributions.Gaussian, initial_state: gpflow.probability_distributions.Gaussian) -> markovflow.state_space_model.StateSpaceModel
+
+   Linearizes the SDE (with fixed diffusion) on the basis of the Gaussian over states.
+
+   Note: this currently only works for sde with a state dimension of 1.
+
+   ..math:: q(\cdot) \sim N(q_{mean}, q_{covar})
+
+   ..math:: A_{i}^{*} = (E_{q(.)}[d f(x)/ dx]) * dt + I
+   ..math:: b_{i}^{*} = (E_{q(.)}[f(x)] - A_{i}^{*}  E_{q(.)}[x]) * dt
+
+   :param sde: SDE to be linearized.
+   :param transition_times: Transition_times, ``[num_transitions, ]``
+   :param linearization_path: Gaussian of the states over transition times.
+   :param initial_state: Gaussian over the initial state.
+
+   :return: the state-space model of the linearized SDE.
+
+
+.. py:function:: squared_drift_difference_along_Gaussian_path(sde_p: markovflow.sde.SDE, linear_drift: markovflow.sde.drift.LinearDrift, q: gpflow.probability_distributions.Gaussian, dt: float, quadrature_pnts: int = 20) -> tensorflow.Tensor
+
+   Expected Square Drift difference between two SDEs
+       * a first one denoted by p, that can be any arbitrary SDE.
+       * a second which is linear, denoted by p_L, with a drift defined as f_L(x(t)) = A_L(t) x(t) + b_L(t)
+
+   Where the expectation is over a third distribution over path summarized by its mean (m) and covariance (S)
+   for all times given by a Gaussian `q`.
+
+   Formally, the function calculates:
+       0.5 * E_{q}[||f_L(x(t)) - f_p(x(t))||^{2}_{Σ^{-1}}].
+
+   This function corresponds to the expected log density ratio:  E_q log [p_L || p].
+
+   When the linear drift is of `q`, then the function returns the KL[q || p].
+
+   NOTE:
+       1. The function assumes that both the SDEs have same diffusion.
+
+   Gaussian quadrature method is used to approximate the expectation and integral over time is approximated
+   as Riemann sum.
+
+   :param sde_p: SDE p.
+   :param linear_drift: Linear drift representing the drift of the second SDE.
+   :param q: Gaussian states of the path along which the drift difference is calculated.
+   :param dt: Time-step value, float.
+   :param quadrature_pnts: Number of quadrature points used.
+
+   Note: Batching isn't supported.
+
+

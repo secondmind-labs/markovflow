@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.sde.drift &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.sde.drift</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing classes for different drifts.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">TensorType</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+<span class="kn">import</span> <span class="nn">markovflow.sde.sde_utils</span> <span class="k">as</span> <span class="nn">utils</span>
+
+
+<div class="viewcode-block" id="LinearDrift"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/drift/index.html#markovflow.sde.drift.LinearDrift">[docs]</a><span class="k">class</span> <span class="nc">LinearDrift</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A linear drift of the form, f(x_t, t) = A_t * x_t + b_t.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">:</span> <span class="n">TensorType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">TensorType</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the linear drift with the parameters A and b defining it as f(x_t, t) = A_t * x_t + b_t.</span>
+
+<span class="sd">        :param A: `A` parameter of the linear drift with shape `batch_shape + [num_transitions, state_dim, state_dim]``</span>
+<span class="sd">        :param b: `b` parameter of the linear drift with shape `batch_shape + [num_transitions, state_dim]`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span>
+
+<div class="viewcode-block" id="LinearDrift.set_from_ssm"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/drift/index.html#markovflow.sde.drift.LinearDrift.set_from_ssm">[docs]</a>    <span class="k">def</span> <span class="nf">set_from_ssm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ssm</span><span class="p">:</span> <span class="n">StateSpaceModel</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Approximately converts a StateSpaceModel into a linear drift of the form: f(x(t), t) = A(t) * x(t) + b(t),</span>
+
+<span class="sd">        Given the linear drift f(x(t), t) = A(t) * x(t) + b(t), of a continuous time SDE. The conditional distribution</span>
+<span class="sd">        of two  states  x(t_{k+1}), x(t_{k}) is given by</span>
+<span class="sd">            x(t_{k+1}) | x(t_{k}) = C_k x(t_{k}) +  b_k + n_k,</span>
+
+<span class="sd">         with C_k = exp( \int_{t_{k} &lt; t &lt; t_{k+1}}  A(t) dt) and b_k = [C_k - I] A(t)^{-1} b(t).</span>
+
+<span class="sd">        Taking the limit of small-time intervals ( dt = t_{k+1} - t_{k} -&gt; 0). The first order Taylor expansion of</span>
+<span class="sd">        the exponential  for small-time intervals ( dt = t_{k+1} - t_{k} -&gt; 0), gives the approximation:</span>
+<span class="sd">                        C_k ~= I + A(t_{k}) dt     and     b_k ~=  b(t_{k}) dt</span>
+
+<span class="sd">        Therefore,</span>
+
+<span class="sd">        A = (SSM.state_transitions - I)/dt</span>
+<span class="sd">        b = SSM.state_offsets / dt</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">ssm</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">state_offsets</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">ssm</span><span class="o">.</span><span class="n">state_offsets</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="n">state_transitions</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ssm</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">state_offsets</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span> <span class="o">/</span> <span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">state_offsets</span> <span class="o">/</span> <span class="n">dt</span></div>
+
+<div class="viewcode-block" id="LinearDrift.to_ssm"><a class="viewcode-back" href="../../../autoapi/markovflow/sde/drift/index.html#markovflow.sde.drift.LinearDrift.to_ssm">[docs]</a>    <span class="k">def</span> <span class="nf">to_ssm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span> <span class="n">initial_mean</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+               <span class="n">initial_chol_covariance</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Approximately converts a linear drift SDE of the form: f(x(t), t) = A(t) * x(t) + b(t) to a StateSpaceModel.</span>
+
+<span class="sd">        For details, look into the docstring of `set_from_ssm` function.</span>
+
+<span class="sd">        SSM.state_transitions = (A + I) * dt</span>
+<span class="sd">        SSM.state_offsets = b * dt</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Linear drift is empty so SSM can&#39;t be created!&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>  <span class="c1"># (B, N, D, D)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># (B, N, D)</span>
+        <span class="n">transition_times</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">transition_times</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (N+1, )</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>  <span class="c1"># (B, N, D, D)</span>
+        <span class="n">initial_mean</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">initial_mean</span><span class="p">,</span> <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># (B, D, )</span>
+        <span class="n">initial_chol_covariance</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">handle_tensor_shape</span><span class="p">(</span><span class="n">initial_chol_covariance</span><span class="p">,</span>
+                                                            <span class="n">desired_dimensions</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># (B, D, D)</span>
+
+        <span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">.</span><span class="n">shape</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">transition_times</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+        <span class="k">assert</span> <span class="n">initial_mean</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">,)</span>
+        <span class="k">assert</span> <span class="n">initial_chol_covariance</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">q</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
+
+        <span class="n">transition_deltas</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transition_times</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">transition_times</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">transition_deltas</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                                                                    <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">state_offsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">*</span> <span class="n">transition_deltas</span>
+        <span class="n">chol_process_covariances</span> <span class="o">=</span> <span class="n">q</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">transition_deltas</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">initial_mean</span><span class="p">,</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">initial_chol_covariance</span><span class="p">,</span>
+            <span class="n">state_transitions</span><span class="o">=</span><span class="n">state_transitions</span><span class="p">,</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">state_offsets</span><span class="p">,</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">chol_process_covariances</span><span class="p">,</span></div></div>
+        <span class="p">)</span>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

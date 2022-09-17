@@ -1,0 +1,181 @@
+:py:mod:`markovflow.models.sparse_variational`
+==============================================
+
+.. py:module:: markovflow.models.sparse_variational
+
+.. autoapi-nested-parse::
+
+   Module containing a model for sparse variational inference, for use with large data sets.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: SparseVariationalGaussianProcess(kernel: markovflow.kernels.SDEKernel, likelihood: gpflow.likelihoods.Likelihood, inducing_points: tensorflow.Tensor, mean_function: Optional[markovflow.mean_function.MeanFunction] = None, num_data: Optional[int] = None, initial_distribution: Optional[markovflow.gauss_markov.GaussMarkovDistribution] = None)
+
+   Bases: :py:obj:`markovflow.models.models.MarkovFlowSparseModel`
+
+   Approximate a :class:`~markovflow.gauss_markov.GaussMarkovDistribution` with a general
+   likelihood using a Gaussian posterior. Additionally uses a number of pseudo, or inducing,
+   points to represent the distribution over a typically larger number of data points.
+
+   The following notation is used:
+
+       * :math:`x` - the time points of the training data
+       * :math:`z` - the time points of the inducing/pseudo points
+       * :math:`y` - observations corresponding to time points :math:`x`
+       * :math:`s(.)` - the latent state of the Markov chain
+       * :math:`f(.)` - the noise free predictions of the model
+       * :math:`p(y | f)` - the likelihood
+       * :math:`p(.)` - the true distribution
+       * :math:`q(.)` - the variational distribution
+
+   Subscript is used to denote dependence for notational convenience, for
+   example :math:`fₖ === f(k)`.
+
+   With a prior generative model comprising a Gauss-Markov distribution, an emission model and an
+   arbitrary likelihood on the emitted variables, these define:
+
+       * :math:`p(xₖ₊₁| xₖ)`
+       * :math:`fₖ = H xₖ`
+       * :math:`p(yₖ | fₖ)`
+
+   As per a :class:`~markovflow.models.variational.VariationalGaussianProcess`
+   (VGP) model, we have:
+
+   .. math::
+       &log p(y) >= ℒ(q)
+
+       &ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]
+
+   ...where :math:`f` is defined over the entire function space.
+
+   Here this reduces to the joint of the evidence lower bound (ELBO) defined over both the
+   data :math:`x` and the inducing points :math:`z`, which we rewrite as:
+
+   .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(f(z)) ‖ p(f(z))]
+
+   This turns the inference problem into an optimisation problem: find the optimal :math:`q`.
+
+   The first term is the variational expectations and have the same form as a VGP model.
+   However, we must now use use the inducing states to predict the marginals of the
+   variational distribution at the original data points.
+
+   The second is the KL from the prior to the approximation, but evaluated at the inducing points.
+
+   The key reference is::
+
+     @inproceedings{,
+         title={Doubly Sparse Variational Gaussian Processes},
+         author={Adam, Eleftheriadis, Artemev, Durrande, Hensman},
+         booktitle={},
+         pages={},
+         year={},
+         organization={}
+     }
+
+   .. note:: Since this class extends :class:`~markovflow.models.models.MarkovFlowSparseModel`,
+      it does not depend on input data. Input data is passed during the optimisation
+      step as a tuple of time points and observations.
+
+   :param kernel: A kernel that defines a prior over functions.
+   :param likelihood: A likelihood.
+   :param inducing_points: The points in time on which inference should be performed,
+       with shape ``batch_shape + [num_inducing]``.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param mean_function: The mean function for the GP. Defaults to no mean function.
+   :param num_data: The total number of observations.
+       (relevant when feeding in external minibatches).
+   :param initial_distribution: An initial configuration for the variational distribution,
+       with shape ``batch_shape + [num_inducing]``.
+
+   .. py:method:: elbo(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Calculates the evidence lower bound (ELBO) :math:`log p(y)`. We rewrite this as:
+
+      .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(s(z)) ‖ p(s(z))]
+
+      The first term is the 'variational expectation' (VE), and has the same form as per a
+      :class:`~markovflow.models.variational.VariationalGaussianProcess` (VGP) model. However,
+      we must now use the inducing states to predict the marginals of the
+      variational distribution at the original data points.
+
+      The second is the KL divergence from the prior to the approximation, but evaluated at the
+      inducing points.
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``
+
+      :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.
+
+
+   .. py:method:: time_points() -> tensorflow.Tensor
+      :property:
+
+      Return the time points of the sparse process which essentially are the locations of the
+      inducing points.
+
+      :return: A tensor with shape ``batch_shape + [num_inducing]``. Same as inducing inputs.
+
+
+   .. py:method:: kernel() -> markovflow.kernels.SDEKernel
+      :property:
+
+      Return the kernel of the GP.
+
+
+   .. py:method:: likelihood() -> gpflow.likelihoods.Likelihood
+      :property:
+
+      Return the likelihood of the GP.
+
+
+   .. py:method:: mean_function() -> markovflow.mean_function.MeanFunction
+      :property:
+
+      Return the mean function of the GP.
+
+
+   .. py:method:: dist_p() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the prior Gauss-Markov distribution.
+
+
+   .. py:method:: dist_q() -> markovflow.gauss_markov.GaussMarkovDistribution
+      :property:
+
+      Return the variational distribution as a Gauss-Markov distribution.
+
+
+   .. py:method:: posterior() -> markovflow.posterior.PosteriorProcess
+      :property:
+
+      Obtain a posterior process for inference.
+
+      For this class this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`
+      built from the variational distribution. This will be a locally optimal
+      variational approximation of the posterior after optimisation.
+
+
+   .. py:method:: loss(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor]) -> tensorflow.Tensor
+
+      Return the loss, which is the negative evidence lower bound (ELBO).
+
+      :param input_data: A tuple of time points and observations containing the data at which
+          to calculate the loss for training the model:
+
+          * A tensor of inputs with shape ``batch_shape + [num_data]``
+          * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.
+
+
+   .. py:method:: predict_log_density(input_data: Tuple[tensorflow.Tensor, tensorflow.Tensor], full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Compute the log density of the data at the new data points.
+
+
+

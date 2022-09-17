@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.ssm_gaussian_transformations &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.ssm_natgrad" href="../ssm_natgrad/index.html" />
+    <link rel="prev" title="markovflow.posterior" href="../posterior/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.ssm_to_expectations" class="nav-link">ssm_to_expectations</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.expectations_to_ssm_params" class="nav-link">expectations_to_ssm_params</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.ssm_to_naturals" class="nav-link">ssm_to_naturals</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.ssm_to_naturals_no_smoothing" class="nav-link">ssm_to_naturals_no_smoothing</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.naturals_to_ssm_params" class="nav-link">naturals_to_ssm_params</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.ssm_gaussian_transformations.naturals_to_ssm_params_no_smoothing" class="nav-link">naturals_to_ssm_params_no_smoothing</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.ssm_gaussian_transformations">
+<span id="markovflow-ssm-gaussian-transformations"></span><h1><a class="reference internal" href="#module-markovflow.ssm_gaussian_transformations" title="markovflow.ssm_gaussian_transformations"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.ssm_gaussian_transformations</span></code></a><a class="headerlink" href="#module-markovflow.ssm_gaussian_transformations" title="Permalink to this headline">¶</a></h1>
+<p>Module transforming identities to and from expectation and natural parameters.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.ssm_to_expectations">
+<code class="sig-name descname"><span class="pre">ssm_to_expectations</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#ssm_to_expectations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.ssm_to_expectations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> to the expectation
+parameters of the equivalent Gaussian distribution.</p>
+<p>The expectation parameters are defined as the expected value of the sufficient statistics
+<span class="math notranslate nohighlight">\(𝔼[φ(x)]\)</span>, where <span class="math notranslate nohighlight">\(φ(x)\)</span> are the sufficient statistics. For the case of a Gaussian
+distribution that is described via a state space model they are given by:</p>
+<div class="math notranslate nohighlight">
+\[φ(x) = [x, \verb|block_tri_diag|(xxᵀ)]\]</div>
+<p>The expectation parameters <span class="math notranslate nohighlight">\(η\)</span> and <span class="math notranslate nohighlight">\(Η\)</span> are therefore given by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [μ₀  ]
+    [μ₁  ]
+η = [⋮   ]
+    [μₙ₋₁]
+    [μₙ  ],
+
+    [Σ₀ + μ₀μ₀ᵀ      Σ₀A₁ᵀ + μ₀μ₁ᵀ                                          ]
+    [A₁Σ₀ + μ₁μ₀ᵀ    Σ₁ + μ₁μ₁ᵀ      Σ₁A₂ᵀ + μ₁μ₂ᵀ                          ]
+H = [                    ᨞               ᨞              Σₙ₋₁Aₙᵀ + μₙ₋₁μₙᵀ   ]
+    [                                AₙΣₙ₋₁ + μₙμₙ₋₁ᵀ   Σₙ + μₙμₙᵀ          ],
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(μᵢ\)</span> and <span class="math notranslate nohighlight">\(Σᵢ\)</span> are the marginal means and covariances at each
+time step <span class="math notranslate nohighlight">\(i\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(Aᵢ\)</span> are the transition matrices of the state space model</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ssm</strong> – The object to transform to expectation parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 3 expectation parameters:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">eta_linear</span></code> corresponds to <span class="math notranslate nohighlight">\(η\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">eta_diag</span></code> corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Η\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">eta_subdiag</span></code> corresponds to the lower block sub-diagonal of <span class="math notranslate nohighlight">\(Η\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.expectations_to_ssm_params">
+<code class="sig-name descname"><span class="pre">expectations_to_ssm_params</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eta_linear</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta_diag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta_subdiag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#expectations_to_ssm_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.expectations_to_ssm_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the expectation parameters to parameters of a
+<a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+<p>The covariance of the joint distribution is given by:</p>
+<div class="math notranslate nohighlight">
+\[Σ = Η - ηηᵀ\]</div>
+<p>…which results in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [Σ₀         Σ₀A₁ᵀ       Σ₀A₁ᵀA₂ᵀ    …                               ]
+    [A₁Σ₀       Σ₁          Σ₁A₂ᵀ       Σ₁A₂ᵀA₃ᵀ    …                   ]
+Σ = [A₂A₁Σ₀     A₂Σ₁        Σ₂          Σ₂A₃ᵀ       …                   ]
+    [⋮          ⋮           ᨞           ᨞           ᨞           Σₙ₋₁Aₙᵀ ]
+    [                                   …           AₙΣₙ₋₁      Σₙ      ],
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(Σᵢ\)</span> are the marginal covariances at each time step <span class="math notranslate nohighlight">\(i\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(Aᵢ\)</span> are the transition matrices of the state space model</p></li>
+</ul>
+</div></blockquote>
+<p>If we denote by <span class="math notranslate nohighlight">\(Σᵢᵢ₋₁\)</span> the lower block sub-diagonal of the joint covariance, and by
+<span class="math notranslate nohighlight">\(Σᵢᵢ\)</span> the block diagonal of it, then we can get the state space model parameters using
+the following identities:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Aᵢ = Σᵢᵢ₋₁ (Σᵢᵢ)⁻¹\\
+&amp;Qᵢ = Σᵢ - AᵢΣᵢ₋₁Aᵢᵀ\\
+&amp;bᵢ = ηᵢ - Aᵢηᵢ₋₁\\
+&amp;P₀ = Σ₀\\
+&amp;μ₀ = η₀\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eta_linear</strong> – Corresponds to <span class="math notranslate nohighlight">\(η\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>eta_diag</strong> – Corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Η\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>eta_subdiag</strong> – Corresponds to the lower block sub-diagonal of <span class="math notranslate nohighlight">\(Η\)</span> with
+shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 5 parameters of the state space model in the following order:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">As</span></code> corresponds to the transition matrices <span class="math notranslate nohighlight">\(Aᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">offsets</span></code> corresponds to the state offset vectors <span class="math notranslate nohighlight">\(bᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_initial_covariance</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(P₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_process_covariances</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(Qᵢ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><a class="reference internal" href="../kernels/index.html#markovflow.kernels.ConcatKernel.initial_mean" title="markovflow.kernels.ConcatKernel.initial_mean"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">initial_mean</span></code></a> corresponds to the mean of the initial distribution <span class="math notranslate nohighlight">\(μ₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.ssm_to_naturals">
+<code class="sig-name descname"><span class="pre">ssm_to_naturals</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#ssm_to_naturals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.ssm_to_naturals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> to the
+natural parameters of the equivalent Gaussian distribution.</p>
+<p>The natural parameters <span class="math notranslate nohighlight">\(θ\)</span> and <span class="math notranslate nohighlight">\(Θ\)</span> are given by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [P₀⁻¹μ₀ - A₁ᵀQ₁⁻¹b₁     ]
+    [Q₁⁻¹b₁ - A₂ᵀQ₂⁻¹b₂     ]
+θ = [⋮                      ]
+    [Qₙ₋₁⁻¹bₙ₋₁ - AₙᵀQₙ⁻¹bₙ ]
+    [Qₙ⁻¹bₙ                 ],
+
+    [-½(P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁)     A₁ᵀ Q₁⁻¹                                            ]
+    [Q₁⁻¹ A₁                    -½(Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂)      A₂ᵀ Q₂⁻¹                ]
+Θ = [                           ᨞                           ᨞               AₙᵀQₙ⁻¹ ]
+    [                                                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ]
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(bᵢ\)</span>, <span class="math notranslate nohighlight">\(Aᵢ\)</span> and <span class="math notranslate nohighlight">\(Qᵢ\)</span> are the state offsets, transition
+matrices and covariances of the state space model</p></li>
+<li><p><span class="math notranslate nohighlight">\(μ₀\)</span> and <span class="math notranslate nohighlight">\(P₀\)</span> are the mean and covariance of the initial state</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ssm</strong> – The object to transform to natural parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 3 natural parameters:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_linear</span></code> corresponds to <span class="math notranslate nohighlight">\(θ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_diag</span></code> corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_subdiag</span></code> corresponds to the lower block sub-diagonal of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.ssm_to_naturals_no_smoothing">
+<code class="sig-name descname"><span class="pre">ssm_to_naturals_no_smoothing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#ssm_to_naturals_no_smoothing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.ssm_to_naturals_no_smoothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> to the natural
+parameters of the equivalent Gaussian distribution.</p>
+<p>It is similar to <a class="reference internal" href="#markovflow.ssm_gaussian_transformations.ssm_to_naturals" title="markovflow.ssm_gaussian_transformations.ssm_to_naturals"><code class="xref py py-func docutils literal notranslate"><span class="pre">ssm_to_naturals()</span></code></a> but in this case the natural
+parameters do not contain information from the future (smoothing). The updates regarding
+the smoothing have been pushed into the partition function, as described in:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">pmlr</span><span class="o">-</span><span class="n">v97</span><span class="o">-</span><span class="n">lin19b</span><span class="p">,</span>
+  <span class="n">title</span> <span class="o">=</span>        <span class="p">{</span><span class="n">Fast</span> <span class="ow">and</span> <span class="n">Simple</span> <span class="n">Natural</span><span class="o">-</span><span class="n">Gradient</span> <span class="n">Variational</span> <span class="n">Inference</span> <span class="k">with</span> <span class="n">Mixture</span> <span class="n">of</span>
+                  <span class="n">Exponential</span><span class="o">-</span><span class="n">family</span> <span class="n">Approximations</span><span class="p">},</span>
+  <span class="n">author</span> <span class="o">=</span>       <span class="p">{</span><span class="n">Lin</span><span class="p">,</span> <span class="n">Wu</span> <span class="ow">and</span> <span class="n">Khan</span><span class="p">,</span> <span class="n">Mohammad</span> <span class="n">Emtiyaz</span> <span class="ow">and</span> <span class="n">Schmidt</span><span class="p">,</span> <span class="n">Mark</span><span class="p">},</span>
+  <span class="n">booktitle</span> <span class="o">=</span>    <span class="p">{</span><span class="n">Proceedings</span> <span class="n">of</span> <span class="n">the</span> <span class="mi">36</span><span class="n">th</span> <span class="n">International</span> <span class="n">Conference</span> <span class="n">on</span> <span class="n">Machine</span> <span class="n">Learning</span><span class="p">},</span>
+  <span class="n">pages</span> <span class="o">=</span>        <span class="p">{</span><span class="mi">3992</span><span class="o">--</span><span class="mi">4002</span><span class="p">},</span>
+  <span class="n">year</span> <span class="o">=</span>         <span class="p">{</span><span class="mi">2019</span><span class="p">},</span>
+  <span class="n">url</span> <span class="o">=</span>          <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">proceedings</span><span class="o">.</span><span class="n">mlr</span><span class="o">.</span><span class="n">press</span><span class="o">/</span><span class="n">v97</span><span class="o">/</span><span class="n">lin19b</span><span class="o">.</span><span class="n">html</span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The natural parameters <span class="math notranslate nohighlight">\(θ\)</span> and <span class="math notranslate nohighlight">\(Θ\)</span> are given by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [P₀⁻¹μ₀     ]
+    [Q₁⁻¹b₁     ]
+θ = [⋮          ]
+    [Qₙ₋₁⁻¹bₙ₋₁ ]
+    [Qₙ⁻¹bₙ     ],
+
+    [-½P₀⁻¹     A₁ᵀ Q₁⁻¹                            ]
+    [Q₁⁻¹ A₁    -½Q₁⁻¹      A₂ᵀ Q₂⁻¹                ]
+Θ = [           ᨞           ᨞               AₙᵀQₙ⁻¹ ]
+    [                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ]
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(bᵢ\)</span>, <span class="math notranslate nohighlight">\(Aᵢ\)</span> and <span class="math notranslate nohighlight">\(Qᵢ\)</span> are the state offsets, transition matrices
+and covariances of the state space model</p></li>
+<li><p><span class="math notranslate nohighlight">\(μ₀\)</span> and <span class="math notranslate nohighlight">\(P₀\)</span> are the mean and covariance of the initial state</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ssm</strong> – The object to transform to natural parameters.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 3 natural parameters:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_linear</span></code> corresponds to <span class="math notranslate nohighlight">\(θ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_diag</span></code> corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">theta_subdiag</span></code> corresponds to the lower block sub-diagonal of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.naturals_to_ssm_params">
+<code class="sig-name descname"><span class="pre">naturals_to_ssm_params</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_linear</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_diag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_subdiag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#naturals_to_ssm_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.naturals_to_ssm_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the natural parameters to parameters of a
+<a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+<p>The precision of the joint distribution is given by:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [-2Θ₀₀      -Θ₁₀ᵀ                           ]
+    [-Θ₁₀       -2Θ₁₁       -Θ₂₁ᵀ               ]
+P = [           ᨞           ᨞           -Θₙₙ₋₁ᵀ ]
+    [                       -Θₙₙ₋₁      -2Θₙₙ   ],
+</pre></div>
+</div>
+<p>…where <span class="math notranslate nohighlight">\(Θᵢᵢ\)</span> and <span class="math notranslate nohighlight">\(Θᵢᵢ₋₁\)</span> are the block diagonal and block sub-diagonal
+of the natural parameter <span class="math notranslate nohighlight">\(Θ\)</span>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [-½(P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁)     A₁ᵀ Q₁⁻¹                                            ]
+    [Q₁⁻¹ A₁                    -½(Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂)      A₂ᵀ Q₂⁻¹                ]
+Θ = [                           ᨞                           ᨞               AₙᵀQₙ⁻¹ ]
+    [                                                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ],
+</pre></div>
+</div>
+<p>…and where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(Aᵢ\)</span> and <span class="math notranslate nohighlight">\(Qᵢ\)</span> are the state transition matrices and covariances
+of the state space model</p></li>
+<li><p><span class="math notranslate nohighlight">\(P₀\)</span> is the covariance of the initial state</p></li>
+</ul>
+</div></blockquote>
+<p>Inverting the precision gives as the joint covariance matrix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [Σ₀         Σ₀A₁ᵀ       Σ₀A₁ᵀA₂ᵀ    …                               ]
+    [A₁Σ₀       Σ₁          Σ₁A₂ᵀ       Σ₁A₂ᵀA₃ᵀ    …                   ]
+Σ = [A₂A₁Σ₀     A₂Σ₁        Σ₂          Σ₂A₃ᵀ       …                   ]
+    [⋮          ⋮           ᨞           ᨞           ᨞           Σₙ₋₁Aₙᵀ ]
+    [                                   …           AₙΣₙ₋₁      Σₙ      ],
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(Σᵢ\)</span> are the marginal covariances at each time step <span class="math notranslate nohighlight">\(i\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(Aᵢ\)</span> are the transition matrices of the state space model</p></li>
+</ul>
+</div></blockquote>
+<p>If we define as <span class="math notranslate nohighlight">\(Σᵢᵢ₋₁\)</span> the lower block sub-diagonal of the joint covariance,
+and as <span class="math notranslate nohighlight">\(Σᵢᵢ\)</span> the block diagonal of it, we can get the state transition matrices from:</p>
+<div class="math notranslate nohighlight">
+\[Aᵢ = Σᵢᵢ₋₁ (Σᵢᵢ)⁻¹\]</div>
+<p>We then follow the SpInGP paper and create the matrices:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>       [ I               ]          [P₀             ]
+       [-A₁     I        ]          [   Q₁          ]
+A⁻¹ =  [    ᨞       ᨞    ]      Q = [       ᨞       ]
+       [        -Aₙ     I]          [           Qₙ  ]
+</pre></div>
+</div>
+<p>…so that:</p>
+<div class="math notranslate nohighlight">
+\[P = A⁻ᵀQ⁻¹A⁻¹\]</div>
+<p>If we solve <span class="math notranslate nohighlight">\((A⁻¹)⁻¹ P\)</span> we get:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                                 [P₀⁻¹                  ]
+                                 [-Q₁⁻¹A₁   Q₁⁻¹        ]
+(A⁻¹)⁻¹ P = Q⁻¹A⁻¹,     Q⁻¹A⁻¹ = [      ᨞       ᨞       ]
+                                 [      -Qₙ⁻¹Aₙ     Qₙ⁻¹],
+</pre></div>
+</div>
+<p>…where the block diagonal of <span class="math notranslate nohighlight">\(Q⁻¹A⁻¹\)</span> holds the process noise precisions <span class="math notranslate nohighlight">\(Qᵢ⁻¹\)</span>
+and the precision of the initial state <span class="math notranslate nohighlight">\(P₀⁻¹\)</span>.</p>
+<p>To get the offsets we follow a similar strategy but solve against <span class="math notranslate nohighlight">\(θ\)</span>. First we write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [P₀⁻¹μ₀ - A₁ᵀQ₁⁻¹b₁ ]   [I   -A₁ᵀ     ][P₀⁻¹             ][μ₀]
+    [Q₁⁻¹b₁ - A₂ᵀQ₂⁻¹b₂ ]   [    I   -A₂ᵀ ][     Q₁⁻¹        ][b₁]
+θ = [⋮                  ] = [        ᨞   ᨞][         ᨞       ][⋮ ]
+    [Qₙ⁻¹bₙ             ]   [            I][             Qₙ⁻¹][bₙ].
+</pre></div>
+</div>
+<p>Then we solve <span class="math notranslate nohighlight">\((A⁻ᵀ)⁻¹θ\)</span> to get:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>           [P₀⁻¹             ][μ₀]
+           [     Q₁⁻¹        ][b₁]
+(A⁻ᵀ)⁻¹θ = [         ᨞       ][⋮ ]
+           [             Qₙ⁻¹][bₙ].
+</pre></div>
+</div>
+<p>Finally, <span class="math notranslate nohighlight">\(Q(A⁻ᵀ)⁻¹θ\)</span>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[μ₀]
+[b₁]
+[⋮ ] = Q(A⁻ᵀ)⁻¹θ.
+[bₙ]
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta_linear</strong> – Corresponds to <span class="math notranslate nohighlight">\(θ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>theta_diag</strong> – Corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>theta_subdiag</strong> – Corresponds to the lower block sub-diagonal
+of <span class="math notranslate nohighlight">\(Θ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 5 parameters of the state space model in the following order:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">As</span></code> corresponds to the transition matrices <span class="math notranslate nohighlight">\(Aᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">offsets</span></code> corresponds to the state offset vectors <span class="math notranslate nohighlight">\(bᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_initial_covariance</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(P₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_process_covariances</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(Qᵢ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><a class="reference internal" href="../kernels/index.html#markovflow.kernels.ConcatKernel.initial_mean" title="markovflow.kernels.ConcatKernel.initial_mean"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">initial_mean</span></code></a> corresponds to the mean of the initial distribution <span class="math notranslate nohighlight">\(μ₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.ssm_gaussian_transformations.naturals_to_ssm_params_no_smoothing">
+<code class="sig-name descname"><span class="pre">naturals_to_ssm_params_no_smoothing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_linear</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_diag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_subdiag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">,</span> </span><span class="pre">gpflow.base.TensorType</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/ssm_gaussian_transformations.html#naturals_to_ssm_params_no_smoothing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.ssm_gaussian_transformations.naturals_to_ssm_params_no_smoothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the natural parameters to parameters of a
+<a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+<p>This is similar to <a class="reference internal" href="#markovflow.ssm_gaussian_transformations.naturals_to_ssm_params" title="markovflow.ssm_gaussian_transformations.naturals_to_ssm_params"><code class="xref py py-func docutils literal notranslate"><span class="pre">naturals_to_ssm_params()</span></code></a> but in this case the natural parameters
+do not contain information from the future (smoothing). The updates regarding the
+smoothing have been pushed into the partition function.</p>
+<p>We know that the natural parameters have the following form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    [-½P₀⁻¹     A₁ᵀ Q₁⁻¹                        ]
+    [Q₁⁻¹ A₁    -½Q₁⁻¹      A₂ᵀ Q₂⁻¹            ]
+Θ = [           ᨞           ᨞           AₙᵀQₙ⁻¹ ]
+    [                       Qₙ⁻¹Aₙ      -½Qₙ⁻¹  ],
+
+    [P₀⁻¹μ₀]   [P₀⁻¹            ][μ₀]
+    [Q₁⁻¹b₁]   [     Q₁⁻¹       ][b₁]
+θ = [⋮     ] = [         ᨞      ][⋮ ]
+    [Qₙ⁻¹bₙ]   [            Qₙ⁻¹][bₙ],
+</pre></div>
+</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(bᵢ\)</span>, <span class="math notranslate nohighlight">\(Aᵢ\)</span> and <span class="math notranslate nohighlight">\(Qᵢ\)</span> are the state offsets, transition matrices
+and covariances of the state space model</p></li>
+<li><p><span class="math notranslate nohighlight">\(μ₀\)</span> and <span class="math notranslate nohighlight">\(P₀\)</span> are the mean and covariance of the initial state</p></li>
+</ul>
+</div></blockquote>
+<p>So by inverting the block diagonal of <span class="math notranslate nohighlight">\(Θ\)</span> we get the process noise covariance matrices.
+Solving the block diagonal against the sub diagonal yields the state transition matrices.
+Solving the block diagonal of <span class="math notranslate nohighlight">\(Θ\)</span> against <span class="math notranslate nohighlight">\(θ\)</span> yields the state offsets and
+the initial mean.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta_linear</strong> – Corresponds to <span class="math notranslate nohighlight">\(θ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>theta_diag</strong> – Corresponds to the block diagonal part of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N+1,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+<li><p><strong>theta_subdiag</strong> – Corresponds to the lower block sub-diagonal of <span class="math notranslate nohighlight">\(Θ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple containing the 5 parameters of the state space model in the following order:</p>
+<ul class="simple">
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">As</span></code> corresponds to the transition matrices <span class="math notranslate nohighlight">\(Aᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">offsets</span></code> corresponds to the state offset vectors <span class="math notranslate nohighlight">\(bᵢ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_initial_covariance</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(P₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><code class="xref any docutils literal notranslate"><span class="pre">chol_process_covariances</span></code> corresponds to the Cholesky of <span class="math notranslate nohighlight">\(Qᵢ\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">N,</span> <span class="pre">D,</span> <span class="pre">D]</span></code></p></li>
+<li><p><a class="reference internal" href="../kernels/index.html#markovflow.kernels.ConcatKernel.initial_mean" title="markovflow.kernels.ConcatKernel.initial_mean"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">initial_mean</span></code></a> corresponds to the mean of the initial distribution <span class="math notranslate nohighlight">\(μ₀\)</span>
+with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">D]</span></code></p></li>
+</ul>
+<p>Note each returned object in the tuple is a <code class="xref py py-data docutils literal notranslate"><span class="pre">TensorType</span></code>.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

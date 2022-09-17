@@ -1,0 +1,494 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "a3c8e46b",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "# Choosing and combining kernels\n",
+    "This notebook describes the various primitive kernels and kernel combinators available in Markovflow."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "825b18f5",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Matern kernels\n",
+    "Matern kernels are the default kernels to use in Markovflow.\n",
+    "\n",
+    "### Matern 1/2\n",
+    "\n",
+    "Matern 1/2 has the following definition:\n",
+    "\n",
+    "$k(x, x^{\\prime})=\\sigma^2 \\exp \\left(-\\frac{(x-x^{\\prime})^{2}}{2 l^{2}}\\right)$\n",
+    "\n",
+    "where $l$ is the lengthscale kernel parameter, and $\\sigma^2$ is the variance kernel parameter."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0c5e06a9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import tensorflow as tf\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "%matplotlib inline\n",
+    "\n",
+    "from markovflow.kernels import Matern32, Matern12, Matern52\n",
+    "\n",
+    "\n",
+    "LENGTH_SCALE = 2.\n",
+    "VARIANCE = 1.\n",
+    "JITTER = 1e-6\n",
+    "OBSERVATION_NOISE_VARIANCE = 1e-2\n",
+    "\n",
+    "def sample(kernel, num_samples):\n",
+    "    np.random.seed(1234)\n",
+    "    X = np.linspace(0, 100, 100)\n",
+    "    ssm = kernel.state_space_model(tf.constant(X))\n",
+    "    samples = ssm.sample(num_samples).numpy()\n",
+    "\n",
+    "    Ys = samples[..., 0].T\n",
+    "    return X, Ys"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "98be2be6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "matern12 = Matern12(lengthscale=LENGTH_SCALE, variance=VARIANCE, jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(matern12, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "777d31fe",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Matern 3/2\n",
+    "\n",
+    "Matern3/2 has the following definition:\n",
+    "\n",
+    "$k(x, x^{\\prime})=\\sigma^{2}\\left(1+\\frac{\\sqrt{3}|x-x^{\\prime}|}{l}\\right) \\exp \\left(-\\frac{\\sqrt{3}|x-x^{\\prime}|}{l}\\right)$"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12b4794b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "matern32 = Matern32(lengthscale=LENGTH_SCALE, variance=VARIANCE, jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(matern32, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0bf339e7",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Matern 5/2\n",
+    "\n",
+    "Matern 5/2 has the following definition:\n",
+    "\n",
+    "$k(x, x^{\\prime})=\\sigma^{2}\\left(1+\\frac{\\sqrt{5}|x-x^{\\prime}|}{l}+\\frac{5|x-x^{\\prime}|^{2}}{3 l^{2}}\\right) \\exp \\left(-\\frac{\\sqrt{5}|x-x^{\\prime}|}{l}\\right)$"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "604ab737",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "matern52 = Matern52(lengthscale=LENGTH_SCALE, variance=VARIANCE, jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(matern52, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "720e0b93",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Stationary kernels\n",
+    "\n",
+    "\n",
+    "Matern kernels are stationary. A kernel is stationary if the joint distribution between $f(x)$ and $f(x^{\\prime})$ is the same as the joint distribution $f(x+Δ)$ and $f(x^{\\prime}+Δ)$. $x$ and $x^{\\prime}$ are some arbitrary locations. $Δ$ is an arbitrary real number. $f(x)$ is the random variable that represents the possible values of the underlying function at location $x$. $f(x^{\\prime})$ is the random variable that represents the possible values of the underlying function at location $x^{\\prime}$.\n",
+    "\n",
+    "An equivalent definition of a stationary kernel is: when the kernel is a function of $x-x^{\\prime}$, it is a stationary kernel.\n",
+    "\n",
+    "\n",
+    "### Which Matern should I use?\n",
+    "\n",
+    "Pick a Matern kernel that is consistent with some property of the data that you have. If you are modelling stock prices, the price time series is not smooth, so a Matern1/2 kernel might be a better choice than a Matern5/2. On the other hand, if you are are modelling temperature during a day, which is a smooth series, a Matern3/2 or Matern5/2 kernel might be better than a Matern1/2 kernel.\n",
+    "\n",
+    "You can also draw samples from the corresponding prior with your best guesses for the hyperparameter values, and compare the look-and-feel of those samples with your data."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "52b4ccba",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Constant kernel\n",
+    "\n",
+    "$k(x, x^{\\prime}) = \\sigma^2$\n",
+    "\n",
+    "The constant kernel is another stationary kernel. Samples from a constant kernel appear as horizontal straight lines."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7b7b3153",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from markovflow.kernels.constant import Constant\n",
+    "\n",
+    "constant = Constant(variance=VARIANCE, jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(constant, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "33672994",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Why samples from a GP with constant kernel are horizontal straight lines\n",
+    "\n",
+    "For a zero-meaned GP with a constant kernel $k(x, x^{\\prime})=\\sigma^2$, we can define the following equivalent process:\n",
+    "\n",
+    "$$f(x) = \\eta\n",
+    "$$\n",
+    "\n",
+    "where $\\eta \\sim \\mathcal{N}(0, \\sigma^2)$.\n",
+    "\n",
+    "To verify that $f(x)$ defined this way has the same distribution as our zero-meaned GP with a constant kernel, we verify that:\n",
+    "\n",
+    "1. the mean of $f(x)$ for an arbitrary value of $x$ is 0.\n",
+    "2. the covariance between $f(x)$ and $f(x^{\\prime})$ for arbitrary values of $x$ and $x^{\\prime}$, denoted by $cov(f(x), f(x^{\\prime}))$, equals $\\sigma^2$.\n",
+    "\n",
+    "Verify the mean:\n",
+    "\n",
+    "Because $f(x)=\\eta$, and $\\eta \\sim \\mathcal{N}(0, \\sigma^2)$, so $f(x)$ has zero mean.\n",
+    "\n",
+    "Verify the covariance:\n",
+    "\n",
+    "$\\begin{align}\n",
+    "cov(f(x), f(x^{\\prime})) &= \\mathbb{E}\\left[(\\eta - 0)(\\eta - 0)\\right] \\\\\n",
+    "&= cov(\\eta, \\eta) \\\\\n",
+    "&= \\sigma^2 \\\\\n",
+    "\\end{align}$\n",
+    "\n",
+    "Indeed $f(x)=\\eta$ is equivalent to our zero-meaned GP with a constant kernel. In other words, $f(x)=\\eta$ models the same set of functions as the GP does. From $f(x)=\\eta$, it is obvious that these functions are horizontal lines. And the model parameter $\\sigma^2$ decides the possible y-axis locations of those horizontal lines.\n",
+    "\n",
+    "\n",
+    "\n",
+    "### Why the constant kernel is useful\n",
+    "\n",
+    "From looking at the kernel samples figures, it is not obvious why the constant kernel is useful. It is better to understand its use case from the predictive distribution for test location $X_*$. Let's assume that there is no observation noise.\n",
+    "\n",
+    "The following equation shows the joint distribution between the latent random variable $f(X_*)$ and the observation random variable $y(X)$:\n",
+    "\n",
+    "$\\begin{bmatrix}f(X_*)\\\\y(X)\\end{bmatrix} \\sim \\mathcal{N}\\left(0,\\;\\; \\begin{bmatrix}k(X_*, X_*)&k(X_*, X)\\\\k(X_*,X)^{\\top}&k(X, X)\\end{bmatrix}\\right)$\n",
+    "\n",
+    "Apply the multivariate Gaussian conditional rule to derive the predictive distribution:\n",
+    "\n",
+    "$f(X_*)|y(X) \\sim \\mathcal{N}\\left(k(X_*, X)k(X,X)^{-1} y(X),\\;\\;k(X_*,X_*)-k(X_*,X)k(X,X)^{-1}k(X_*, X)^{\\top}\\right)$\n",
+    "\n",
+    "This predictive distribution has mean:\n",
+    "\n",
+    "$k(X_*, X)k(X,X)^{-1} y(X)$\n",
+    "\n",
+    "After we plug in the data $Y$, we get:\n",
+    "\n",
+    "$k(X_*, X)k(X,X)^{-1} Y$\n",
+    "\n",
+    "Imagine that the test location $X_*$ is far from the training location $X$. If we are using a Matern kernel, $k(X_*, X)$ will be 0, and therefore the predictive mean will be 0. However, if we are using a constant kernel, $k(X_*, X)=\\sigma^2$, no matter how far $X_*$ is from $X$. So the predictive mean will not be 0.\n",
+    "\n",
+    "This is the use case for the constant kernel -- to modify the mean of the predictive distribution. In practice, it is more common to use the constant kernel in combination with another kernel. For more information on kernel combinators, see the **Combining kernels** section."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ff2ef53e",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## HarmonicOscillator kernel\n",
+    "\n",
+    "The Harmonic Oscillator kernel is a stationary periodic kernel. It has the following definition:\n",
+    "\n",
+    "$k(x, x^{\\prime}) = \\sigma^2 cos\\left(\\frac{2\\pi}{p} \\cdot (x-x^{\\prime})\\right)$\n",
+    "\n",
+    "It has two parameters, the variance $\\sigma^2$, and the cycle period $p$ in radius unit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "be4ab117",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from markovflow.kernels.periodic import HarmonicOscillator\n",
+    "\n",
+    "periodic = HarmonicOscillator(variance=VARIANCE, period=10*np.pi, jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(periodic, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b29b7961",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## LatentExponentiallyGenerated kernel\n",
+    "\n",
+    "The Latent Exponentially Generated kernel is a stationary kernel with identity marginal covariance.\n",
+    "It is specified by (1) a noise matrix N that specifies how Brownian noises is mapped into each of \n",
+    "the dimensions of the state space, (2) a matrix R specifying a rotation of the state space."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c67e1e9a",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "from markovflow.kernels.latent_exp_generated import LatentExponentiallyGenerated as LEG\n",
+    "\n",
+    "state_dim = 4\n",
+    "N = np.random.rand(state_dim, state_dim)*0.2\n",
+    "R = np.random.rand(state_dim, state_dim)\n",
+    "leg = LEG(R=R, N=N, jitter=0)\n",
+    "X, Ys = sample(leg, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e79c7366",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Combining kernels\n",
+    "\n",
+    "### Using the Sum kernel\n",
+    "$Sum(x, x^{\\prime}) = k_1(x, x^{\\prime}) + k_2(x, x^{\\prime})$"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0ca21d89",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "Example: Matern5/2 + Matern1/2\n",
+    "\n",
+    "The following example shows some samples from a Matern5/2 + Matern1/2 kernel: "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "73c7fad9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from markovflow.kernels.sde_kernel import Sum\n",
+    "\n",
+    "sum_kernel = Sum([Matern52(lengthscale=8., variance=1., jitter=JITTER),\n",
+    "                  Matern12(lengthscale=2,  variance=1., jitter=JITTER)],\n",
+    "           jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(sum_kernel, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a335759e",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Using the Product kernel\n",
+    "\n",
+    "$Product(x, x^{\\prime}) = k_1(x, x^{\\prime}) \\times k_2(x, x^{\\prime})$\n",
+    "\n",
+    "\n",
+    "Example: Matern3/2 x Periodic\n",
+    "\n",
+    "This is an interesting combination. It requires a more strict periodic characteristic for locations nearby and a less strict periodic characteristic for locations that are far away. This is because the Matern3/2 kernel gives more weight to the Periodic kernel for nearby locations and less weight to the Periodic kernel for locations that are far away. This combination is known as a **locally periodic kernel**. It generates samples like this:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4d18282f",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "from markovflow.kernels.sde_kernel import Product\n",
+    "\n",
+    "product = Product(\n",
+    "    [Matern32(lengthscale=8, variance=1., jitter=JITTER),\n",
+    "     HarmonicOscillator(variance=2., period=5*np.pi, jitter=JITTER)],\n",
+    "    jitter=JITTER)\n",
+    "\n",
+    "X, Ys = sample(product, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "93e6f28d",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Using a state mean for the kernel"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a022708a",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "\n",
+    "state_dim = 2\n",
+    "state_mean = tf.identity([0., 1.])\n",
+    "kernel = Matern32(lengthscale=8, variance=1., jitter=JITTER)\n",
+    "kernel.set_state_mean(state_mean)\n",
+    "\n",
+    "X, Ys = sample(kernel, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.hlines(state_mean[0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3)\n",
+    "\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "37822dc0",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Using a Piecewise Stationary kernel\n",
+    "\n",
+    "$dx(t) = F_i (x(t) - \\mu_i)) + L d\\beta$\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3c2f7c39",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "\n",
+    "from markovflow.kernels.piecewise_stationary import PiecewiseKernel\n",
+    "from gpflow import default_float\n",
+    "\n",
+    "\n",
+    "num_inducing = 2\n",
+    "\n",
+    "\n",
+    "change_points = np.linspace(0,100,num_inducing+2)[1:-1]\n",
+    "\n",
+    "base = Matern52\n",
+    "lengthscales = np.array([2.,6.,2.])\n",
+    "variances = np.array([1.,1.,1.])\n",
+    "state_means = np.array([[-3., 0., 0.], [3., 0., 0.], [-3., 0., 0.]])\n",
+    "\n",
+    "ks = [\n",
+    "    base(variance=variances[l], lengthscale=lengthscales[l])\n",
+    "    for l in range(num_inducing + 1)\n",
+    "]\n",
+    "\n",
+    "[k.set_state_mean(state_means[i]) for i, k in enumerate(ks)]\n",
+    "\n",
+    "kernel = PiecewiseKernel(\n",
+    "    ks, tf.convert_to_tensor(change_points, dtype=default_float()))\n",
+    "\n",
+    "X, Ys = sample(kernel, 3)\n",
+    "plt.plot(X, Ys)\n",
+    "plt.hlines(state_means[:, 0], xmin=X.min(), xmax=X.max(), ls='--', color='k', alpha=.3, label='offset')\n",
+    "plt.vlines(change_points, ymin=Ys.min(), ymax=Ys.max(), ls='--', color='r', alpha=.3, label='change points')\n",
+    "plt.legend()\n",
+    "plt.show()"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "encoding": "# -*- coding: utf-8 -*-"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

@@ -1,0 +1,55 @@
+:py:mod:`markovflow.sde.drift`
+==============================
+
+.. py:module:: markovflow.sde.drift
+
+.. autoapi-nested-parse::
+
+   Module containing classes for different drifts.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: LinearDrift(A: gpflow.base.TensorType = None, b: gpflow.base.TensorType = None)
+
+   A linear drift of the form, f(x_t, t) = A_t * x_t + b_t.
+
+   Initialize the linear drift with the parameters A and b defining it as f(x_t, t) = A_t * x_t + b_t.
+
+   :param A: `A` parameter of the linear drift with shape `batch_shape + [num_transitions, state_dim, state_dim]``
+   :param b: `b` parameter of the linear drift with shape `batch_shape + [num_transitions, state_dim]`
+
+   .. py:method:: set_from_ssm(ssm: markovflow.state_space_model.StateSpaceModel, dt: float)
+
+      Approximately converts a StateSpaceModel into a linear drift of the form: f(x(t), t) = A(t) * x(t) + b(t),
+
+      Given the linear drift f(x(t), t) = A(t) * x(t) + b(t), of a continuous time SDE. The conditional distribution
+      of two  states  x(t_{k+1}), x(t_{k}) is given by
+          x(t_{k+1}) | x(t_{k}) = C_k x(t_{k}) +  b_k + n_k,
+
+       with C_k = exp( \int_{t_{k} < t < t_{k+1}}  A(t) dt) and b_k = [C_k - I] A(t)^{-1} b(t).
+
+      Taking the limit of small-time intervals ( dt = t_{k+1} - t_{k} -> 0). The first order Taylor expansion of
+      the exponential  for small-time intervals ( dt = t_{k+1} - t_{k} -> 0), gives the approximation:
+                      C_k ~= I + A(t_{k}) dt     and     b_k ~=  b(t_{k}) dt
+
+      Therefore,
+
+      A = (SSM.state_transitions - I)/dt
+      b = SSM.state_offsets / dt
+
+
+   .. py:method:: to_ssm(q: gpflow.base.TensorType, transition_times: gpflow.base.TensorType, initial_mean: gpflow.base.TensorType, initial_chol_covariance: gpflow.base.TensorType)
+
+      Approximately converts a linear drift SDE of the form: f(x(t), t) = A(t) * x(t) + b(t) to a StateSpaceModel.
+
+      For details, look into the docstring of `set_from_ssm` function.
+
+      SSM.state_transitions = (A + I) * dt
+      SSM.state_offsets = b * dt
+
+
+
+

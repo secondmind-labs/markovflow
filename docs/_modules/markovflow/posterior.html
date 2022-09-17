@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.posterior &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.posterior</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing posterior processes for GP models.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span> <span class="k">as</span> <span class="n">GPF_Likelihood</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">SampleShape</span>
+<span class="kn">from</span> <span class="nn">markovflow.conditionals</span> <span class="kn">import</span> <span class="n">conditional_predict</span><span class="p">,</span> <span class="n">conditional_statistics</span><span class="p">,</span> <span class="n">pairwise_marginals</span>
+<span class="kn">from</span> <span class="nn">markovflow.gauss_markov</span> <span class="kn">import</span> <span class="n">GaussMarkovDistribution</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span><span class="p">,</span> <span class="n">StackKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span> <span class="k">as</span> <span class="n">MF_Likelihood</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span><span class="p">,</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span><span class="p">,</span> <span class="n">tf_scope_fn_decorator</span>
+
+<span class="n">Likelihood</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">MF_Likelihood</span><span class="p">,</span> <span class="n">GPF_Likelihood</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="PosteriorProcess"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">PosteriorProcess</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class for forming a posterior process.</span>
+
+<span class="sd">    Posteriors that extend this class must implement the :meth:`sample_state_trajectories`,</span>
+<span class="sd">    :meth:`sample_f`, :meth:`predict_state` and :meth:`predict_f` methods.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PosteriorProcess.sample_state"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess.sample_state">[docs]</a>    <span class="k">def</span> <span class="nf">sample_state</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate joint state samples at `new_time_points`.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate sample trajectories for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape (or</span>
+<span class="sd">            number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">            This is an optional argument only passed in for inference with an importance-weighted</span>
+<span class="sd">            posterior.</span>
+<span class="sd">        :return: A tensor containing:</span>
+
+<span class="sd">            * Sampled trajectories at new points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_time_points, state_dim]``</span>
+<span class="sd">            * Sampled trajectories at conditioning points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_conditioning_points, state_dim]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">samples</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_state_trajectories</span><span class="p">(</span>
+            <span class="n">new_time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">,</span> <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">samples</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="PosteriorProcess.sample_state_trajectories"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess.sample_state_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">sample_state_trajectories</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate joint sampled state trajectories evaluated both at `new_time_points`</span>
+<span class="sd">        and at some points that we condition on for obtaining the posterior.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate sample trajectories for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape (or</span>
+<span class="sd">            number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">            This is an optional argument only passed in for inference with an importance-weighted</span>
+<span class="sd">            posterior.</span>
+<span class="sd">        :return: A tensor containing:</span>
+
+<span class="sd">            * Sampled trajectories at new points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_time_points, state_dim]``</span>
+<span class="sd">            * Sampled trajectories at conditioning points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_conditioning_points, state_dim]``</span>
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="PosteriorProcess.sample_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess.sample_f">[docs]</a>    <span class="k">def</span> <span class="nf">sample_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate joint function evaluation samples (projected states) at `new_time_points`.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate sample trajectories for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape (or</span>
+<span class="sd">            number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">            This is an optional argument only passed in for inference with an importance-weighted</span>
+<span class="sd">            posterior.</span>
+<span class="sd">        :return: A tensor containing sampled trajectories, with shape</span>
+<span class="sd">            ``sample_shape + batch_shape + [num_time_points, output_dim]``.</span>
+<span class="sd">        :raises NotImplementedError: Must be implemented in derived classes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="PosteriorProcess.predict_state"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess.predict_state">[docs]</a>    <span class="k">def</span> <span class="nf">predict_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict state at `new_time_points`. Note these time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="PosteriorProcess.predict_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.PosteriorProcess.predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">predict_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict marginal function values at `new_time_points`. Note these</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ConditionalProcess"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ConditionalProcess">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">ConditionalProcess</span><span class="p">(</span><span class="n">PosteriorProcess</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a posterior process indexed on the real line.</span>
+
+<span class="sd">    This means :math:`q(s(.))` is built by combining the marginals :math:`q(s(Z))` and the</span>
+<span class="sd">    conditional process :math:`p(s(.)|s(Z))` into:</span>
+
+<span class="sd">    .. math:: q(s(.)) = ∫p(s(.)|s(Z))q(s(Z)) ds(Z)</span>
+
+<span class="sd">    The marginals at discrete time inputs are available in closed form</span>
+<span class="sd">    (see the :meth:`predict_f` method).</span>
+
+<span class="sd">    It also includes methods for sampling from the posterior process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">posterior_dist</span><span class="p">:</span> <span class="n">GaussMarkovDistribution</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">conditioning_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param posterior_dist: The posterior represented by a Gauss-Markov distribution used for</span>
+<span class="sd">            inference. For variational models this is the model defined by the variational</span>
+<span class="sd">            distribution.</span>
+<span class="sd">        :param kernel: The kernel of the prior process.</span>
+<span class="sd">        :param conditioning_time_points: The time points to condition on for inference, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param mean_function: The mean function of the process that is added to fs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gauss_markov_model</span> <span class="o">=</span> <span class="n">posterior_dist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span> <span class="o">=</span> <span class="n">conditioning_time_points</span>
+
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obs_dim</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">StackKernel</span><span class="p">)</span> <span class="k">else</span> <span class="n">kernel</span><span class="o">.</span><span class="n">output_dim</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="n">obs_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+<div class="viewcode-block" id="ConditionalProcess.predict_state"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ConditionalProcess.predict_state">[docs]</a>    <span class="k">def</span> <span class="nf">predict_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict state at `new_time_points`. Note these time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pw_mu</span><span class="p">,</span> <span class="n">pw_cov</span> <span class="o">=</span> <span class="n">pairwise_marginals</span><span class="p">(</span>
+            <span class="n">dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">gauss_markov_model</span><span class="p">,</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">initial_mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gauss_markov_model</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">),</span>
+            <span class="n">initial_covariance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">initial_covariance</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">conditional_predict</span><span class="p">(</span>
+            <span class="n">new_time_points</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span>
+            <span class="n">training_pairwise_means</span><span class="o">=</span><span class="n">pw_mu</span><span class="p">,</span>
+            <span class="n">training_pairwise_covariances</span><span class="o">=</span><span class="n">pw_cov</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ConditionalProcess.predict_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ConditionalProcess.predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">predict_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict marginal function values at `new_time_points`. Note these</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        .. note:: `new_time_points` that are far outside the `self.conditioning_time_points`</span>
+<span class="sd">           specified when instantiating the class will revert to the prior.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]`` and either</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">f_res</span><span class="p">,</span> <span class="n">f_covs</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_marginals_to_f</span><span class="p">(</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_state</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">),</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="n">full_output_cov</span>
+        <span class="p">)</span>
+
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_function</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">f_res</span> <span class="o">+</span> <span class="n">mean</span><span class="p">,</span> <span class="n">f_covs</span></div>
+
+<div class="viewcode-block" id="ConditionalProcess.sample_state_trajectories"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ConditionalProcess.sample_state_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">sample_state_trajectories</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate joint state samples at `new_time_points` and</span>
+<span class="sd">        the `self.conditioning_time_points` specified when instantiating the class.</span>
+
+<span class="sd">        See Appendix 2 of</span>
+<span class="sd">        `&quot;Doubly Sparse Variational Gaussian Processes&quot; &lt;https://arxiv.org/abs/2001.05363&gt;`_</span>
+<span class="sd">        for a derivation.</span>
+
+<span class="sd">        The following notation is used:</span>
+
+<span class="sd">            * :math:`t` - a vector of new time points</span>
+<span class="sd">            * :math:`z` - a vector of the conditioning time points</span>
+<span class="sd">            * :math:`sₚ/uₚ` - prior state sample at :math:`t/z`</span>
+<span class="sd">            * :math:`sₒ/Uₒ` - posterior state sample at :math:`t/z`</span>
+<span class="sd">            * :math:`p(.)` - the prior</span>
+<span class="sd">            * :math:`q(.)` - the posterior</span>
+
+<span class="sd">        Jointly sample from the prior at new and conditioning points:</span>
+
+<span class="sd">        .. math:: [sₚ, uₚ] ~ p(s([t, z]))</span>
+
+<span class="sd">        And sample from the posterior at the conditioning points:</span>
+
+<span class="sd">        .. math:: uₒ ~ q(s(z))</span>
+
+<span class="sd">        A sample from the posterior state is given by:</span>
+
+<span class="sd">        .. math:: sₒ = sₚ - E[s(t) | s(z) = uₒ - uₚ]</span>
+
+<span class="sd">        Noting :math:`z₋,z₊`, for each new point :math:`tₖ` the points in :math:`z` closest to</span>
+<span class="sd">        :math:`tₖ` and :math:`vₖ = [s(z₋),s(z₊)]` are:</span>
+
+<span class="sd">        .. math:: E[s(tₖ)|s(z)] = E[s(tₖ)|vₖ] = Pₖ vₖ</span>
+
+<span class="sd">        That is, the conditional mean is local; it only depends on the nearing</span>
+<span class="sd">        conditioning states.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate sample trajectories for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape of sampled</span>
+<span class="sd">            trajectories to draw. This can be either an integer or a tuple/list of integers.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">            Note this argument will be ignored if your posterior is an</span>
+<span class="sd">            :class:`AnalyticPosteriorProcess`.</span>
+<span class="sd">        :return: A tensor containing:</span>
+
+<span class="sd">            * Sampled trajectories at new points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_time_points, state_dim]``</span>
+<span class="sd">            * Sampled trajectories at conditioning points, with shape</span>
+<span class="sd">              ``sample_shape + batch_shape + [num_conditioning_points, state_dim]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># convert shape to TensorShape</span>
+        <span class="n">sample_tensorshape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span>
+
+        <span class="c1"># tf.gather needs to know how many batch dims there will be. that&#39;s the</span>
+        <span class="c1"># same as self.batch_dims. When sorting *samples*, add extra for the samples dimension.</span>
+        <span class="n">sample_dims</span> <span class="o">=</span> <span class="n">sample_tensorshape</span><span class="o">.</span><span class="n">ndims</span>
+        <span class="n">batch_dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_markov_model</span><span class="o">.</span><span class="n">batch_shape</span><span class="o">.</span><span class="n">ndims</span>
+
+        <span class="c1"># join the new and conditioning time points</span>
+        <span class="n">joint_time_points</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">sort_ind</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">joint_time_points</span><span class="p">)</span>
+        <span class="n">sorted_joint_time_points</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">joint_time_points</span><span class="p">,</span> <span class="n">sort_ind</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+        <span class="c1"># sample jointly, [sₚ, uₚ] ~ p(s([t, z]))</span>
+        <span class="n">sorted_joint_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="n">sorted_joint_time_points</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+            <span class="n">sample_shape</span>
+        <span class="p">)</span>
+
+        <span class="c1"># separate the samples back into new and conditioning samples.</span>
+        <span class="n">n_conditioning_points</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">unsort_ind</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sort_ind</span><span class="p">)</span>
+        <span class="n">unsort_ind</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+            <span class="n">unsort_ind</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">sample_tensorshape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">unsort_ind</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">joint_samples</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">sorted_joint_samples</span><span class="p">,</span> <span class="n">unsort_ind</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span> <span class="o">+</span> <span class="n">sample_dims</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="n">prior_conditioning_samples</span> <span class="o">=</span> <span class="n">joint_samples</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">n_conditioning_points</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">prior_new_samples</span> <span class="o">=</span> <span class="n">joint_samples</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">n_conditioning_points</span><span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="c1"># select the difference between the prior and posterior samples, at times adjacent to the</span>
+        <span class="c1"># new time points from the conditioning time points.</span>
+        <span class="n">posterior_conditioning_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_markov_model</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">prior_conditioning_samples</span> <span class="o">-</span> <span class="n">posterior_conditioning_samples</span>
+
+        <span class="c1"># The first and last value of delta is evaluated at -inf/inf, but infinitely far away from</span>
+        <span class="c1"># the data the posterior will revert back to the prior. As such the delta expectation</span>
+        <span class="c1"># will revert to zero.</span>
+        <span class="n">zero_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">delta</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">delta_augmented</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">zero_pad</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">zero_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+            <span class="n">indices</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">sample_tensorshape</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">indices</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">u_minus</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">delta_augmented</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span> <span class="o">+</span> <span class="n">sample_dims</span><span class="p">)</span>
+        <span class="n">u_plus</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">delta_augmented</span><span class="p">,</span> <span class="n">indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span> <span class="o">+</span> <span class="n">sample_dims</span>
+        <span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">u_minus</span><span class="p">,</span> <span class="n">u_plus</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># compute the conditional mean projection for all new time points</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">conditional_statistics</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditioning_time_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+
+        <span class="c1"># sₚ - P (uₒ - uₚ), uₒ</span>
+        <span class="n">new_samples</span> <span class="o">=</span> <span class="n">prior_new_samples</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">new_samples</span><span class="p">,</span> <span class="n">posterior_conditioning_samples</span></div>
+
+<div class="viewcode-block" id="ConditionalProcess.sample_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ConditionalProcess.sample_f">[docs]</a>    <span class="k">def</span> <span class="nf">sample_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate joint function evaluation samples (projected states) at `new_time_points`.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate sample trajectories for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape</span>
+<span class="sd">            (or number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">            Note this argument will be ignored if your posterior is an</span>
+<span class="sd">            :class:`AnalyticPosteriorProcess`.</span>
+<span class="sd">        :return: A tensor containing the sampled trajectories, with shape</span>
+<span class="sd">            ``sample_shape + batch_shape + [num_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_state</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">)</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">centered_samples</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">state_samples</span><span class="p">)</span>
+
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean_function</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">centered_samples</span></div></div>
+
+
+<div class="viewcode-block" id="AnalyticPosteriorProcess"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.AnalyticPosteriorProcess">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">AnalyticPosteriorProcess</span><span class="p">(</span><span class="n">ConditionalProcess</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the (approximate) posterior process of a GP model.</span>
+
+<span class="sd">    It inherits the marginal prediction and sampling methods from the parent</span>
+<span class="sd">    :class:`ConditionalProcess` class.</span>
+
+<span class="sd">    It also includes a method to predict the observations (see :meth:`predict_y`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">posterior_dist</span><span class="p">:</span> <span class="n">GaussMarkovDistribution</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">conditioning_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param posterior_dist: The posterior represented by a Gauss-Markov distribution used</span>
+<span class="sd">            for inference. For variational models this is the model defined by the variational</span>
+<span class="sd">            distribution.</span>
+<span class="sd">        :param kernel: The kernel of the prior process.</span>
+<span class="sd">        :param conditioning_time_points: The time points to condition on for inference,</span>
+<span class="sd">            with shape ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param likelihood: Likelihood defining how to project from f-space to an observation.</span>
+<span class="sd">        :param mean_function: The mean function of the process that is added to fs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">posterior_dist</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">conditioning_time_points</span><span class="p">,</span> <span class="n">mean_function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+
+<div class="viewcode-block" id="AnalyticPosteriorProcess.predict_y"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.AnalyticPosteriorProcess.predict_y">[docs]</a>    <span class="k">def</span> <span class="nf">predict_y</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict observation marginals at `new_time_points`. Note these</span>
+<span class="sd">        time points should be sorted.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]`` and either</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim, output_dim]`` or</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">full_output_cov</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;gpflow likelihoods do not support projecting the full covariance&quot;</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="p">,</span> <span class="n">GPF_Likelihood</span><span class="p">),</span> <span class="n">msg</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">predict_mean_and_var</span><span class="p">(</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">new_time_points</span><span class="o">=</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="n">full_output_cov</span><span class="p">)</span></div></div>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">ImportanceWeightedPosteriorProcess</span><span class="p">(</span><span class="n">PosteriorProcess</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the approximate posterior process of a GP model.</span>
+
+<span class="sd">    The approximate posterior process is inferred via importance-weighted variational inference.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">num_importance_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">proposal_dist</span><span class="p">:</span> <span class="n">GaussMarkovDistribution</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">conditioning_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param num_importance_samples: The number of importance-weighted samples.</span>
+<span class="sd">        :param proposal_dist: The proposal represented by a Gauss-Markov distribution,</span>
+<span class="sd">            from which we draw samples. This is the model defined by the variational distribution.</span>
+<span class="sd">        :param kernel: The kernel of the prior process.</span>
+<span class="sd">        :param conditioning_time_points: Time points to condition on for inference, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :param likelihood: Likelihood defining how to project from f-space to an observation.</span>
+<span class="sd">        :param mean_function: The mean function of the process that is added to fs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span> <span class="o">=</span> <span class="n">ConditionalProcess</span><span class="p">(</span>
+            <span class="n">proposal_dist</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">conditioning_time_points</span><span class="p">,</span> <span class="n">mean_function</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span> <span class="o">=</span> <span class="n">num_importance_samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess._log_qu_density"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess._log_qu_density">[docs]</a>    <span class="k">def</span> <span class="nf">_log_qu_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples_u</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">stop_gradient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Log density of the posterior process evaluated at the conditioning points.</span>
+
+<span class="sd">        :param samples_u: State samples at the conditioning time points, with shape</span>
+<span class="sd">            ``sample_shape + [num_conditioning_points, state_dim]``.</span>
+<span class="sd">        :param stop_gradient: Whether to stop the gradient flow through the samples. It is useful</span>
+<span class="sd">            to do so when optimising the proposal distribution with control variates for reduced</span>
+<span class="sd">            variance.</span>
+<span class="sd">        :return: log q(u) [num_samples]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">stop_gradient</span><span class="p">:</span>
+            <span class="n">dist_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">gauss_markov_model</span><span class="o">.</span><span class="n">create_non_trainable_copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dist_q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">gauss_markov_model</span>
+        <span class="n">log_qu</span> <span class="o">=</span> <span class="n">dist_q</span><span class="o">.</span><span class="n">log_pdf</span><span class="p">(</span><span class="n">samples_u</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">log_qu</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.log_importance_weights"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.log_importance_weights">[docs]</a>    <span class="k">def</span> <span class="nf">log_importance_weights</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">samples_s</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">samples_u</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">stop_gradient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log-importance weights for some state samples.</span>
+
+<span class="sd">        The importance weights are given by:</span>
+
+<span class="sd">        .. math:: w = p(Y | s) p(s, u) / q(s, u)</span>
+
+<span class="sd">        Because it is assumed that :math:`q(s | u) = p(s | u)`, the weights reduce to:</span>
+
+<span class="sd">        .. math:: w = p(Y | s) p(u) / q(u)</span>
+
+<span class="sd">        We evaluate this ratio for some tensors of `samples_s` and `samples_u`, which</span>
+<span class="sd">        are assumed to have been drawn from :math:`q(s, u)`. To do this, `samples_s` are</span>
+<span class="sd">        projected to :math:`f` before being passed to the likelihood object.</span>
+
+<span class="sd">        :param samples_s: A tensor of samples drawn from :math:`p(s|u)`, with shape</span>
+<span class="sd">            ``sample_shape + batch_shape + [num_data, state_dim]``.</span>
+<span class="sd">        :param samples_u: A tensor of samples drawn from :math:`q(u)`, with shape</span>
+<span class="sd">            ``sample_shape + batch_shape + [num_inducing, state_dim]``.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :param stop_gradient: Whether to call stop gradient on :math:`q(u)`. This is</span>
+<span class="sd">            useful for control variate schemes.</span>
+<span class="sd">        :return log_weights: A tensor with shape ``[sample_shape]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conditioning_time_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">conditioning_time_points</span>
+        <span class="n">dist_p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="n">conditioning_time_points</span><span class="p">)</span>
+
+        <span class="c1"># sample_shape + batch_shape</span>
+        <span class="n">log_pu</span> <span class="o">=</span> <span class="n">dist_p</span><span class="o">.</span><span class="n">log_pdf</span><span class="p">(</span><span class="n">samples_u</span><span class="p">)</span>
+        <span class="n">log_qu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_qu_density</span><span class="p">(</span><span class="n">samples_u</span><span class="p">,</span> <span class="n">stop_gradient</span><span class="o">=</span><span class="n">stop_gradient</span><span class="p">)</span>
+
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># sample_shape + batch_shape + [num_data, obs_dim]</span>
+        <span class="n">samples_f</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">samples_s</span><span class="p">)</span>
+
+        <span class="c1"># apply mean function</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">mean_function</span><span class="p">(</span><span class="n">input_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">samples_f</span> <span class="o">=</span> <span class="n">samples_f</span> <span class="o">+</span> <span class="n">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+
+        <span class="c1"># sample_shape, sum out over the number of data points.</span>
+        <span class="n">log_lik</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">samples_f</span><span class="p">,</span> <span class="n">input_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># sum out the batch_shape dims from log_pu and log_qu and add log_lik</span>
+        <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">dist_p</span><span class="o">.</span><span class="n">batch_shape</span>
+        <span class="n">batch_shape_axes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">batch_shape</span><span class="o">.</span><span class="n">ndims</span><span class="p">)</span> <span class="o">-</span> <span class="n">batch_shape</span><span class="o">.</span><span class="n">ndims</span><span class="p">)</span>
+        <span class="n">log_weights</span> <span class="o">=</span> <span class="n">log_lik</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">log_pu</span> <span class="o">-</span> <span class="n">log_qu</span><span class="p">,</span> <span class="n">batch_shape_axes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">log_weights</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights">[docs]</a>    <span class="k">def</span> <span class="nf">_iwvi_samples_and_weights</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample from q(states) indexed by new_time_points and compute the log weights associated.</span>
+
+<span class="sd">        :param new_time_points: ordered time input where to sample with shape</span>
+<span class="sd">                        batch_shape + [num_new_time_points]</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that specifies how many</span>
+<span class="sd">            samples to draw, with shape ``(..., num_importance_samples)``.</span>
+<span class="sd">        :return: state samples from the posterior and the log-weights with shapes:</span>
+<span class="sd">                        sample_shape + batch_shape + [num_new_time_points, state_dim]</span>
+<span class="sd">                        sample_shape</span>
+<span class="sd">                        sample_shape + batch_shape + [num_conditioning_points, state_dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># batch_shape + [num_data + num_new_time_points]</span>
+        <span class="n">all_time_points</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">input_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_time_points</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># sample_shape + batch_shape + [num_data+num_new_time_points, state_dim],</span>
+        <span class="c1"># sample_shape + batch_shape + [num_inducing_points, state_dim]</span>
+        <span class="n">samples_s</span><span class="p">,</span> <span class="n">samples_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">sample_state_trajectories</span><span class="p">(</span>
+            <span class="n">all_time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="n">sample_shape</span>
+        <span class="p">)</span>
+
+        <span class="n">num_new_time_points</span> <span class="o">=</span> <span class="n">new_time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># sample_shape + batch_shape + [num_new_time_points, state_dim]</span>
+        <span class="n">samples_s_new</span> <span class="o">=</span> <span class="n">samples_s</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="n">num_new_time_points</span><span class="p">:,</span> <span class="p">:]</span>
+        <span class="c1"># sample_shape + batch_shape + [num_data, state_dim]</span>
+        <span class="n">samples_s_data</span> <span class="o">=</span> <span class="n">samples_s</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="n">num_new_time_points</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="c1"># sample_shape</span>
+        <span class="n">log_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_importance_weights</span><span class="p">(</span><span class="n">samples_s_data</span><span class="p">,</span> <span class="n">samples_u</span><span class="p">,</span> <span class="n">input_data</span><span class="p">)</span>
+        <span class="c1"># sample_shape + batch_shape + [num_new_time_points, state_dim], sample_shape</span>
+        <span class="k">return</span> <span class="n">samples_s_new</span><span class="p">,</span> <span class="n">log_weights</span><span class="p">,</span> <span class="n">samples_u</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.sample_state_trajectories"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_state_trajectories">[docs]</a>    <span class="k">def</span> <span class="nf">sample_state_trajectories</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample the importance-weighted posterior over states.</span>
+
+<span class="sd">        :param new_time_points: Ordered time input from which to sample, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape</span>
+<span class="sd">            (or number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :return: The ordered samples states, with shape</span>
+<span class="sd">            ``sample_shape + batch_shape + [num_new_time_points, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">input_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You need to provide `input_data` for doing inference with IW&quot;</span><span class="p">)</span>
+        <span class="n">tf_sample_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span><span class="p">,)</span>
+        <span class="n">sample_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_shape</span><span class="p">))</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span><span class="p">,)</span>
+        <span class="c1"># sample_shape + [num_importance_samples] + batch_shape + [num_new_time_points, state_dim],</span>
+        <span class="c1"># sample_shape + [num_importance_samples],</span>
+        <span class="c1"># sample_shape + [num_importance_samples] + batch_shape + [num_inducing_points, state_dim]</span>
+        <span class="n">samples</span><span class="p">,</span> <span class="n">log_weights</span><span class="p">,</span> <span class="n">conditioning_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iwvi_samples_and_weights</span><span class="p">(</span>
+            <span class="n">new_time_points</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">sample_shape</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get appropriate shape to flatten the MC samples (not the importance samples)</span>
+        <span class="n">non_sampling_dims</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">samples</span><span class="p">)[</span><span class="n">tf_sample_shape</span><span class="o">.</span><span class="n">ndims</span> <span class="p">:]</span>
+        <span class="n">num_mc_samples</span> <span class="o">=</span> <span class="n">tf_sample_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">num_elements</span><span class="p">()</span>
+        <span class="n">flat_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[[</span><span class="n">num_mc_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span><span class="p">],</span> <span class="n">non_sampling_dims</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">reshaped_samples</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">flat_shape</span><span class="p">)</span>
+
+        <span class="c1"># resample of the importance sample dimension, sample_shape + [1]:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">categorical</span><span class="p">(</span><span class="n">log_weights</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ext_indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_mc_samples</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">indices</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">flat_samples</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather_nd</span><span class="p">(</span><span class="n">reshaped_samples</span><span class="p">,</span> <span class="n">ext_indices</span><span class="p">)</span>
+
+        <span class="c1"># restore shape</span>
+        <span class="c1"># sample_shape + batch_shape + [num_new_time_points, state_dim]</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">flat_samples</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf_sample_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">non_sampling_dims</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">samples</span><span class="p">,</span> <span class="n">conditioning_samples</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.sample_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_f">[docs]</a>    <span class="k">def</span> <span class="nf">sample_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">sample_shape</span><span class="p">:</span> <span class="n">SampleShape</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample the importance-weighted (IWVI) posterior over functions.</span>
+
+<span class="sd">        Note that to compute the expected value of some function under the iwvi posterior,</span>
+<span class="sd">        it is likely to be more efficient to use :meth:`expected_value`.</span>
+
+<span class="sd">        :param new_time_points: Ordered time input from which to sample, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param sample_shape: A :data:`~markovflow.base.SampleShape` that is the shape</span>
+<span class="sd">            (or number of) sampled trajectories to draw.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :return: The ordered samples on latent functions, with shape</span>
+<span class="sd">            ``[num_samples] + batch_shape + [num_new_time_points, num_outputs]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">input_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You need to provide `input_data` for doing inference with IW&quot;</span><span class="p">)</span>
+        <span class="n">samples_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_state</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="p">,</span> <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">mean_function</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">samples_s</span><span class="p">)</span> <span class="o">+</span> <span class="n">mean</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.expected_value"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value">[docs]</a>    <span class="k">def</span> <span class="nf">expected_value</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">func</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the expected value of the function `func` acting on a random variable</span>
+<span class="sd">        :math:`f`.</span>
+
+<span class="sd">        :math:`f` is represented by a GP in this case, using importance sampling at the times</span>
+<span class="sd">        given in `new_time_points`. That is:</span>
+
+<span class="sd">        .. math:: ∫qₚ(f) func(f) df = Σₖ wₖ func(fₖ)</span>
+
+<span class="sd">        ...where:</span>
+
+<span class="sd">            * :math:`qₚ` is the importance-weighted approximate posterior distribution of :math:`f`</span>
+<span class="sd">            * :math:`wₖ` are the importance weights</span>
+
+<span class="sd">        For example, to compute the posterior mean we set `func = tf.identify`.</span>
+
+<span class="sd">        :param new_time_points: Ordered time input from which to sample, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :param func: The function to compute the expected value of. `func` should act</span>
+<span class="sd">            on the last dimension of a tensor. That last dimension will have length as specified</span>
+<span class="sd">            by the output_dim of the underlying emission model. The return shape of `func` need</span>
+<span class="sd">            not be the same, but we expect all other dimensions to broadcast.</span>
+<span class="sd">        :returns: A tensor with shape ``batch_shape + [num_new_time_points, output_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># [num_importance_samples] + batch_shape + [num_new_time_points, state_dim],</span>
+        <span class="c1"># [num_importance_samples]</span>
+        <span class="n">samples</span><span class="p">,</span> <span class="n">log_weights</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iwvi_samples_and_weights</span><span class="p">(</span>
+            <span class="n">new_time_points</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span><span class="p">,)</span>
+        <span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">log_weights</span><span class="p">)</span>  <span class="c1"># [num_importance_samples]</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+
+        <span class="c1"># get the mean function and bring it to the right shape</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">mean_function</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">)</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+        <span class="c1"># [num_importance_samples] + batch_shape + [num_new_time_points, output_dim]</span>
+        <span class="n">Fs</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_to_f</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">+</span> <span class="n">mean</span>
+
+        <span class="n">func_val</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">Fs</span><span class="p">)</span>
+        <span class="n">func_val_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">func_val</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+        <span class="n">func_val_reshaped</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">func_val</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">num_importance_samples</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">expected_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">weights</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">func_val_reshaped</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">expected_f</span><span class="p">,</span> <span class="n">func_val_shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.predict_state"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_state">[docs]</a>    <span class="k">def</span> <span class="nf">predict_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Not applicable to :class:`ImportanceWeightedPosteriorProcess`.</span>
+<span class="sd">        The marginal state predictions are not available in closed form.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;The marginal state predictions are not available in closed form.&quot;</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ImportanceWeightedPosteriorProcess.predict_f"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_f">[docs]</a>    <span class="k">def</span> <span class="nf">predict_f</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Not applicable to :class:`ImportanceWeightedPosteriorProcess`.</span>
+<span class="sd">        The marginal function predictions are not available in closed form.</span>
+
+<span class="sd">        :param new_time_points: Time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;The marginal function predictions are not available in closed form.&quot;</span></div></div>
+        <span class="p">)</span>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="_correct_mean_shape"><a class="viewcode-back" href="../../autoapi/markovflow/posterior/index.html#markovflow.posterior._correct_mean_shape">[docs]</a><span class="k">def</span> <span class="nf">_correct_mean_shape</span><span class="p">(</span><span class="n">mean</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function that checks if the state space model is defined over a `StackKernel` so that it</span>
+<span class="sd">    can bring the output of the mean function to the right shape.</span>
+<span class="sd">    In any other case, the mean is returned unaltered.</span>
+
+<span class="sd">    :param mean: the mean value that has been computed via a `MeanFunction`, with shape</span>
+<span class="sd">                        batch_shape + [num_data, output_dim]</span>
+<span class="sd">                     or batch_shape + [num_data, 1] in the case of a `StackKernel`,</span>
+<span class="sd">                            where batch_shape[-1] = output_dim</span>
+<span class="sd">    :param kernel: the corresponding kernel of the `GaussMarkovDistribution`</span>
+
+<span class="sd">    :return: the mean value with the correct shape which is</span>
+<span class="sd">            batch_shape + [num_data, output_dim] or</span>
+<span class="sd">            batch_shape[:-1] + [num_data, output_dim] in the case of a `StackKernel` as the last</span>
+<span class="sd">            dimension of the `batch_shape` is the output_dim.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">StackKernel</span><span class="p">):</span>
+        <span class="c1"># assert that the last dim of mean in the case of StackKernel is 1.</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mean</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># bring project in the right shape: batch_shape[:-1] + [num_data, output_dim]</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">mean</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">mean</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

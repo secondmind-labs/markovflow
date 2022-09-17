@@ -1,0 +1,134 @@
+:py:mod:`markovflow.ssm_natgrad`
+================================
+
+.. py:module:: markovflow.ssm_natgrad
+
+.. autoapi-nested-parse::
+
+   Module containing a natural gradient optimiser.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: SSMNaturalGradient(gamma: float = 0.1, momentum: bool = True, beta1: float = 0.9, beta2: float = 0.99, epsilon: float = 1e-08, name: Optional[str] = None)
+
+   Bases: :py:obj:`tensorflow.optimizers.Optimizer`
+
+   Represents a natural gradient optimiser. It is also capable of updating
+   parameters with momentum, as per the :class:`~tf.keras.optimizers.Adam` optimiser.
+
+   To account for momentum we keep track of a running moving average for :math:`g̃` and
+   the Fisher norm of :math:`g̃`, where :math:`g̃ = F⁻¹g` is the natural gradient. This is
+   defined as the Euclidean gradient preconditioned by the inverse Fisher information matrix.
+
+   The Fisher norm of the natural gradient is given by:
+
+   .. math:: |g̃|_F = g̃ᵀFg̃ = gᵀF⁻¹Fg̃ = gᵀg̃
+
+   ...which is the inner product between the natural gradient and the Euclidean gradient.
+
+   The moving average for the natural gradient and its norm are given by:
+
+   .. math::
+       &mₖ₊₁ = β₁ mₖ + (1 - β₁)g̃ₖ\\
+       &vₖ₊₁ = β₂ vₖ + (1 - β₂)|g̃|ₖ
+
+   The final update is given by:
+
+   .. math::
+       &θ̃ₖ₊₁ = θ̃ₖ - γ mₖ / (√vₖ + ε) \verb|(in the momentum case)|\\
+       &θ̃ₖ₊₁ = θ̃ₖ - γ g̃ₖ \verb|(if we don't have momentum)|
+
+   :param gamma: The learning rate of the optimiser.
+   :param momentum: Whether to update with momentum or not.
+   :param beta1: The momentum parameter for the moving average of the natural gradient.
+   :param beta2: The momentum parameter for the moving average of the norm of natural gradient.
+   :param epsilon: A small constant to make sure we do not divide by :math:`0`
+       in the momentum term.
+   :param name: Optional name to give the optimiser.
+
+   .. py:method:: minimize(loss_fn: Callable, ssm: markovflow.state_space_model.StateSpaceModel) -> None
+
+      Minimise the objective function of the model.
+
+      Note the natural gradient optimiser works with variational parameters only.
+
+      :param loss_fn: The Loss function.
+      :param ssm: A state space model that represents our variational posterior.
+
+
+   .. py:method:: _natgrad_steps(loss_fn: Callable, ssm: markovflow.state_space_model.StateSpaceModel)
+
+      Call a natgrad step after wrapping it in a name scope.
+
+      :param loss_fn: A Loss function.
+      :param ssm: A state space model that represents our variational posterior.
+
+
+   .. py:method:: _natgrad_step(loss_fn: Callable, ssm: markovflow.state_space_model.StateSpaceModel)
+
+      Implements equation [10] from
+
+      @inproceedings{salimbeni18,
+          title={Natural Gradients in Practice: Non-Conjugate  Variational Inference in
+                 Gaussian Process Models},
+          author={Salimbeni, Hugh and Eleftheriadis, Stefanos and Hensman, James},
+          booktitle={AISTATS},
+          year={2018}
+
+      In addition, for convenience with the rest of MarkovFlow, this code computes ∂L/∂η using
+      the chain rule:
+
+      g̃ = ∂L/∂η = [(∂L / ∂[ssm_variables])(∂[ssm_variables] / ∂η)]ᵀ
+
+      In the code η = eta, θ = theta.
+
+      :param loss_fn: Loss function.
+      :param ssm: A state space model that represents our variational posterior.
+
+
+   .. py:method:: get_config()
+
+      Return a Python dictionary containing the configuration of the optimiser.
+
+
+   .. py:method:: _resource_apply_dense(grad, handle, apply_state)
+      :abstractmethod:
+
+      Add ops to apply dense gradients to the variable `handle`.
+
+      Args:
+        grad: a `Tensor` representing the gradient.
+        handle: a `Tensor` of dtype `resource` which points to the variable to be
+          updated.
+        apply_state: A dict which is used across multiple apply calls.
+
+      Returns:
+        An `Operation` which updates the value of the variable.
+
+
+   .. py:method:: _resource_apply_sparse(grad, handle, indices, apply_state)
+      :abstractmethod:
+
+      Add ops to apply sparse gradients to the variable `handle`.
+
+      Similar to `_apply_sparse`, the `indices` argument to this method has been
+      de-duplicated. Optimizers which deal correctly with non-unique indices may
+      instead override `_resource_apply_sparse_duplicate_indices` to avoid this
+      overhead.
+
+      Args:
+        grad: a `Tensor` representing the gradient for the affected indices.
+        handle: a `Tensor` of dtype `resource` which points to the variable to be
+          updated.
+        indices: a `Tensor` of integral type representing the indices for which
+          the gradient is nonzero. Indices are unique.
+        apply_state: A dict which is used across multiple apply calls.
+
+      Returns:
+        An `Operation` which updates the value of the variable.
+
+
+

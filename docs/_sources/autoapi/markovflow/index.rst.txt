@@ -1,0 +1,50 @@
+:py:mod:`markovflow`
+====================
+
+.. py:module:: markovflow
+
+.. autoapi-nested-parse::
+
+   API reference documentation for the Markovflow package.
+
+   Markovflow includes :mod:`ready-to-use GP models <markovflow.models>` for classification and
+   regression.
+
+   If you want to create your own model, you must implement either the
+   :class:`~markovflow.models.models.MarkovFlowModel` or the
+   :class:`~markovflow.models.models.MarkovFlowSparseModel` base class.
+
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   kernels/index.rst
+   likelihoods/index.rst
+   models/index.rst
+   sde/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   base/index.rst
+   block_tri_diag/index.rst
+   conditionals/index.rst
+   emission_model/index.rst
+   gauss_markov/index.rst
+   kalman_filter/index.rst
+   mean_function/index.rst
+   posterior/index.rst
+   ssm_gaussian_transformations/index.rst
+   ssm_natgrad/index.rst
+   state_space_model/index.rst
+   utils/index.rst
+
+

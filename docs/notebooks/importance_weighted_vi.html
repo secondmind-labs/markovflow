@@ -1,0 +1,908 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classification using importance-weighted SGPR &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Factor Analysis" href="factor_analysis.html" />
+    <link rel="prev" title="Basic classification using the SparseCVIGaussianProcess model" href="markovflow_sparse_cvi.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../index.html">
+    
+      <img src="../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+          
+            
+                <li class="">
+                    <a href="markovflow_gpr.html">Basic regression using the GPR model</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="choosing_and_combining_kernels.html">Choosing and combining kernels</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="markovflow_variational_gpr.html">Basic classification using the VGP model</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="markovflow_pep.html">Basic classification using the PEP model</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="markovflow_cvi.html">Basic classification using the CVIGaussianProcess model</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="markovflow_sparse_pep.html">Basic classification using the SPEP model</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="markovflow_sparse_cvi.html">Basic classification using the SparseCVIGaussianProcess model</a>
+                </li>
+            
+          
+            
+                <li class="active">
+                    <a href="">Classification using importance-weighted SGPR</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="factor_analysis.html">Factor Analysis</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="stacked_kernels.html">Stacked kernels and multiple outputs</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="piecewise_kernels.html">Regression using a piecewise kernel</a>
+                </li>
+            
+          
+            
+                <li class="">
+                    <a href="multistage_likelihood.html">Demo of MultiStageLikelihood with plain SVGP model</a>
+                </li>
+            
+          
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container,
+div.nbinput.container div.prompt,
+div.nbinput.container div.input_area,
+div.nbinput.container div[class*=highlight],
+div.nbinput.container div[class*=highlight] pre,
+div.nboutput.container,
+div.nboutput.container div.prompt,
+div.nboutput.container div.output_area,
+div.nboutput.container div[class*=highlight],
+div.nboutput.container div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    background: #f5f5f5;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+</style>
+<div class="section" id="Classification-using-importance-weighted-SGPR">
+<h1>Classification using importance-weighted SGPR<a class="headerlink" href="#Classification-using-importance-weighted-SGPR" title="Permalink to this headline">¶</a></h1>
+<p>This notebook explains how to use Markovflow to build and optimise a GP classifier (in 1D of course!) using importance-weighted variational inference.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.ci_utils</span> <span class="kn">import</span> <span class="n">ci_niter</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Bernoulli</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.models.iwvi</span> <span class="kn">import</span> <span class="n">ImportanceWeightedVI</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">Matern32</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2022-09-17 14:45:26.655567: W tensorflow/stream_executor/platform/default/dso_loader.cc:60] Could not load dynamic library &#39;libcudart.so.11.0&#39;; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.7.13/x64/lib
+2022-09-17 14:45:26.655599: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Setup</span>
+<span class="n">learning_rate</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">importance_K</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="c1"># toy data</span>
+<span class="n">num_data</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">time_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">num_data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+<span class="n">observations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">time_points</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">num_data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">.8</span>
+<span class="n">observations</span> <span class="o">=</span> <span class="p">(</span><span class="n">observations</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">time_points</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">observations</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2022-09-17 14:45:28.313421: I tensorflow/compiler/jit/xla_cpu_device.cc:41] Not creating XLA devices, tf_xla_enable_xla_devices not set
+2022-09-17 14:45:28.313608: W tensorflow/stream_executor/platform/default/dso_loader.cc:60] Could not load dynamic library &#39;libcuda.so.1&#39;; dlerror: libcuda.so.1: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.7.13/x64/lib
+2022-09-17 14:45:28.313620: W tensorflow/stream_executor/cuda/cuda_driver.cc:326] failed call to cuInit: UNKNOWN ERROR (303)
+2022-09-17 14:45:28.313640: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:156] kernel driver does not appear to be running on this host (fv-az178-774): /proc/driver/nvidia/version does not exist
+2022-09-17 14:45:28.313898: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-09-17 14:45:28.314021: I tensorflow/compiler/jit/xla_gpu_device.cc:99] Not creating XLA devices, tf_xla_enable_xla_devices not set
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># model setup</span>
+<span class="n">num_inducing</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">inducing_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+<span class="n">kernel</span> <span class="o">=</span> <span class="n">Matern32</span><span class="p">(</span><span class="n">lengthscale</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">variance</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="n">likelihood</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">()</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">ImportanceWeightedVI</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+                         <span class="n">inducing_points</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">inducing_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                         <span class="n">likelihood</span><span class="o">=</span><span class="n">likelihood</span><span class="p">,</span>
+                         <span class="n">num_importance_samples</span><span class="o">=</span><span class="n">importance_K</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># optimizer setup</span>
+<span class="n">variational_variables</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">trainable_variables</span>
+<span class="n">hyperparam_variables</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">trainable_variables</span>
+<span class="n">adam_variational</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">)</span>
+<span class="n">adam_hyper</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">)</span>
+
+<span class="n">_dregs</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="o">-</span><span class="n">m</span><span class="o">.</span><span class="n">dregs_objective</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">_iwvi_elbo</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="o">-</span><span class="n">m</span><span class="o">.</span><span class="n">elbo</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="nd">@tf</span><span class="o">.</span><span class="n">function</span>
+<span class="k">def</span> <span class="nf">step</span><span class="p">():</span>
+    <span class="n">adam_variational</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">_dregs</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">variational_variables</span><span class="p">)</span>
+    <span class="n">adam_hyper</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">_iwvi_elbo</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">hyperparam_variables</span><span class="p">)</span>
+
+<span class="nd">@tf</span><span class="o">.</span><span class="n">function</span>
+<span class="k">def</span> <span class="nf">elbo_eval</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">elbo</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2022-09-17 14:45:28.375297: W tensorflow/python/util/util.cc:348] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># a function to plot the data and model fit</span>
+
+<span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+
+    <span class="n">time_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">samples_q_s</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">sample_state</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)</span>
+    <span class="n">samples_iwvi</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">sample_f</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">input_data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">axarr</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># plot data</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="s1">&#39;kx&#39;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;proposal&#39;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">samples_q_s</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>
+
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="s1">&#39;kx&#39;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;importance-weighted&#39;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">samples_iwvi</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">)</span>
+
+    <span class="c1"># plot mean by numerically integrating the iwvi posterior</span>
+    <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">inv_link</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span> <span class="p">:</span> <span class="n">eps</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">eps</span><span class="p">)</span> <span class="o">*</span> <span class="n">likelihood</span><span class="o">.</span><span class="n">invlink</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">expected_value</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">inv_link</span><span class="p">)</span>
+    <span class="n">axarr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_grid</span><span class="p">,</span> <span class="n">probs</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.6</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">plot</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_importance_weighted_vi_6_0.png" src="../_images/notebooks_importance_weighted_vi_6_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># the optimisation loop</span>
+<span class="n">elbos</span><span class="p">,</span> <span class="n">elbo_stds</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">max_iter</span> <span class="o">=</span> <span class="n">ci_niter</span><span class="p">(</span><span class="mi">2000</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iter</span><span class="p">):</span>
+    <span class="n">step</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">elbos_i</span> <span class="o">=</span> <span class="p">[</span><span class="n">elbo_eval</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+        <span class="n">elbos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">elbos_i</span><span class="p">))</span>
+        <span class="n">elbo_stds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">elbos_i</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">elbos</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">elbo_stds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+WARNING:tensorflow:From /home/runner/work/markovflow/markovflow/.venv/lib/python3.7/site-packages/tensorflow/python/ops/linalg/linear_operator_lower_triangular.py:167: calling LinearOperator.__init__ (from tensorflow.python.ops.linalg.linear_operator) with graph_parents is deprecated and will be removed in a future version.
+Instructions for updating:
+Do not pass `graph_parents`.  They will  no longer be used.
+WARNING:tensorflow:From /home/runner/work/markovflow/markovflow/.venv/lib/python3.7/site-packages/tensorflow_probability/python/distributions/distribution.py:334: calling TransformedDistribution.__init__ (from tensorflow_probability.python.distributions.transformed_distribution) with batch_shape is deprecated and will be removed after 2020-06-01.
+Instructions for updating:
+`batch_shape` and `event_shape` args are deprecated. Please use `tfd.Sample`, `tfd.Independent`, and broadcasted parameters of the base distribution instead. For example, replace `tfd.TransformedDistribution(tfd.Normal(0., 1.), tfb.Exp(), batch_shape=[2, 3], event_shape=[4])` with `tfd.TransformedDistrbution(tfd.Sample(tfd.Normal(tf.zeros([2, 3]), 1.),sample_shape=[4]), tfb.Exp())` or `tfd.TransformedDistribution(tfd.Independent(tfd.Normal(tf.zeros([2, 3, 4]), 1.), reinterpreted_batch_ndims=1), tfb.Exp())`.
+WARNING:tensorflow:From /home/runner/work/markovflow/markovflow/.venv/lib/python3.7/site-packages/tensorflow_probability/python/distributions/distribution.py:334: calling TransformedDistribution.__init__ (from tensorflow_probability.python.distributions.transformed_distribution) with event_shape is deprecated and will be removed after 2020-06-01.
+Instructions for updating:
+`batch_shape` and `event_shape` args are deprecated. Please use `tfd.Sample`, `tfd.Independent`, and broadcasted parameters of the base distribution instead. For example, replace `tfd.TransformedDistribution(tfd.Normal(0., 1.), tfb.Exp(), batch_shape=[2, 3], event_shape=[4])` with `tfd.TransformedDistrbution(tfd.Sample(tfd.Normal(tf.zeros([2, 3]), 1.),sample_shape=[4]), tfb.Exp())` or `tfd.TransformedDistribution(tfd.Independent(tfd.Normal(tf.zeros([2, 3, 4]), 1.), reinterpreted_batch_ndims=1), tfb.Exp())`.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+2022-09-17 14:45:41.440699: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:116] None of the MLIR optimization passes are enabled (registered 2)
+2022-09-17 14:45:41.544291: I tensorflow/core/platform/profile_utils/cpu_utils.cc:112] CPU Frequency: 2793435000 Hz
+2022-09-17 14:45:42.782119: W tensorflow/core/grappler/optimizers/loop_optimizer.cc:906] Skipping loop optimization for Merge node with control input: assert_equal_29/Assert/AssertGuard/branch_executed/_39
+2022-09-17 14:45:47.497460: W tensorflow/core/grappler/optimizers/loop_optimizer.cc:906] Skipping loop optimization for Merge node with control input: assert_equal_29/Assert/AssertGuard/branch_executed/_74
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0 -101.07634022289207 16.27635866120352
+10 -96.45509094087672 11.20627968709978
+20 -98.41289256754695 10.387425162359936
+30 -102.63460563663777 10.54773227675219
+40 -95.67319542723098 11.236248881790855
+50 -99.75972755012552 14.541896167970753
+60 -99.42288450927897 11.403238151210154
+70 -98.41779762749835 12.969012713937062
+80 -95.29100498688106 9.77434691674959
+90 -97.90446742774422 13.643605238257319
+100 -100.20661640368152 13.800911920617256
+110 -94.64449769692186 9.905287689209821
+120 -88.43746057820394 11.083698912020488
+130 -97.21399935213094 7.163098565639439
+140 -96.31273604800283 8.389328625245112
+150 -89.04686273131395 6.150217299439492
+160 -89.83976327484416 10.280488769038792
+170 -88.97746058941827 7.523897250209999
+180 -85.99612956997716 10.395301456528472
+190 -90.02110549333415 11.069546298418809
+200 -96.55510116897383 12.969798428582475
+210 -93.05345476127304 8.31411610830384
+220 -88.21424778165107 9.486117236890836
+230 -87.69331791180176 8.58219330330066
+240 -92.59848993226845 9.597397596852966
+250 -86.95743298266369 6.882942491501733
+260 -90.64915536691451 6.012142042129953
+270 -86.33696070580459 3.795916614993473
+280 -86.91449740287896 3.798419146890139
+290 -87.98056901314031 4.866400416140885
+300 -91.76603567823328 9.052055770771586
+310 -82.44695877935703 8.019775583815658
+320 -82.96710168797742 4.9934280934281166
+330 -81.29836169784342 5.943383098061257
+340 -87.6779711059792 9.665497825422847
+350 -83.87437241027312 5.304405514231904
+360 -83.13183537938002 5.589080125353829
+370 -86.19228059633797 6.915805607316601
+380 -92.97754926867465 6.2562606942260235
+390 -84.02382727067203 7.319283525827754
+400 -81.44666699256278 5.83846413968351
+410 -81.45225070880898 9.327622030107944
+420 -78.8603057819478 4.464784476075889
+430 -81.56054209063521 5.363080738236613
+440 -82.6858604593629 9.243598327076507
+450 -81.29478478029334 4.149513614963916
+460 -79.48802126026058 8.470216312420582
+470 -82.4671751452358 4.83862449033195
+480 -80.50654916853247 4.25440185261073
+490 -82.60543385671922 5.354164143068351
+500 -88.43657961358507 3.9652573306327548
+510 -81.75283071419842 6.49633893842868
+520 -82.18656935040951 6.07914793445895
+530 -83.34622830321038 5.841989174575491
+540 -80.98243099115292 7.747412589563766
+550 -80.94269154213502 5.379796490944193
+560 -81.3676554451884 2.394122379438667
+570 -80.7207912545872 4.924518955479584
+580 -79.1976527292829 4.866822600000239
+590 -78.58548486510391 5.901172534871833
+600 -78.59082863033822 2.4308431001365873
+610 -80.6552621837716 5.887720852070166
+620 -78.484215306437 4.741898857555426
+630 -82.13049110189428 4.844480386172714
+640 -77.16680826129696 4.187696959227382
+650 -82.56746972976303 5.2293443370108745
+660 -80.00126289377508 4.626715686403001
+670 -77.58095091413801 4.900570812068766
+680 -79.16232816934806 5.372864902445398
+690 -79.4518909577025 4.1169101910739965
+700 -79.0529587462661 6.805849792552489
+710 -79.59521999854412 4.600462438208441
+720 -75.95375001519976 4.218567975801361
+730 -79.04577812566068 4.519239973514153
+740 -79.20637218707859 5.630413980471827
+750 -77.57335666216922 5.3097005707435585
+760 -76.20871618896935 3.9395858814858142
+770 -78.95056386413064 4.176546687344374
+780 -77.41767852460798 4.56734141426978
+790 -79.29018809132253 5.140016874839529
+800 -78.87276238773991 3.451446936793078
+810 -79.07594397433714 3.648742814966345
+820 -76.64557294385096 3.9560111210291566
+830 -77.76013981318283 4.466067608928239
+840 -78.69101122963421 4.252660915787601
+850 -79.19854279104504 3.112426932409684
+860 -77.66161447301334 4.351590282778329
+870 -77.54230056703352 2.568892274603974
+880 -76.22494029401037 2.081878961461302
+890 -78.35464543915973 2.813704546670033
+900 -78.30919927942435 2.2431934054365334
+910 -76.93759012036926 3.164248668034544
+920 -76.99076803906878 3.543012282992753
+930 -78.8930553355348 2.363900389119484
+940 -75.83992719815 3.234306845635459
+950 -76.19186242208283 2.885623752194865
+960 -76.51773934863562 3.856578167522965
+970 -76.383135180255 3.23324552720812
+980 -76.6413814205321 2.8637808953875035
+990 -75.54021745364673 2.952943223193498
+1000 -75.2561951341165 2.863177645772928
+1010 -76.34434396756482 3.3101857801781804
+1020 -75.21992877581489 2.1370366674993733
+1030 -75.3508434735813 3.3465053585077578
+1040 -75.14378704930606 3.0412897087002984
+1050 -77.31740494953144 3.848367775975159
+1060 -75.81443575857502 3.2548754077884454
+1070 -74.34003882193609 3.0463184756262884
+1080 -76.04083263062134 3.7928741360496336
+1090 -75.65442915025226 2.491746048434601
+1100 -75.4201960985985 3.2584761545975036
+1110 -75.60157284811643 3.0945936308245656
+1120 -75.21314680113954 3.2617898466086954
+1130 -75.71416304631491 2.180457475417476
+1140 -74.8135530866866 2.2728582140889078
+1150 -76.17059993374238 3.805120808541676
+1160 -75.64315104509423 2.8847173859460487
+1170 -74.48487953605574 3.951998982709164
+1180 -76.00286091979451 2.920458461939291
+1190 -73.63520323162268 2.447338377453209
+1200 -75.44572040369867 2.829703641131903
+1210 -74.26812730880481 2.6200693179238073
+1220 -75.19105429487236 3.0893885840364685
+1230 -75.24153709831974 2.854221742607697
+1240 -74.42006341215075 2.265640592059181
+1250 -74.17214233022176 1.8896442059065652
+1260 -73.90329306989203 2.7396564016484506
+1270 -75.44169293453481 2.4999063503483994
+1280 -75.38086238697723 2.29757016534756
+1290 -75.6633991173847 3.8461958237362297
+1300 -74.82647287920221 2.5934139396750373
+1310 -73.91541911501498 1.5039315632587515
+1320 -74.72823838594252 1.610479503463146
+1330 -74.75146316681591 2.140974971267462
+1340 -73.70744329283107 2.1109989139284155
+1350 -74.4484108268004 1.8266270070346984
+1360 -72.49646762724943 2.667177249624395
+1370 -74.12227188314795 2.215851471060054
+1380 -73.98142344005132 2.2723404710689503
+1390 -73.55346613674887 1.7267139675539163
+1400 -75.64537654769865 2.2866168505338793
+1410 -74.8783777740058 2.0964903635042145
+1420 -74.24207840347853 1.3954816687869545
+1430 -73.82713981942501 1.8684165538810154
+1440 -74.65588383941864 3.2497297548909043
+1450 -73.30513114957051 1.748806780283366
+1460 -74.68074242699149 1.3989419744682596
+1470 -74.45509641558007 1.7444364215999353
+1480 -74.72247228796644 2.474333238041562
+1490 -74.30964747354993 2.2782657695290904
+1500 -75.28775103901967 2.196427326980512
+1510 -74.76228545046938 1.9741288642073997
+1520 -73.76442925468123 1.8080530731755808
+1530 -71.88947375392297 1.6936596604532825
+1540 -73.96315518439397 2.2731997793830367
+1550 -73.62821000552906 1.5552283424218294
+1560 -75.20355153027693 2.6217351490810437
+1570 -73.47728964160873 1.5650514343906001
+1580 -74.5965134228729 1.5449312916050546
+1590 -73.81994364670966 1.7380780773921836
+1600 -73.91129807602277 1.2359996589596998
+1610 -73.77707340693887 1.368538368281696
+1620 -72.92218501225797 1.658405649340303
+1630 -73.91710576033857 1.6152943474251409
+1640 -73.48115831705829 1.628078924030334
+1650 -74.4566935091877 1.1299608354699044
+1660 -72.97384693337185 1.9503522821773955
+1670 -73.70890047088415 1.953094866227988
+1680 -74.05213046698212 2.2709549705755623
+1690 -73.08035782399506 1.5139735601601503
+1700 -74.81518966314641 2.943568545567902
+1710 -74.08616400903735 2.09459781667846
+1720 -73.6344186474048 1.1699157195422936
+1730 -73.11745677994098 1.4235632344628104
+1740 -74.33443932499627 2.1867045966270435
+1750 -74.02776807334689 1.6321116762058399
+1760 -73.38773180890013 1.0454028438734184
+1770 -73.8721939532624 1.9531030184044105
+1780 -74.04353550289761 1.5514205563985566
+1790 -73.82483352543412 0.9692439250354591
+1800 -74.56481709879158 2.1172160805106093
+1810 -73.79224899764108 1.642226560467826
+1820 -72.89465039893665 1.6288384634775739
+1830 -73.64284590207113 1.467368736401556
+1840 -73.03432467107737 1.5179436218928613
+1850 -73.94103571488044 1.5823933480709171
+1860 -74.236462469095 2.2191802213986747
+1870 -74.09270300743358 2.023411720426064
+1880 -73.28091128229174 1.1044506627062705
+1890 -74.39870413076949 2.408007516859078
+1900 -74.32008018709934 1.3495782686711777
+1910 -72.83140542323048 1.30484595581399
+1920 -73.08658881683425 1.8376688830535906
+1930 -72.92224726246437 1.544783849899564
+1940 -72.87199582058035 1.3269138152994442
+1950 -72.78048783097368 0.9217074807706788
+1960 -72.97865733414292 1.655359123906779
+1970 -72.95736685448165 1.3300611746962614
+1980 -73.3775114616992 1.9595937462234654
+1990 -72.99996471307723 1.866423239496731
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">plot</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_importance_weighted_vi_8_0.png" src="../_images/notebooks_importance_weighted_vi_8_0.png" />
+</div>
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

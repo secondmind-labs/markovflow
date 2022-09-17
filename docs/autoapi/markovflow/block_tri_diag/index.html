@@ -1,0 +1,631 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.block_tri_diag &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.conditionals" href="../conditionals/index.html" />
+    <link rel="prev" title="markovflow.base" href="../base/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal" class="nav-link">BlockTriDiagonal</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.as_band" class="nav-link">as_band</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.bandwidth" class="nav-link">bandwidth</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape" class="nav-link">batch_shape</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" class="nav-link">inner_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.outer_dim" class="nav-link">outer_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.block_diagonal" class="nav-link">block_diagonal</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.block_sub_diagonal" class="nav-link">block_sub_diagonal</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.to_dense" class="nav-link">to_dense</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.dense_mult" class="nav-link">dense_mult</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal.__add__" class="nav-link">__add__</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal._convert_to_band" class="nav-link">_convert_to_band</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal._flatten_right" class="nav-link">_flatten_right</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal._unflatten_right" class="nav-link">_unflatten_right</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.BlockTriDiagonal._assert_compatible_right_shape" class="nav-link">_assert_compatible_right_shape</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" class="nav-link">LowerTriangularBlockTriDiagonal</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse" class="nav-link">block_diagonal_of_inverse</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.solve" class="nav-link">solve</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.abs_log_det" class="nav-link">abs_log_det</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.__add__" class="nav-link">__add__</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" class="nav-link">SymmetricBlockTriDiagonal</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.__add__" class="nav-link">__add__</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.cholesky" class="nav-link">cholesky</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower" class="nav-link">upper_diagonal_lower</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.block_tri_diag._banded_to_block_tri" class="nav-link">_banded_to_block_tri</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.block_tri_diag">
+<span id="markovflow-block-tri-diag"></span><h1><a class="reference internal" href="#module-markovflow.block_tri_diag" title="markovflow.block_tri_diag"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.block_tri_diag</span></code></a><a class="headerlink" href="#module-markovflow.block_tri_diag" title="Permalink to this headline">¶</a></h1>
+<p>Module representing block tridiagonal matrices.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">BlockTriDiagonal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class representing a block tridiagonal matrix.</p>
+<p>All precisions in Markovflow are of this form, so this class provides an adapter between the
+TensorFlow banded_matrices and the MarkovFlow code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+<li><p><strong>symmetric</strong> – Whether the block tridiagonal matrix will be symmetric.</p></li>
+<li><p><strong>sub_diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.as_band">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">as_band</span></code> &#x2192; <span class="pre">banded_matrices.banded.BandedMatrixTensor</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.as_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.as_band" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a TensorFlow tensor (or NumPy array) representing a banded matrix.</p>
+<p>The (dense) tensor should be of dimension <span class="math notranslate nohighlight">\(K×N\)</span>, where <span class="math notranslate nohighlight">\(K\)</span> is the bandwidth
+of the represented <span class="math notranslate nohighlight">\(N×N\)</span> matrix.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.bandwidth">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">bandwidth</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.bandwidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.bandwidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the (lower) bandwidth of the tensor.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.batch_shape">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">batch_shape</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/TensorShape" title="(in TensorFlow v2.4)"><span class="pre">tf.TensorShape</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.batch_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the batch shape of this object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.inner_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">inner_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.inner_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the inner dimension of the block tridiagonal matrix. That is,
+the dimensions of the block.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.outer_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">outer_dim</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.outer_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.outer_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the outer dimension of the block tridiagonal matrix. That is, the number of blocks.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.block_diagonal">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">block_diagonal</span></code> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.block_diagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.block_diagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the block diagonal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Diagonal with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.block_sub_diagonal">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">block_sub_diagonal</span></code> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.block_sub_diagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.block_sub_diagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the block sub-diagonal, if it exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Sub-diagonal with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.to_dense">
+<code class="sig-name descname"><span class="pre">to_dense</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.to_dense"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.to_dense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert this object to a dense tensor.</p>
+<p>This is useful mainly for debugging and testing purposes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim</span> <span class="pre">*</span> <span class="pre">inner_dim,</span> <span class="pre">outer_dim</span> <span class="pre">*</span> <span class="pre">inner_dim]</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.dense_mult">
+<code class="sig-name descname"><span class="pre">dense_mult</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transpose_left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.dense_mult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.dense_mult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply a dense vector by this object.</p>
+<p>If this object is <span class="math notranslate nohighlight">\(L\)</span> and right is <span class="math notranslate nohighlight">\(x\)</span>, calculate <span class="math notranslate nohighlight">\(Lx\)</span> as a dense tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>right</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+<li><p><strong>transpose_left</strong> – Whether to transpose <span class="math notranslate nohighlight">\(L\)</span> before multiplying.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal.__add__">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">__add__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal.__add__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add two <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal" title="markovflow.block_tri_diag.BlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">BlockTriDiagonal</span></code></a> tensors together.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal._convert_to_band">
+<code class="sig-name descname"><span class="pre">_convert_to_band</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">banded_matrices.banded.BandedMatrixTensor</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal._convert_to_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal._convert_to_band" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A <code class="xref any docutils literal notranslate"><span class="pre">BandedMatrixTensor</span></code> representation of this matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal._flatten_right">
+<code class="sig-name descname"><span class="pre">_flatten_right</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal._flatten_right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal._flatten_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>right</strong> – the tensor whose shape we want to alter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal._unflatten_right">
+<code class="sig-name descname"><span class="pre">_unflatten_right</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flat_right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal._unflatten_right"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal._unflatten_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>flat_right</strong> – the tensor whose shape we want to alter.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.BlockTriDiagonal._assert_compatible_right_shape">
+<code class="sig-name descname"><span class="pre">_assert_compatible_right_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.10)"><span class="pre">None</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#BlockTriDiagonal._assert_compatible_right_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.BlockTriDiagonal._assert_compatible_right_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make sure the Tensor ‘right’ is a suitable right-hand-side tensor for
+multiplication and solving. The inner and outer dims should match, and
+the broadcast_dim should be compatible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>right</strong> – the tensor whose shape we want to check.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">LowerTriangularBlockTriDiagonal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#LowerTriangularBlockTriDiagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal" title="markovflow.block_tri_diag.BlockTriDiagonal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockTriDiagonal</span></code></a></p>
+<p>Represents a lower triangular block tridiagonal matrix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[D₁              ]
+[A₁ D₂           ]
+[    A₂ D₃       ]
+[        ᨞  ᨞    ]
+[         Aₙ₋₁ Dₙ]
+</pre></div>
+</div>
+<p>This is typically the Cholesky of a <a class="reference internal" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SymmetricBlockTriDiagonal</span></code></a>.</p>
+<p>Each matrix <span class="math notranslate nohighlight">\(Dᵢ\)</span> is lower triangular and square with dimension <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.inner_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">inner_dim</span></code></a>.
+<span class="math notranslate nohighlight">\(Aᵢ\)</span> is square with dimension <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.inner_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">inner_dim</span></code></a>.</p>
+<p>The <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.outer_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.outer_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">outer_dim</span></code></a> is <span class="math notranslate nohighlight">\(n\)</span>; that is, the number of block matrices on the main diagonal.</p>
+<p><span class="math notranslate nohighlight">\(Dᵢ\)</span> are the diagonal matrices and <span class="math notranslate nohighlight">\(Aᵢ\)</span> are the sub-diagonal matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+<li><p><strong>sub_diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse">
+<code class="sig-name descname"><span class="pre">block_diagonal_of_inverse</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this object is <span class="math notranslate nohighlight">\(L\)</span> and <span class="math notranslate nohighlight">\(M = LLᵀ\)</span>, return the block diagonal
+elements of <span class="math notranslate nohighlight">\(M⁻¹\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(M⁻¹\)</span> will not, in general, be a banded matrix, and we are normally interested
+only in the diagonal elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.solve">
+<code class="sig-name descname"><span class="pre">solve</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transpose_left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#LowerTriangularBlockTriDiagonal.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this object is <span class="math notranslate nohighlight">\(L\)</span> and right is <span class="math notranslate nohighlight">\(x\)</span>, calculate <span class="math notranslate nohighlight">\(L⁻¹ x\)</span>
+as a dense tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>right</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+<li><p><strong>transpose_left</strong> – Whether to transpose <span class="math notranslate nohighlight">\(L\)</span> before solving.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.abs_log_det">
+<code class="sig-name descname"><span class="pre">abs_log_det</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#LowerTriangularBlockTriDiagonal.abs_log_det"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.abs_log_det" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the absolute log determinant of this matrix.
+This is just the log of the product of diagonal elements (since it is lower triangular).</p>
+<p>For numerical stability and nicer gradients, we do:</p>
+<div class="math notranslate nohighlight">
+\[log |L| = Σₙ log |Lₙₙ| =  Σₙ  ½ log |Lₙₙ|²\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span></code>, representing the log determinant.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.__add__">
+<code class="sig-name descname"><span class="pre">__add__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#LowerTriangularBlockTriDiagonal.__add__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add two <a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowerTriangularBlockTriDiagonal</span></code></a> tensors together.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.block_tri_diag.SymmetricBlockTriDiagonal">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">SymmetricBlockTriDiagonal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_diagonal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#SymmetricBlockTriDiagonal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal" title="markovflow.block_tri_diag.BlockTriDiagonal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockTriDiagonal</span></code></a></p>
+<p>Represents a symmetric block tridiagonal matrix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[D₁ A₁ᵀ              ]
+[A₁ D₂  A₂ᵀ          ]
+[    A₂ D₃ A₂ᵀ       ]
+[        ᨞  ᨞   Aₙ₋₁ᵀ]
+[         Aₙ₋₁  Dₙ   ]
+</pre></div>
+</div>
+<p>This is the form of the precision matrix for a
+<a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+<p>Each matrix <span class="math notranslate nohighlight">\(Dᵢ\)</span> is symmetric square with dimension <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.inner_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">inner_dim</span></code></a>.
+<span class="math notranslate nohighlight">\(Aᵢ\)</span> is square with dimension <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.inner_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">inner_dim</span></code></a>.</p>
+<p>The <a class="reference internal" href="#markovflow.block_tri_diag.BlockTriDiagonal.outer_dim" title="markovflow.block_tri_diag.BlockTriDiagonal.outer_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">outer_dim</span></code></a> is <span class="math notranslate nohighlight">\(n\)</span>; that is, the number of block matrices on the main diagonal.</p>
+<p><span class="math notranslate nohighlight">\(Dᵢ\)</span> are the diagonal matrices and <span class="math notranslate nohighlight">\(Aᵢ\)</span> are the sub-diagonal matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+<li><p><strong>sub_diagonal</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...</span> <span class="pre">outer_dim</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">inner_dim,</span> <span class="pre">inner_dim]</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.SymmetricBlockTriDiagonal.__add__">
+<code class="sig-name descname"><span class="pre">__add__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><span class="pre">SymmetricBlockTriDiagonal</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><span class="pre">SymmetricBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#SymmetricBlockTriDiagonal.__add__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add two <a class="reference internal" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SymmetricBlockTriDiagonal</span></code></a> tensors together.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.SymmetricBlockTriDiagonal.cholesky">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">cholesky</span></code> &#x2192; <a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#SymmetricBlockTriDiagonal.cholesky"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.cholesky" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Cholesky factorisation of this matrix.</p>
+<p>Cholesky factorisations require a symmetric matrix.
+The <code class="xref any docutils literal notranslate"><span class="pre">cholesky_band</span></code> matrix only operates on the lower triangle, so no copy is needed.</p>
+<p>Cholesky factorisations preserve band structure, so the result is a
+<a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowerTriangularBlockTriDiagonal</span></code></a> with the same shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A matrix of the same shape, representing the Cholesky.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower">
+<code class="sig-name descname"><span class="pre">upper_diagonal_lower</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#SymmetricBlockTriDiagonal.upper_diagonal_lower"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower" title="Permalink to this definition">¶</a></dt>
+<dd><p>For this matrix, calculate the <span class="math notranslate nohighlight">\(UDUᵀ\)</span> factorisation. This is where:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Uᵀ =  [ I             ]       D = [ D₀          ]
+      [U₁ᵀ, I         ]           [    D₁       ]
+      [    U₂ᵀ, I     ]           [       ᨞     ]
+      [         ᨞  ᨞ ]            [         ᨞  ]
+      [         Uₙᵀ, I]           [           Dₙ]
+</pre></div>
+</div>
+<p><span class="math notranslate nohighlight">\(D₀, D₁... Dₙ\)</span> are symmetric.</p>
+<p>This is related to the Cholesky <span class="math notranslate nohighlight">\(LLᵀ\)</span> and <span class="math notranslate nohighlight">\(LDLᵀ\)</span> decompositions, but is more
+natural when dealing with the inverses of matrices. That is, if
+<span class="math notranslate nohighlight">\(K⁻¹ = UDUᵀ\)</span> then <span class="math notranslate nohighlight">\(K = LD⁻¹Lᵀ\)</span> where <span class="math notranslate nohighlight">\(L=U⁻ᵀ\)</span>.</p>
+<p>This can be used to find the <a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>
+that represents this <a class="reference internal" href="#markovflow.block_tri_diag.SymmetricBlockTriDiagonal" title="markovflow.block_tri_diag.SymmetricBlockTriDiagonal"><code class="xref py py-class docutils literal notranslate"><span class="pre">SymmetricBlockTriDiagonal</span></code></a>, since:</p>
+<div class="math notranslate nohighlight">
+\[K⁻¹ = A⁻ᵀ Q⁻¹ A⁻¹\]</div>
+<p>Hence we can identify the state transition matrices <span class="math notranslate nohighlight">\(Aᵢ = -Uᵢᵀ\)</span>
+and the initial and process noise covariance matrices <span class="math notranslate nohighlight">\(D₀= P₀⁻¹, Dᵢ= Qᵢ⁻¹\)</span>
+with the above form:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}K = &amp;| D₀ + U₁ D₁ U₁ᵀ &amp;| U₁ D₁          &amp;| 0...\\
+    &amp;| D₁ U₁ᵀ         &amp;| D₁ + U₂ D₂ U₂ᵀ &amp;|  U₂ D₂         &amp;| 0...\\
+    &amp;|   0            &amp;| D₂ U₂ᵀ         &amp;| D₂ + D₃ U₃ D₃ᵀ &amp;| U₃ D₃ &amp;| 0...\\
+...\end{split}\]</div>
+<p>We can write the following recurrence relation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;Dₙ = Kₙₙ\\
+&amp;Dₖ = Kₖₖ - Kₖₖ₊₁ᵀ Dₖ₊₁⁻¹Kₖₖ₊₁\\
+&amp;Uₖᵀ = Dₖ⁻¹ Kₖₖ₋₁\end{split}\]</div>
+<p>…where <span class="math notranslate nohighlight">\(Kⱼₖ\)</span> is the block matrix at location j, k of this matrix.
+This method allows us to return the posterior from a
+<a class="reference internal" href="../kalman_filter/index.html#markovflow.kalman_filter.KalmanFilter" title="markovflow.kalman_filter.KalmanFilter"><code class="xref py py-class docutils literal notranslate"><span class="pre">KalmanFilter</span></code></a> as a
+<a class="reference internal" href="../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A tuple of <span class="math notranslate nohighlight">\(Uᵀ\)</span> and <code class="xref any docutils literal notranslate"><span class="pre">chol_D</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.block_tri_diag._banded_to_block_tri">
+<code class="sig-name descname"><span class="pre">_banded_to_block_tri</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">banded</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">banded_matrices.banded.BandedMatrixTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal" title="markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal"><span class="pre">LowerTriangularBlockTriDiagonal</span></a><a class="reference internal" href="../../../_modules/markovflow/block_tri_diag.html#_banded_to_block_tri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.block_tri_diag._banded_to_block_tri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a banded matrix to a LowerTriangularBlockTriDiagonal.</p>
+<p>NOTE This is designed for internal use with this module as it doesn’t check the shapes, so
+may not work for <a href="#id1"><span class="problematic" id="id2">`</span></a>BandedMatrixTensor`s that aren’t LowerTriangularBlockTriDiagonal.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,901 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.posterior &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.ssm_gaussian_transformations" href="../ssm_gaussian_transformations/index.html" />
+    <link rel="prev" title="markovflow.mean_function" href="../mean_function/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.posterior.PosteriorProcess" class="nav-link">PosteriorProcess</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.PosteriorProcess.sample_state" class="nav-link">sample_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.PosteriorProcess.sample_state_trajectories" class="nav-link">sample_state_trajectories</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.PosteriorProcess.sample_f" class="nav-link">sample_f</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.PosteriorProcess.predict_state" class="nav-link">predict_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.PosteriorProcess.predict_f" class="nav-link">predict_f</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.posterior.ConditionalProcess" class="nav-link">ConditionalProcess</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ConditionalProcess.predict_state" class="nav-link">predict_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ConditionalProcess.predict_f" class="nav-link">predict_f</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ConditionalProcess.sample_state_trajectories" class="nav-link">sample_state_trajectories</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ConditionalProcess.sample_f" class="nav-link">sample_f</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.posterior.AnalyticPosteriorProcess" class="nav-link">AnalyticPosteriorProcess</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.AnalyticPosteriorProcess.predict_y" class="nav-link">predict_y</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess" class="nav-link">ImportanceWeightedPosteriorProcess</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess._log_qu_density" class="nav-link">_log_qu_density</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.log_importance_weights" class="nav-link">log_importance_weights</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights" class="nav-link">_iwvi_samples_and_weights</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_state_trajectories" class="nav-link">sample_state_trajectories</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_f" class="nav-link">sample_f</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value" class="nav-link">expected_value</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_state" class="nav-link">predict_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_f" class="nav-link">predict_f</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.posterior._correct_mean_shape" class="nav-link">_correct_mean_shape</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.posterior">
+<span id="markovflow-posterior"></span><h1><a class="reference internal" href="#module-markovflow.posterior" title="markovflow.posterior"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.posterior</span></code></a><a class="headerlink" href="#module-markovflow.posterior" title="Permalink to this headline">¶</a></h1>
+<p>Module containing posterior processes for GP models.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.posterior.PosteriorProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">PosteriorProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class for forming a posterior process.</p>
+<p>Posteriors that extend this class must implement the <a class="reference internal" href="#markovflow.posterior.PosteriorProcess.sample_state_trajectories" title="markovflow.posterior.PosteriorProcess.sample_state_trajectories"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sample_state_trajectories()</span></code></a>,
+<a class="reference internal" href="#markovflow.posterior.PosteriorProcess.sample_f" title="markovflow.posterior.PosteriorProcess.sample_f"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sample_f()</span></code></a>, <a class="reference internal" href="#markovflow.posterior.PosteriorProcess.predict_state" title="markovflow.posterior.PosteriorProcess.predict_state"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_state()</span></code></a> and <a class="reference internal" href="#markovflow.posterior.PosteriorProcess.predict_f" title="markovflow.posterior.PosteriorProcess.predict_f"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_f()</span></code></a> methods.</p>
+<dl class="py method">
+<dt id="markovflow.posterior.PosteriorProcess.sample_state">
+<code class="sig-name descname"><span class="pre">sample_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess.sample_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess.sample_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate joint state samples at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate sample trajectories for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape (or
+number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+<p>This is an optional argument only passed in for inference with an importance-weighted
+posterior.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tensor containing:</p>
+<ul class="simple">
+<li><p>Sampled trajectories at new points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p>Sampled trajectories at conditioning points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_conditioning_points,</span> <span class="pre">state_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.PosteriorProcess.sample_state_trajectories">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">sample_state_trajectories</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess.sample_state_trajectories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess.sample_state_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate joint sampled state trajectories evaluated both at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>
+and at some points that we condition on for obtaining the posterior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate sample trajectories for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape (or
+number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+<p>This is an optional argument only passed in for inference with an importance-weighted
+posterior.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tensor containing:</p>
+<ul class="simple">
+<li><p>Sampled trajectories at new points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p>Sampled trajectories at conditioning points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_conditioning_points,</span> <span class="pre">state_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.PosteriorProcess.sample_f">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">sample_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess.sample_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess.sample_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate joint function evaluation samples (projected states) at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate sample trajectories for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape (or
+number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+<p>This is an optional argument only passed in for inference with an importance-weighted
+posterior.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor containing sampled trajectories, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.PosteriorProcess.predict_state">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">predict_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess.predict_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess.predict_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict state at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.PosteriorProcess.predict_f">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">predict_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#PosteriorProcess.predict_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.PosteriorProcess.predict_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict marginal function values at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these
+time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.posterior.ConditionalProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ConditionalProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posterior_dist</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditioning_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ConditionalProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ConditionalProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.posterior.PosteriorProcess" title="markovflow.posterior.PosteriorProcess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PosteriorProcess</span></code></a></p>
+<p>Represents a posterior process indexed on the real line.</p>
+<p>This means <span class="math notranslate nohighlight">\(q(s(.))\)</span> is built by combining the marginals <span class="math notranslate nohighlight">\(q(s(Z))\)</span> and the
+conditional process <span class="math notranslate nohighlight">\(p(s(.)|s(Z))\)</span> into:</p>
+<div class="math notranslate nohighlight">
+\[q(s(.)) = ∫p(s(.)|s(Z))q(s(Z)) ds(Z)\]</div>
+<p>The marginals at discrete time inputs are available in closed form
+(see the <a class="reference internal" href="#markovflow.posterior.ConditionalProcess.predict_f" title="markovflow.posterior.ConditionalProcess.predict_f"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_f()</span></code></a> method).</p>
+<p>It also includes methods for sampling from the posterior process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>posterior_dist</strong> – The posterior represented by a Gauss-Markov distribution used for
+inference. For variational models this is the model defined by the variational
+distribution.</p></li>
+<li><p><strong>kernel</strong> – The kernel of the prior process.</p></li>
+<li><p><strong>conditioning_time_points</strong> – The time points to condition on for inference, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>mean_function</strong> – The mean function of the process that is added to fs.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.posterior.ConditionalProcess.predict_state">
+<code class="sig-name descname"><span class="pre">predict_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ConditionalProcess.predict_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ConditionalProcess.predict_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict state at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ConditionalProcess.predict_f">
+<code class="sig-name descname"><span class="pre">predict_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ConditionalProcess.predict_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ConditionalProcess.predict_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict marginal function values at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these
+time points should be sorted.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code> that are far outside the <code class="xref any docutils literal notranslate"><span class="pre">self.conditioning_time_points</span></code>
+specified when instantiating the class will revert to the prior.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code> and either
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim,</span> <span class="pre">output_dim]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ConditionalProcess.sample_state_trajectories">
+<code class="sig-name descname"><span class="pre">sample_state_trajectories</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ConditionalProcess.sample_state_trajectories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ConditionalProcess.sample_state_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate joint state samples at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code> and
+the <code class="xref any docutils literal notranslate"><span class="pre">self.conditioning_time_points</span></code> specified when instantiating the class.</p>
+<p>See Appendix 2 of
+<a class="reference external" href="https://arxiv.org/abs/2001.05363">“Doubly Sparse Variational Gaussian Processes”</a>
+for a derivation.</p>
+<p>The following notation is used:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(t\)</span> - a vector of new time points</p></li>
+<li><p><span class="math notranslate nohighlight">\(z\)</span> - a vector of the conditioning time points</p></li>
+<li><p><span class="math notranslate nohighlight">\(sₚ/uₚ\)</span> - prior state sample at <span class="math notranslate nohighlight">\(t/z\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(sₒ/Uₒ\)</span> - posterior state sample at <span class="math notranslate nohighlight">\(t/z\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(p(.)\)</span> - the prior</p></li>
+<li><p><span class="math notranslate nohighlight">\(q(.)\)</span> - the posterior</p></li>
+</ul>
+</div></blockquote>
+<p>Jointly sample from the prior at new and conditioning points:</p>
+<div class="math notranslate nohighlight">
+\[[sₚ, uₚ] ~ p(s([t, z]))\]</div>
+<p>And sample from the posterior at the conditioning points:</p>
+<div class="math notranslate nohighlight">
+\[uₒ ~ q(s(z))\]</div>
+<p>A sample from the posterior state is given by:</p>
+<div class="math notranslate nohighlight">
+\[sₒ = sₚ - E[s(t) | s(z) = uₒ - uₚ]\]</div>
+<p>Noting <span class="math notranslate nohighlight">\(z₋,z₊\)</span>, for each new point <span class="math notranslate nohighlight">\(tₖ\)</span> the points in <span class="math notranslate nohighlight">\(z\)</span> closest to
+<span class="math notranslate nohighlight">\(tₖ\)</span> and <span class="math notranslate nohighlight">\(vₖ = [s(z₋),s(z₊)]\)</span> are:</p>
+<div class="math notranslate nohighlight">
+\[E[s(tₖ)|s(z)] = E[s(tₖ)|vₖ] = Pₖ vₖ\]</div>
+<p>That is, the conditional mean is local; it only depends on the nearing
+conditioning states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate sample trajectories for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape of sampled
+trajectories to draw. This can be either an integer or a tuple/list of integers.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+<p>Note this argument will be ignored if your posterior is an
+<a class="reference internal" href="#markovflow.posterior.AnalyticPosteriorProcess" title="markovflow.posterior.AnalyticPosteriorProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalyticPosteriorProcess</span></code></a>.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tensor containing:</p>
+<ul class="simple">
+<li><p>Sampled trajectories at new points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p>Sampled trajectories at conditioning points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_conditioning_points,</span> <span class="pre">state_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ConditionalProcess.sample_f">
+<code class="sig-name descname"><span class="pre">sample_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ConditionalProcess.sample_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ConditionalProcess.sample_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate joint function evaluation samples (projected states) at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate sample trajectories for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape
+(or number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+<p>Note this argument will be ignored if your posterior is an
+<a class="reference internal" href="#markovflow.posterior.AnalyticPosteriorProcess" title="markovflow.posterior.AnalyticPosteriorProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">AnalyticPosteriorProcess</span></code></a>.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor containing the sampled trajectories, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.posterior.AnalyticPosteriorProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">AnalyticPosteriorProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">posterior_dist</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditioning_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">likelihood</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#AnalyticPosteriorProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.AnalyticPosteriorProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.posterior.ConditionalProcess" title="markovflow.posterior.ConditionalProcess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConditionalProcess</span></code></a></p>
+<p>Represents the (approximate) posterior process of a GP model.</p>
+<p>It inherits the marginal prediction and sampling methods from the parent
+<a class="reference internal" href="#markovflow.posterior.ConditionalProcess" title="markovflow.posterior.ConditionalProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionalProcess</span></code></a> class.</p>
+<p>It also includes a method to predict the observations (see <a class="reference internal" href="#markovflow.posterior.AnalyticPosteriorProcess.predict_y" title="markovflow.posterior.AnalyticPosteriorProcess.predict_y"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_y()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>posterior_dist</strong> – The posterior represented by a Gauss-Markov distribution used
+for inference. For variational models this is the model defined by the variational
+distribution.</p></li>
+<li><p><strong>kernel</strong> – The kernel of the prior process.</p></li>
+<li><p><strong>conditioning_time_points</strong> – The time points to condition on for inference,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>likelihood</strong> – Likelihood defining how to project from f-space to an observation.</p></li>
+<li><p><strong>mean_function</strong> – The mean function of the process that is added to fs.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.posterior.AnalyticPosteriorProcess.predict_y">
+<code class="sig-name descname"><span class="pre">predict_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#AnalyticPosteriorProcess.predict_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.AnalyticPosteriorProcess.predict_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict observation marginals at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these
+time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code> and either
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim,</span> <span class="pre">output_dim]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ImportanceWeightedPosteriorProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_importance_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">proposal_dist</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditioning_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">likelihood</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#markovflow.posterior.PosteriorProcess" title="markovflow.posterior.PosteriorProcess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PosteriorProcess</span></code></a></p>
+<p>Represents the approximate posterior process of a GP model.</p>
+<p>The approximate posterior process is inferred via importance-weighted variational inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_importance_samples</strong> – The number of importance-weighted samples.</p></li>
+<li><p><strong>proposal_dist</strong> – The proposal represented by a Gauss-Markov distribution,
+from which we draw samples. This is the model defined by the variational distribution.</p></li>
+<li><p><strong>kernel</strong> – The kernel of the prior process.</p></li>
+<li><p><strong>conditioning_time_points</strong> – Time points to condition on for inference, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points]</span></code>.</p></li>
+<li><p><strong>likelihood</strong> – Likelihood defining how to project from f-space to an observation.</p></li>
+<li><p><strong>mean_function</strong> – The mean function of the process that is added to fs.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess._log_qu_density">
+<code class="sig-name descname"><span class="pre">_log_qu_density</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples_u</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_gradient</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess._log_qu_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess._log_qu_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log density of the posterior process evaluated at the conditioning points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samples_u</strong> – State samples at the conditioning time points, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">[num_conditioning_points,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>stop_gradient</strong> – Whether to stop the gradient flow through the samples. It is useful
+to do so when optimising the proposal distribution with control variates for reduced
+variance.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>log q(u) [num_samples]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.log_importance_weights">
+<code class="sig-name descname"><span class="pre">log_importance_weights</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples_u</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_gradient</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.log_importance_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.log_importance_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the log-importance weights for some state samples.</p>
+<p>The importance weights are given by:</p>
+<div class="math notranslate nohighlight">
+\[w = p(Y | s) p(s, u) / q(s, u)\]</div>
+<p>Because it is assumed that <span class="math notranslate nohighlight">\(q(s | u) = p(s | u)\)</span>, the weights reduce to:</p>
+<div class="math notranslate nohighlight">
+\[w = p(Y | s) p(u) / q(u)\]</div>
+<p>We evaluate this ratio for some tensors of <code class="xref any docutils literal notranslate"><span class="pre">samples_s</span></code> and <code class="xref any docutils literal notranslate"><span class="pre">samples_u</span></code>, which
+are assumed to have been drawn from <span class="math notranslate nohighlight">\(q(s, u)\)</span>. To do this, <code class="xref any docutils literal notranslate"><span class="pre">samples_s</span></code> are
+projected to <span class="math notranslate nohighlight">\(f\)</span> before being passed to the likelihood object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samples_s</strong> – A tensor of samples drawn from <span class="math notranslate nohighlight">\(p(s|u)\)</span>, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>samples_u</strong> – A tensor of samples drawn from <span class="math notranslate nohighlight">\(q(u)\)</span>, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_inducing,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+<li><p><strong>stop_gradient</strong> – Whether to call stop gradient on <span class="math notranslate nohighlight">\(q(u)\)</span>. This is
+useful for control variate schemes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return log_weights</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[sample_shape]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights">
+<code class="sig-name descname"><span class="pre">_iwvi_samples_and_weights</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess._iwvi_samples_and_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample from q(states) indexed by new_time_points and compute the log weights associated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – ordered time input where to sample with shape
+batch_shape + [num_new_time_points]</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that specifies how many
+samples to draw, with shape <code class="docutils literal notranslate"><span class="pre">(...,</span> <span class="pre">num_importance_samples)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>state samples from the posterior and the log-weights with shapes:
+sample_shape + batch_shape + [num_new_time_points, state_dim]
+sample_shape
+sample_shape + batch_shape + [num_conditioning_points, state_dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_state_trajectories">
+<code class="sig-name descname"><span class="pre">sample_state_trajectories</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.sample_state_trajectories"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_state_trajectories" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the importance-weighted posterior over states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Ordered time input from which to sample, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape
+(or number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ordered samples states, with shape
+<code class="docutils literal notranslate"><span class="pre">sample_shape</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_f">
+<code class="sig-name descname"><span class="pre">sample_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><span class="pre">markovflow.base.SampleShape</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.sample_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.sample_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the importance-weighted (IWVI) posterior over functions.</p>
+<p>Note that to compute the expected value of some function under the iwvi posterior,
+it is likely to be more efficient to use <a class="reference internal" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value" title="markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value"><code class="xref py py-meth docutils literal notranslate"><span class="pre">expected_value()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Ordered time input from which to sample, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>sample_shape</strong> – A <a class="reference internal" href="../base/index.html#id0" title="markovflow.base.SampleShape"><code class="xref py py-data docutils literal notranslate"><span class="pre">SampleShape</span></code></a> that is the shape
+(or number of) sampled trajectories to draw.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ordered samples on latent functions, with shape
+<code class="docutils literal notranslate"><span class="pre">[num_samples]</span> <span class="pre">+</span> <span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">num_outputs]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value">
+<code class="sig-name descname"><span class="pre">expected_value</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.identity</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.expected_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.expected_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the expected value of the function <code class="xref any docutils literal notranslate"><span class="pre">func</span></code> acting on a random variable
+<span class="math notranslate nohighlight">\(f\)</span>.</p>
+<p><span class="math notranslate nohighlight">\(f\)</span> is represented by a GP in this case, using importance sampling at the times
+given in <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. That is:</p>
+<div class="math notranslate nohighlight">
+\[∫qₚ(f) func(f) df = Σₖ wₖ func(fₖ)\]</div>
+<p>…where:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(qₚ\)</span> is the importance-weighted approximate posterior distribution of <span class="math notranslate nohighlight">\(f\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(wₖ\)</span> are the importance weights</p></li>
+</ul>
+</div></blockquote>
+<p>For example, to compute the posterior mean we set <code class="xref any docutils literal notranslate"><span class="pre">func</span> <span class="pre">=</span> <span class="pre">tf.identify</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Ordered time input from which to sample, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+<li><p><strong>func</strong> – The function to compute the expected value of. <code class="xref any docutils literal notranslate"><span class="pre">func</span></code> should act
+on the last dimension of a tensor. That last dimension will have length as specified
+by the output_dim of the underlying emission model. The return shape of <code class="xref any docutils literal notranslate"><span class="pre">func</span></code> need
+not be the same, but we expect all other dimensions to broadcast.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_state">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">predict_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.predict_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not applicable to <a class="reference internal" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess" title="markovflow.posterior.ImportanceWeightedPosteriorProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportanceWeightedPosteriorProcess</span></code></a>.
+The marginal state predictions are not available in closed form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_f">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">predict_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/posterior.html#ImportanceWeightedPosteriorProcess.predict_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess.predict_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not applicable to <a class="reference internal" href="#markovflow.posterior.ImportanceWeightedPosteriorProcess" title="markovflow.posterior.ImportanceWeightedPosteriorProcess"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportanceWeightedPosteriorProcess</span></code></a>.
+The marginal function predictions are not available in closed form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.posterior._correct_mean_shape">
+<code class="sig-name descname"><span class="pre">_correct_mean_shape</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/posterior.html#_correct_mean_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.posterior._correct_mean_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that checks if the state space model is defined over a <a class="reference internal" href="../kernels/index.html#markovflow.kernels.StackKernel" title="markovflow.kernels.StackKernel"><code class="xref any py py-class docutils literal notranslate"><span class="pre">StackKernel</span></code></a> so that it
+can bring the output of the mean function to the right shape.
+In any other case, the mean is returned unaltered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mean</strong> – <dl class="simple">
+<dt>the mean value that has been computed via a <a class="reference internal" href="../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><code class="xref any py py-class docutils literal notranslate"><span class="pre">MeanFunction</span></code></a>, with shape</dt><dd><p>batch_shape + [num_data, output_dim]</p>
+</dd>
+<dt>or batch_shape + [num_data, 1] in the case of a <a class="reference internal" href="../kernels/index.html#markovflow.kernels.StackKernel" title="markovflow.kernels.StackKernel"><code class="xref any py py-class docutils literal notranslate"><span class="pre">StackKernel</span></code></a>,</dt><dd><p>where batch_shape[-1] = output_dim</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>kernel</strong> – the corresponding kernel of the <a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GaussMarkovDistribution</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the mean value with the correct shape which is
+batch_shape + [num_data, output_dim] or
+batch_shape[:-1] + [num_data, output_dim] in the case of a <a class="reference internal" href="../kernels/index.html#markovflow.kernels.StackKernel" title="markovflow.kernels.StackKernel"><code class="xref any py py-class docutils literal notranslate"><span class="pre">StackKernel</span></code></a> as the last
+dimension of the <a class="reference internal" href="../block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape" title="markovflow.block_tri_diag.BlockTriDiagonal.batch_shape"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">batch_shape</span></code></a> is the output_dim.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

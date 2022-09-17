@@ -1,0 +1,339 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "fb8ab897",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "# Regression using a piecewise kernel"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d07fd152",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "This notebook explains how to use Piecewise kernels in Markovflow models.\n",
+    "\n",
+    "We focus on the Sparse Variational Gaussian Process model.\n",
+    "\n",
+    "Our probabilistic model for this data is:\n",
+    "$$\n",
+    "\\begin{align}\n",
+    "f \\sim \\mathcal{GP}(0, k(., .)) \\\\\n",
+    "y_i \\sim f(x_i) + \\mathcal{N}(0, \\epsilon^2)\n",
+    "\\end{align}\n",
+    "$$\n",
+    "\n",
+    "\n",
+    "**NOTE:** If you have difficulty running this notebook, consider clearing the output and then restarting the kernel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c8a13162",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%load_ext autoreload\n",
+    "%autoreload 2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "439b4ecd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Setup\n",
+    "\n",
+    "import warnings\n",
+    "\n",
+    "# Turn off warnings\n",
+    "warnings.simplefilter('ignore')\n",
+    "\n",
+    "from typing import Tuple\n",
+    "\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "import gpflow\n",
+    "\n",
+    "from gpflow import default_float, set_trainable\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from gpflow.likelihoods import Gaussian\n",
+    "\n",
+    "from markovflow.models.sparse_variational import SparseVariationalGaussianProcess\n",
+    "from markovflow.kernels import Matern52\n",
+    "from markovflow.kernels import PiecewiseKernel\n",
+    "from markovflow.ssm_natgrad import SSMNaturalGradient\n",
+    "FLOAT_TYPE = default_float()\n",
+    "\n",
+    "# uncomment in notebook\n",
+    "# try:\n",
+    "#     from IPython import get_ipython\n",
+    "#     get_ipython().run_line_magic('matplotlib', 'inline')\n",
+    "# except AttributeError:\n",
+    "#     print('Magic function can only be used in IPython environment')\n",
+    "#     matplotlib.use('Agg')\n",
+    "\n",
+    "plt.rcParams[\"figure.figsize\"] = [15, 8]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bd75189f",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "## Step 1: Generate training data\n",
+    "\n",
+    "First, let's generate a frequency modulated wave form."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b57802b5",
+   "metadata": {
+    "lines_to_next_cell": 0
+   },
+   "outputs": [],
+   "source": [
+    "def create_observations(time_points: np.ndarray) -> Tuple[tf.Tensor, tf.Tensor]:\n",
+    "    \"\"\"\n",
+    "    A helper function to create training data.\n",
+    "    :param time_points: Time points to generate observations for.\n",
+    "    :return: Tuple[x,y] Data that represents the observations' shapes:\n",
+    "        X = [num_points, 1],\n",
+    "        Y = [num_points, state_dim , 1] where state_dim is currently 1\n",
+    "    \"\"\"\n",
+    "    omega_ = np.exp((time_points - 50.) / 6.) / (1. + np.exp((time_points - 50.) / 6.)) + 0.1\n",
+    "    y = (np.cos(time_points * omega_ / 3) * np.sin(time_points * omega_ / 3)).reshape(-1, 1)\n",
+    "    return time_points, y + np.random.randn(*y.shape) * .1\n",
+    "\n",
+    "# Generate some observations\n",
+    "N = 300\n",
+    "time_points, observations = create_observations(np.linspace(0, 100, N))\n",
+    "\n",
+    "# Plot\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(time_points, observations, 'C0x', ms=8, mew=2)\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "plt.show()\n",
+    "plt.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8780bded",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 2: Build a Piecewise kernel"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8e39b263",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "num_inducing = 30\n",
+    "step_z = N // num_inducing\n",
+    "num_change_points = 5\n",
+    "step_c = num_inducing // num_change_points\n",
+    "\n",
+    "# What happens if you don't choose your inducing points from your data\n",
+    "inducing_points = time_points[::step_z]\n",
+    "inducing_points = np.linspace(np.min(time_points), np.max(time_points), num_inducing)\n",
+    "\n",
+    "# What happens if you don't choose your change points from your inducing points\n",
+    "change_points = inducing_points[::step_c]\n",
+    "change_points = np.linspace(np.min(time_points), np.max(time_points), num_change_points)\n",
+    "\n",
+    "assert num_change_points == len(change_points)\n",
+    "\n",
+    "base = Matern52\n",
+    "state_dim = 3\n",
+    "variances = np.array([1.] * (num_change_points + 1))\n",
+    "lengthscales = np.array([4.] * (num_change_points + 1))\n",
+    "\n",
+    "ks = [base(variance=variances[l],\n",
+    "            lengthscale=lengthscales[l])\n",
+    "      for l in range(num_change_points + 1)]\n",
+    "\n",
+    "# Set state mean trainable\n",
+    "[k.set_state_mean(tf.zeros(state_dim,), trainable=True) for k in ks]\n",
+    "\n",
+    "kernel = PiecewiseKernel(\n",
+    "    ks, tf.convert_to_tensor(change_points, dtype=default_float()))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fa1c4ee0",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 3: Build and optimise a model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0a0fc092",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a likelihood object\n",
+    "bernoulli_likelihood = Gaussian()\n",
+    "\n",
+    "s2vgp = SparseVariationalGaussianProcess(\n",
+    "    kernel=kernel,\n",
+    "    inducing_points=tf.convert_to_tensor(inducing_points, dtype=default_float()),\n",
+    "    likelihood=bernoulli_likelihood\n",
+    ")\n",
+    "\n",
+    "# equivalent to loss = -vgpc.elbo()\n",
+    "input_data = (time_points, observations)\n",
+    "loss = s2vgp.loss(input_data)\n",
+    "\n",
+    "# Before optimisation, calculate the loss of the observations given the current kernel parameters\n",
+    "print(\"Loss before optimisation: \", loss.numpy())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e960fcec",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Start at a small learning rate \n",
+    "adam_learning_rate = 0.005\n",
+    "natgrad_learning_rate = .9\n",
+    "max_iter = ci_niter(500)\n",
+    "\n",
+    "adam_opt = tf.optimizers.Adam(learning_rate=adam_learning_rate)\n",
+    "natgrad_opt = SSMNaturalGradient(gamma=natgrad_learning_rate, momentum=False)\n",
+    "set_trainable(s2vgp.dist_q, False)\n",
+    "adam_var_list = s2vgp.trainable_variables\n",
+    "set_trainable(s2vgp.dist_q, True)\n",
+    "\n",
+    "\n",
+    "@tf.function\n",
+    "def loss(input_data):\n",
+    "    return -s2vgp.elbo(input_data)\n",
+    "\n",
+    "\n",
+    "@tf.function\n",
+    "def opt_step(input_data):\n",
+    "    natgrad_opt.minimize(lambda : loss(input_data), s2vgp.dist_q)\n",
+    "    adam_opt.minimize(lambda : loss(input_data), adam_var_list)\n",
+    "\n",
+    "def plot_model(s2vgp):\n",
+    "    pred = s2vgp.posterior\n",
+    "    latent_mean, latent_var = pred.predict_f(tf.constant(time_points))\n",
+    "    predicted_mean, predicted_cov = latent_mean.numpy(), latent_var.numpy()\n",
+    "    # Plot the means and covariances for these future time points\n",
+    "    fig, ax = plt.subplots(1, 1)\n",
+    "    ax.plot(time_points, observations, 'C0x', ms=8, mew=2)\n",
+    "\n",
+    "    ax.plot(time_points, predicted_mean, 'C0', lw=2)\n",
+    "    ax.fill_between(time_points,\n",
+    "                     predicted_mean[:, 0] - 2 * np.sqrt(predicted_cov[:, 0]),\n",
+    "                     predicted_mean[:, 0] + 2 * np.sqrt(predicted_cov[:, 0]),\n",
+    "                     color='C0', alpha=0.2)\n",
+    "\n",
+    "    cp = s2vgp.kernel.change_points.numpy()\n",
+    "    ax.vlines(cp, ymin=-1, ymax=1, colors='blue', label='change points')\n",
+    "    z_ = s2vgp.inducing_inputs.numpy()\n",
+    "    ax.vlines(z_, ymin=-1, ymax=-.9, colors='red', label='inducing points')\n",
+    "\n",
+    "    ax.set_xlim((0., 100.))\n",
+    "    ax.set_ylim((-1.1, 1.1))\n",
+    "    return fig\n",
+    "    # plt.show()\n",
+    "\n",
+    "\n",
+    "for i in range(max_iter):\n",
+    "    opt_step(input_data)\n",
+    "    if i % 10 == 0:\n",
+    "        print(\"Iteration:\", i, \", Loss:\", s2vgp.loss(input_data).numpy())\n",
+    "        fig = plot_model(s2vgp)\n",
+    "        plt.show()\n",
+    "\n",
+    "print(\"Loss after optimisation: \", s2vgp.loss(input_data).numpy())\n",
+    "\n",
+    "# Save our trained hyperparamters (these will be used in Step 8)\n",
+    "saved_hyperparams = kernel.trainable_variables"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0d04ceea",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig = plot_model(s2vgp)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0a470126",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "We can see how our kernel parameters have changed from our initial values. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "536ec9e7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "gpflow.utilities.print_summary(s2vgp._kernel)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "714ae7e3",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "encoding": "# -*- coding: utf-8 -*-",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

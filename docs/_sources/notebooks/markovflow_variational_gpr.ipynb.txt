@@ -1,0 +1,607 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "5b629dbf",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "# Basic classification using the VGP model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "726a9aee",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "This notebook explains how to use Markovflow to build and optimise a variational GP regression model (VGP) for a time series. Here, we perform binary classification with time as the input.\n",
+    "\n",
+    "As with GPR, the observations do not have to be regularly spaced. However, they do need to be sequential. We denote the input/output tuples as $(x_i, y_i)_{1 \\leq i \\leq n}$, where $x_i$ is a scalar value and $y_i \\in \\{0, 1\\}$.\n",
+    "\n",
+    "Our probabilistic model for this data is:\n",
+    "$$\n",
+    "\\begin{align}\n",
+    "f \\sim \\mathcal{GP}(0, k(., .)) \\\\\n",
+    "y_i \\sim \\mathcal{B}(\\Phi(f(x_i)))\n",
+    "\\end{align}\n",
+    "$$\n",
+    "\n",
+    "where $\\Phi$ is a function that maps $f(x_i)$ to $[0, 1]$, the probability that $y_i=1$. In practice, we choose $\\Phi$ to be the standard normal cumulative distribution function (also known as the probit function) which maps to $[0, 1]$.\n",
+    "\n",
+    "**NOTE:** If you have difficulty running this notebook, consider clearing the output and then restarting the kernel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "eb7fd8ae",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Setup\n",
+    "\n",
+    "import warnings\n",
+    "\n",
+    "# Turn off warnings\n",
+    "warnings.simplefilter('ignore')\n",
+    "\n",
+    "from typing import Tuple\n",
+    "\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "import gpflow\n",
+    "\n",
+    "from gpflow import default_float, set_trainable\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from gpflow.likelihoods import Bernoulli\n",
+    "\n",
+    "from markovflow.models.variational import VariationalGaussianProcess\n",
+    "from markovflow.kernels import Matern12, Product, HarmonicOscillator\n",
+    "\n",
+    "\n",
+    "FLOAT_TYPE = default_float()\n",
+    "\n",
+    "# uncomment in notebook\n",
+    "# try:\n",
+    "#     from IPython import get_ipython\n",
+    "#     get_ipython().run_line_magic('matplotlib', 'inline')\n",
+    "# except AttributeError:\n",
+    "#     print('Magic function can only be used in IPython environment')\n",
+    "#     matplotlib.use('Agg')\n",
+    "\n",
+    "plt.rcParams[\"figure.figsize\"] = [15, 8]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8dccd643",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "## Step 1: Generate training data\n",
+    "\n",
+    "First, let's generate some binary data $X = (x_1, \\dots, x_n)$ and $Y = (y_1, \\dots, y_n)^T$."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "75f0ec10",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def create_binary_observations(time_points: np.ndarray) -> Tuple[tf.Tensor, tf.Tensor]:\n",
+    "    \"\"\"\n",
+    "    A helper function to create training data.\n",
+    "    :param time_points: Time points to generate observations for.\n",
+    "    :return: Tuple[x,y] Data that represents the observations' shapes:\n",
+    "        X = [num_points, 1],\n",
+    "        Y = [num_points, state_dim , 1] where state_dim is currently 1\n",
+    "    \"\"\"\n",
+    "    period = 12.\n",
+    "    observations = np.sin(12 * time_points[..., None])\n",
+    "    # Add some noise\n",
+    "    observations += np.random.randn(len(time_points), 1) * .3\n",
+    "\n",
+    "    logic = (observations > 0)\n",
+    "    binary = (logic.astype(int) * 1)\n",
+    "\n",
+    "    return time_points, binary\n",
+    "\n",
+    "# Generate some observations\n",
+    "time_points, observations = create_binary_observations(np.arange(5.0, 30.0))\n",
+    "\n",
+    "# Plot\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(time_points, observations, 'C0x', ms=8, mew=2)\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "02320802",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 2: Choose a kernel\n",
+    "\n",
+    "To build a model we need a Markovian kernel, that is, one that has an equivalent Stochastic Differential Equation (SDE) representation. The SDE framework covers a large variety of well-known kernels and precisions. \n",
+    "\n",
+    "You can combine these kernels by taking their sums or products. \n",
+    "\n",
+    "In this case, we notice that the data looks roughly periodic, so we combine the Matern12 and periodic kernels using the product kernel.\n",
+    "\n",
+    "**NOTE:** Avoid any Sum combinations that use periodic kernels, because these will fail (for example, `Sum(periodic,any other kernel)`.\n",
+    "\n",
+    "**NOTE:** Choosing a higher-order Matern kernel for VGPs using the Markovflow SDE representation could result in over-parameterisation (resulting in Cholesky errors)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bb12f1ef",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "period = 10.0\n",
+    "periodic_kernel = HarmonicOscillator(variance=2.0, period=period)\n",
+    "matern_kernel = Matern12(lengthscale=6. * period, variance=1.0)\n",
+    "# Because we are multiplying them together, we need to train only one kernel variance parameter\n",
+    "set_trainable(matern_kernel.variance, False)\n",
+    "\n",
+    "kernel = Product([matern_kernel, periodic_kernel])\n",
+    "\n",
+    "# We see Matern12 has only two dimensions (therefore there is less risk of overparameterising)\n",
+    "print(kernel.state_dim)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "018e9674",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 3: Build and optimise a model\n",
+    "\n",
+    "This is a classification problem with outputs between `[0,1]`, so we create a variational GP model using a Bernoulli likelihood."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5759752c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a likelihood object\n",
+    "bernoulli_likelihood = Bernoulli()\n",
+    "\n",
+    "input_data = (tf.constant(time_points), tf.constant(observations))\n",
+    "vgpc = VariationalGaussianProcess(input_data=input_data, kernel=kernel,\n",
+    "                                  likelihood=bernoulli_likelihood)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e479bbe3",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "(**NOTE:** The following comments are true for training VGPs in general, and are not unique to Markovflow.)\n",
+    "\n",
+    "Recall that when applying the GPR model in the regression context, we sought to maximise the marginal likelihood with respect to the hyperparameters (that is, the kernel parameters and the likelihood variance).\n",
+    "\n",
+    "Unlike traditional GPR, the posterior on 𝑓 given the data is not Gaussian anymore, and there is no closed form expression for it. Instead, we use variational inference to find the Gaussian distribution that gives the best approximation to the true posterior in terms of the Kullback-Leibler (KL) divergence. KL divergence quantifies how different two probability distributions are. \n",
+    "\n",
+    "To do this, maximise the Evidence Lower Bound (ELBO) using a form of gradient-based optimisation such as gradient descent or Adam. Maximising the ELBO is equivalent to minimising the KL divergence. The intention is to make our posterior approximation as close as possible to the true posterior.  \n",
+    "\n",
+    "As such, there are two training phases required for VGPR: \n",
+    "firstly, we adjust the (Gaussian) parameters for our posterior approximation, and secondly, we adjust the hyperparameters (as in traditional GPR).\n",
+    "\n",
+    "The theoretically correct, precise way to conduct both steps would be to optimise phase 1 until convergence, then perform a small optimisation step for phase 2 and repeat. However, jointly optimising the variational parameters and the hyperparameters works well in practice and is faster. \n",
+    "\n",
+    "In practice, we take single steps for phase 1 and 2, and then repeat. Often this approach works well enough and converges much faster than the precise approach mentioned previously. \n",
+    "\n",
+    "### Markflow implementation notes \n",
+    "* Markovflow combines both training phases, so it appears in the following example as a single optimisation step.\n",
+    "* Markovflow models often share common interfaces, including a loss method to train on, so here we are minimising a loss value (which is equivalent to maximising ELBO).\n",
+    "* If you encounter 'Banded Cholesky decomposition failure' errors during training, it _could_ be indicative of poor input scaling, hyperparameter misspecification, or overly aggressive optimisation (that is, the learning rate is too large). "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "806825e3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# equivalent to loss = -vgpc.elbo()\n",
+    "loss = vgpc.loss()\n",
+    "\n",
+    "# Before optimisation, calculate the loss of the observations given the current kernel parameters\n",
+    "print(\"Loss before optimisation: \", loss.numpy())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "948d4e6d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Start at a small learning rate \n",
+    "learning_rate = 0.001\n",
+    "max_iter = ci_niter(2000)\n",
+    "\n",
+    "opt = tf.optimizers.Adam(learning_rate=learning_rate)\n",
+    "\n",
+    "@tf.function\n",
+    "def opt_step():\n",
+    "    opt.minimize(vgpc.loss, vgpc.trainable_variables)\n",
+    "\n",
+    "for i in range(max_iter):\n",
+    "    opt_step()\n",
+    "    if i % 500 == 0:\n",
+    "        print(f\"Iteration: {i}\\tLoss: {vgpc.loss()}\")\n",
+    "\n",
+    "print(f\"Loss after optimisation: {vgpc.loss()}\")\n",
+    "\n",
+    "# Save our trained hyperparamters (these will be used in Step 8)\n",
+    "saved_hyperparams = kernel.trainable_variables"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "29c5a6c8",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "We can see how our kernel parameters have changed from our initial values. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0caf479b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "gpflow.utilities.print_summary(vgpc._kernel)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7f81f2e4",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 4: Generate a (posterior) mean for the training data\n",
+    "As with GPR, we can get the posterior means of the true function values without observation noise. This is less applicable in a classification scenario, but could be useful in other VGPR applications.\n",
+    "\n",
+    "We use `vgpc.posterior.predict_y` to get the posterior of the latent function at the future times that we want to predict.\n",
+    "\n",
+    "We then pass these latent predictions through our function $\\Phi$ (this effectively squashes our latent function values to between $[0,1]$)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a2dc8168",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Obtain means and covariances for latent predictions\n",
+    "pred = vgpc.posterior\n",
+    "\n",
+    "latent_mean, latent_var = pred.predict_y(tf.constant(time_points))\n",
+    "\n",
+    "# Define our function $\\Phi$\n",
+    "from scipy.special import erf\n",
+    "\n",
+    "\n",
+    "def Phi(x):  # NumPy version of the inv_probit\n",
+    "    jitter = 1e-3  # Ensures that the output is strictly between 0 and 1\n",
+    "    return 0.5 * (1.0 + erf(x / np.sqrt(2.0))) * (1 - 2 * jitter) + jitter\n",
+    "\n",
+    "\n",
+    "# Plot the results\n",
+    "mean = Phi(latent_mean)\n",
+    "\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(time_points, latent_mean, 'C0*')\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f242333e",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 5: Make a prediction for the future\n",
+    "We use `vgpc.posterior.predict_f` to get the posterior of the latent function at the future times that we want to predict.\n",
+    "\n",
+    "Then, similar to Step 4, we pass these latent predictions through our function $\\Phi$.\n",
+    "\n",
+    "Let's start by predicting what class we forecast to occur at `t=33`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b06b9423",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a new observation for us to evaluate the prediction\n",
+    "new_time_to_predict, actual_val_for_new_time = create_binary_observations(np.array([33.]))\n",
+    "\n",
+    "# Obtain latent predictions from our GP\n",
+    "latent_predicted_mean_future_single, latent_predicted_cov_future_single = \\\n",
+    "    pred.predict_f(tf.constant(new_time_to_predict, dtype=FLOAT_TYPE))\n",
+    "\n",
+    "# Map these latent predictions through the inverse link function Φ\n",
+    "predicted_mean_future_single = Phi(latent_predicted_mean_future_single)\n",
+    "\n",
+    "print(\"\\nPredicted value\", predicted_mean_future_single, \"  Actual value\", actual_val_for_new_time)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b24b4998",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "Now let's forecast the mean trajectory over time. **NOTE:** As we move further away from known values, our uncertainly increases, and our forecasted mean values revert back to the prior (that is, zero mean). \n",
+    "\n",
+    "When you plot the data, the black cross corresponds to the forecasted value, and the red star corresponds to the true value. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e556109c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Generate some time points in the future\n",
+    "future_time_points = np.arange(time_points[-1] + 0.01, time_points[-1] + 20.0, 0.1)\n",
+    "\n",
+    "# Obtain latent predictions from our GP\n",
+    "latent_predicted_mean_future, latent_predicted_cov_future = \\\n",
+    "    pred.predict_f(tf.constant(future_time_points, dtype=FLOAT_TYPE))\n",
+    "\n",
+    "# Map these latent predictions through the inverse link function Φ\n",
+    "predicted_mean_future = Phi(latent_predicted_mean_future)\n",
+    "\n",
+    "# Plot the means and covariances for these future time points\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(future_time_points, predicted_mean_future, 'C0', lw=2)\n",
+    "plt.fill_between(future_time_points,\n",
+    "                 Phi(latent_predicted_mean_future[:, 0] - 2 * np.sqrt(\n",
+    "                     latent_predicted_cov_future[:, 0])),\n",
+    "                 Phi(latent_predicted_mean_future[:, 0] + 2 * np.sqrt(\n",
+    "                     latent_predicted_cov_future[:, 0])),\n",
+    "                 color='C0', alpha=0.2)\n",
+    "\n",
+    "plt.plot(new_time_to_predict, actual_val_for_new_time, 'r*', markersize=12)\n",
+    "plt.plot(new_time_to_predict, predicted_mean_future_single, 'k', markersize=12)\n",
+    "plt.plot(time_points, observations, 'C0x', ms=8, mew=2)\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c45eba91",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 6: Show a history of confidence"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b861f769",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "We can use the same trained VGP and fill in the unknown or unobserved points from the past to estimate how likely it is that we would have observed one class or another. \n",
+    "\n",
+    "This is achieved by the `vgpc.posterior.predict_f` method."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "28734f2e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Generate some other time points to evaluate\n",
+    "intermediate_time_points = np.arange(time_points[0], time_points[-1] + 10.0, 0.1)\n",
+    "\n",
+    "# Obtain estimates at these points\n",
+    "latent_predicted_mean, latent_predicted_cov = \\\n",
+    "    pred.predict_f(tf.constant(intermediate_time_points, dtype=FLOAT_TYPE))\n",
+    "latent_predicted_mean, latent_predicted_cov = (latent_predicted_mean.numpy(),\n",
+    "                                               latent_predicted_cov.numpy())\n",
+    "\n",
+    "predicted_mean = Phi(latent_predicted_mean)\n",
+    "\n",
+    "# Plot the results\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(intermediate_time_points, predicted_mean, 'C0', lw=2)\n",
+    "plt.plot(time_points, observations, 'C0x', ms=8, mew=2)\n",
+    "plt.fill_between(intermediate_time_points,\n",
+    "                 Phi(latent_predicted_mean.squeeze() - 2 * np.sqrt(latent_predicted_cov.squeeze())),\n",
+    "                 Phi(latent_predicted_mean.squeeze() + 2 * np.sqrt(latent_predicted_cov.squeeze())),\n",
+    "                 color='C0', alpha=0.2)\n",
+    "\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "714c0275",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 7: Generate sample trajectories\n",
+    "You can also use the `vgpr.posterior.sample_f`method to generate sample trajectories."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "20a547c0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Take 20 samples\n",
+    "latent_samples = \\\n",
+    "    pred.sample_f(tf.constant(future_time_points, dtype=FLOAT_TYPE), 20)\n",
+    "latent_samples = latent_samples.numpy()\n",
+    "\n",
+    "samples = Phi(latent_samples)\n",
+    "\n",
+    "# Plot the same as previous\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(time_points, observations, 'C0o')\n",
+    "\n",
+    "# Add the samples\n",
+    "plt.plot(future_time_points[..., None], np.swapaxes(samples, 0, 1).squeeze())\n",
+    "\n",
+    "# Add mean and confidence levels\n",
+    "plt.plot(intermediate_time_points, predicted_mean, 'C0', lw=2)\n",
+    "plt.fill_between(intermediate_time_points,\n",
+    "                 Phi(latent_predicted_mean.squeeze() - 2 * np.sqrt(latent_predicted_cov.squeeze())),\n",
+    "                 Phi(latent_predicted_mean.squeeze() + 2 * np.sqrt(latent_predicted_cov.squeeze())),\n",
+    "                 color='C0', alpha=0.2)\n",
+    "\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d84903cc",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Step 8: Observe more data in the future, and update the model\n",
+    "\n",
+    "You can also use `vgpc.posterior.predict_f` to get the posterior of the latent function at arbitrary time points.\n",
+    "To demonstrate this, we will generate a set of time points that begin before the training data and extend into the future.  \n",
+    "\n",
+    "In the GPR notebook example, we could make reasonable predictions **without retraining** after observing a new point. We could do this because we could assume that the kernel trained on the 20 original points is probably still applicable for 21 points. In simple terms, you can think of learned kernel hyperparamters as general, high-level properties of the data (not unlike how an average value provides a high-level indication of a dataset). By reusing the hyperparamters, we are assuming that these high-level properties haven't changed. Similarly for VGPR, it is probably reasonable to assume the kernel parameters won't have changed materially after one extra observation, so it is not critical to retrain these. \n",
+    "\n",
+    "Recall, however, that VGPR had a two-step training process (hyperparameters and latent approximation). Unfortunately, the latent approximations of the posterior can be very specific to the dataset they were trained on. Because of this, adding a new observation requires retraining of this approximation. \n",
+    "\n",
+    "The following code describes how kernel hyperparameters are reused but retraining is performed on the latent approximation (phase 1, as described in Step 3)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a4dfd681",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create a new observation and add it to the dataset\n",
+    "new_time, new_ob = create_binary_observations(np.array([33.]))\n",
+    "new_time_points = np.concatenate([time_points, new_time], axis=0)\n",
+    "new_observations = np.concatenate([observations, new_ob], axis=0)\n",
+    "\n",
+    "# Create a new VGP object with the previous kernel\n",
+    "input_data = (tf.constant(new_time_points), tf.constant(new_observations))\n",
+    "vgpc = VariationalGaussianProcess(input_data=input_data, kernel=kernel, likelihood=Bernoulli())\n",
+    "\n",
+    "opt = tf.optimizers.Adam(learning_rate=learning_rate)\n",
+    "\n",
+    "@tf.function\n",
+    "def opt_step():\n",
+    "    opt.minimize(vgpc.loss, vgpc.trainable_variables)\n",
+    "\n",
+    "for i in range(max_iter):\n",
+    "    opt_step()\n",
+    "    if i % 500 == 0:\n",
+    "        print(f\"Iteration: {i}\\tLoss: {vgpc.loss()}\")\n",
+    "\n",
+    "print(f\"Loss after optimisation: {vgpc.loss()}\")\n",
+    "\n",
+    "# Obtain latent predictions \n",
+    "pred = vgpc.posterior\n",
+    "latent_predicted_mean, latent_predicted_cov = \\\n",
+    "    pred.predict_f(tf.constant(intermediate_time_points, dtype=FLOAT_TYPE))\n",
+    "latent_predicted_mean, latent_predicted_cov = (latent_predicted_mean.numpy(),\n",
+    "                                               latent_predicted_cov.numpy())\n",
+    "\n",
+    "predicted_mean = Phi(latent_predicted_mean)\n",
+    "\n",
+    "# Plot the results\n",
+    "plt.figure(figsize=(10, 6))\n",
+    "plt.plot(intermediate_time_points, predicted_mean, 'C0', lw=2)\n",
+    "plt.plot(time_points, observations, 'C0x')\n",
+    "plt.fill_between(intermediate_time_points,\n",
+    "                 Phi(latent_predicted_mean[:, 0] - 2 * np.sqrt(latent_predicted_cov[:, 0])),\n",
+    "                 Phi(latent_predicted_mean[:, 0] + 2 * np.sqrt(latent_predicted_cov[:, 0])),\n",
+    "                 color='C0', alpha=0.2)\n",
+    "plt.plot(new_time, new_ob, 'r*', markersize=12)\n",
+    "plt.xlabel(\"Time\")\n",
+    "plt.ylabel(\"Label\")\n",
+    "\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5f1565a6",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "When new data is available we can we see how the variance (slightly) decreases at the new point (shown by the red star)."
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "encoding": "# -*- coding: utf-8 -*-",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

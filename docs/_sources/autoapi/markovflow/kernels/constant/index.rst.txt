@@ -1,0 +1,119 @@
+:py:mod:`markovflow.kernels.constant`
+=====================================
+
+.. py:module:: markovflow.kernels.constant
+
+.. autoapi-nested-parse::
+
+   Module containing a kernel with a constant variance.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: Constant(variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Introduces a constant variance. This kernel has the formula:
+
+   .. math:: C(x, x') = σ²
+
+   ...where :math:`σ²` is a kernel parameter representing the constant variance, which is
+   supplied as a parameter to the constructor.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is :math:`F = [[1]]`.
+
+   Covariance for the steady state is :math:`P∞ = [[σ²]]`.
+
+   The state transition matrix is :math:`Aₖ = [[1]]`.
+
+   The process covariance is :math:`Qₖ = [[0]]`.
+
+   :param variance: Initial variance for the kernel. Must be a positive float.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number used to make sure that
+       matrix inversion is numerically stable.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The state transition matrix at time step :math:`k` is :math:`Aₖ = [[1]]`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the process covariance matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The process covariance for time step k is :math:`Qₖ = [[0]]`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+         `` batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Return the `state_transitions` and `process_covariances`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tuple of two tensors with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+      This is given by :math:`P∞ = [[σ²]]`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter.
+
+
+

@@ -1,0 +1,350 @@
+:py:mod:`markovflow.ssm_gaussian_transformations`
+=================================================
+
+.. py:module:: markovflow.ssm_gaussian_transformations
+
+.. autoapi-nested-parse::
+
+   Module transforming identities to and from expectation and natural parameters.
+
+
+
+Module Contents
+---------------
+
+.. py:function:: ssm_to_expectations(ssm: markovflow.state_space_model.StateSpaceModel) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform a :class:`~markovflow.state_space_model.StateSpaceModel` to the expectation
+   parameters of the equivalent Gaussian distribution.
+
+   The expectation parameters are defined as the expected value of the sufficient statistics
+   :math:`𝔼[φ(x)]`, where :math:`φ(x)` are the sufficient statistics. For the case of a Gaussian
+   distribution that is described via a state space model they are given by:
+
+   .. math:: φ(x) = [x, \verb|block_tri_diag|(xxᵀ)]
+
+   The expectation parameters :math:`η` and :math:`Η` are therefore given by::
+
+           [μ₀  ]
+           [μ₁  ]
+       η = [⋮   ]
+           [μₙ₋₁]
+           [μₙ  ],
+
+           [Σ₀ + μ₀μ₀ᵀ      Σ₀A₁ᵀ + μ₀μ₁ᵀ                                          ]
+           [A₁Σ₀ + μ₁μ₀ᵀ    Σ₁ + μ₁μ₁ᵀ      Σ₁A₂ᵀ + μ₁μ₂ᵀ                          ]
+       H = [                    ᨞               ᨞              Σₙ₋₁Aₙᵀ + μₙ₋₁μₙᵀ   ]
+           [                                AₙΣₙ₋₁ + μₙμₙ₋₁ᵀ   Σₙ + μₙμₙᵀ          ],
+
+   ...where:
+
+       * :math:`μᵢ` and :math:`Σᵢ` are the marginal means and covariances at each
+         time step :math:`i`
+       * :math:`Aᵢ` are the transition matrices of the state space model
+
+   :param ssm: The object to transform to expectation parameters.
+   :return: A tuple containing the 3 expectation parameters:
+
+       * `eta_linear` corresponds to :math:`η` with shape ``[..., N+1, D]``
+       * `eta_diag` corresponds to the block diagonal part of :math:`Η`
+         with shape ``[..., N+1, D, D]``
+       * `eta_subdiag` corresponds to the lower block sub-diagonal of :math:`Η`
+         with shape ``[..., N, D, D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+
+.. py:function:: expectations_to_ssm_params(eta_linear: gpflow.base.TensorType, eta_diag: gpflow.base.TensorType, eta_subdiag: gpflow.base.TensorType) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform the expectation parameters to parameters of a
+   :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+   The covariance of the joint distribution is given by:
+
+   .. math:: Σ = Η - ηηᵀ
+
+   ...which results in::
+
+           [Σ₀         Σ₀A₁ᵀ       Σ₀A₁ᵀA₂ᵀ    …                               ]
+           [A₁Σ₀       Σ₁          Σ₁A₂ᵀ       Σ₁A₂ᵀA₃ᵀ    …                   ]
+       Σ = [A₂A₁Σ₀     A₂Σ₁        Σ₂          Σ₂A₃ᵀ       …                   ]
+           [⋮          ⋮           ᨞           ᨞           ᨞           Σₙ₋₁Aₙᵀ ]
+           [                                   …           AₙΣₙ₋₁      Σₙ      ],
+
+   ...where:
+
+       * :math:`Σᵢ` are the marginal covariances at each time step :math:`i`
+       * :math:`Aᵢ` are the transition matrices of the state space model
+
+   If we denote by :math:`Σᵢᵢ₋₁` the lower block sub-diagonal of the joint covariance, and by
+   :math:`Σᵢᵢ` the block diagonal of it, then we can get the state space model parameters using
+   the following identities:
+
+   .. math::
+       &Aᵢ = Σᵢᵢ₋₁ (Σᵢᵢ)⁻¹\\
+       &Qᵢ = Σᵢ - AᵢΣᵢ₋₁Aᵢᵀ\\
+       &bᵢ = ηᵢ - Aᵢηᵢ₋₁\\
+       &P₀ = Σ₀\\
+       &μ₀ = η₀
+
+   :param eta_linear: Corresponds to :math:`η` with shape ``[..., N+1, D]``.
+   :param eta_diag: Corresponds to the block diagonal part of :math:`Η`
+       with shape ``[..., N+1, D, D]``.
+   :param eta_subdiag: Corresponds to the lower block sub-diagonal of :math:`Η` with
+       shape ``[..., N, D, D]``.
+   :return: A tuple containing the 5 parameters of the state space model in the following order:
+
+       * `As` corresponds to the transition matrices :math:`Aᵢ` with shape ``[..., N, D, D]``
+       * `offsets` corresponds to the state offset vectors :math:`bᵢ` with shape ``[..., N, D]``
+       * `chol_initial_covariance` corresponds to the Cholesky of :math:`P₀`
+         with shape ``[..., D, D]``
+       * `chol_process_covariances` corresponds to the Cholesky of :math:`Qᵢ`
+         with shape ``[..., N, D, D]``
+       * `initial_mean` corresponds to the mean of the initial distribution :math:`μ₀`
+         with shape ``[..., D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+
+.. py:function:: ssm_to_naturals(ssm: markovflow.state_space_model.StateSpaceModel) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform a :class:`~markovflow.state_space_model.StateSpaceModel` to the
+   natural parameters of the equivalent Gaussian distribution.
+
+   The natural parameters :math:`θ` and :math:`Θ` are given by::
+
+           [P₀⁻¹μ₀ - A₁ᵀQ₁⁻¹b₁     ]
+           [Q₁⁻¹b₁ - A₂ᵀQ₂⁻¹b₂     ]
+       θ = [⋮                      ]
+           [Qₙ₋₁⁻¹bₙ₋₁ - AₙᵀQₙ⁻¹bₙ ]
+           [Qₙ⁻¹bₙ                 ],
+
+           [-½(P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁)     A₁ᵀ Q₁⁻¹                                            ]
+           [Q₁⁻¹ A₁                    -½(Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂)      A₂ᵀ Q₂⁻¹                ]
+       Θ = [                           ᨞                           ᨞               AₙᵀQₙ⁻¹ ]
+           [                                                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ]
+
+   ...where:
+
+       * :math:`bᵢ`, :math:`Aᵢ` and :math:`Qᵢ` are the state offsets, transition
+         matrices and covariances of the state space model
+       * :math:`μ₀` and :math:`P₀` are the mean and covariance of the initial state
+
+   :param ssm: The object to transform to natural parameters.
+   :return: A tuple containing the 3 natural parameters:
+
+       * `theta_linear` corresponds to :math:`θ` with shape ``[..., N+1, D]``.
+       * `theta_diag` corresponds to the block diagonal part of :math:`Θ`
+         with shape ``[..., N+1, D, D]``.
+       * `theta_subdiag` corresponds to the lower block sub-diagonal of :math:`Θ`
+         with shape ``[..., N, D, D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+
+.. py:function:: ssm_to_naturals_no_smoothing(ssm: markovflow.state_space_model.StateSpaceModel) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform a :class:`~markovflow.state_space_model.StateSpaceModel` to the natural
+   parameters of the equivalent Gaussian distribution.
+
+   It is similar to :func:`ssm_to_naturals` but in this case the natural
+   parameters do not contain information from the future (smoothing). The updates regarding
+   the smoothing have been pushed into the partition function, as described in::
+
+       @inproceedings{pmlr-v97-lin19b,
+         title =        {Fast and Simple Natural-Gradient Variational Inference with Mixture of
+                         Exponential-family Approximations},
+         author =       {Lin, Wu and Khan, Mohammad Emtiyaz and Schmidt, Mark},
+         booktitle =    {Proceedings of the 36th International Conference on Machine Learning},
+         pages =        {3992--4002},
+         year =         {2019},
+         url =          {http://proceedings.mlr.press/v97/lin19b.html},
+       }
+
+   The natural parameters :math:`θ` and :math:`Θ` are given by::
+
+           [P₀⁻¹μ₀     ]
+           [Q₁⁻¹b₁     ]
+       θ = [⋮          ]
+           [Qₙ₋₁⁻¹bₙ₋₁ ]
+           [Qₙ⁻¹bₙ     ],
+
+           [-½P₀⁻¹     A₁ᵀ Q₁⁻¹                            ]
+           [Q₁⁻¹ A₁    -½Q₁⁻¹      A₂ᵀ Q₂⁻¹                ]
+       Θ = [           ᨞           ᨞               AₙᵀQₙ⁻¹ ]
+           [                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ]
+
+   ...where:
+
+       * :math:`bᵢ`, :math:`Aᵢ` and :math:`Qᵢ` are the state offsets, transition matrices
+         and covariances of the state space model
+       * :math:`μ₀` and :math:`P₀` are the mean and covariance of the initial state
+
+   :param ssm: The object to transform to natural parameters.
+   :return: A tuple containing the 3 natural parameters:
+
+       * `theta_linear` corresponds to :math:`θ` with shape ``[..., N+1, D]``
+       * `theta_diag` corresponds to the block diagonal part of :math:`Θ`
+         with shape ``[..., N+1, D, D]``.
+       * `theta_subdiag` corresponds to the lower block sub-diagonal of :math:`Θ`
+         with shape ``[..., N, D, D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+
+.. py:function:: naturals_to_ssm_params(theta_linear: gpflow.base.TensorType, theta_diag: gpflow.base.TensorType, theta_subdiag: gpflow.base.TensorType) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform the natural parameters to parameters of a
+   :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+   The precision of the joint distribution is given by::
+
+           [-2Θ₀₀      -Θ₁₀ᵀ                           ]
+           [-Θ₁₀       -2Θ₁₁       -Θ₂₁ᵀ               ]
+       P = [           ᨞           ᨞           -Θₙₙ₋₁ᵀ ]
+           [                       -Θₙₙ₋₁      -2Θₙₙ   ],
+
+   ...where :math:`Θᵢᵢ` and :math:`Θᵢᵢ₋₁` are the block diagonal and block sub-diagonal
+   of the natural parameter :math:`Θ`::
+
+           [-½(P₀⁻¹ + A₁ᵀ Q₁⁻¹ A₁)     A₁ᵀ Q₁⁻¹                                            ]
+           [Q₁⁻¹ A₁                    -½(Q₁⁻¹ + A₂ᵀ Q₂⁻¹ A₂)      A₂ᵀ Q₂⁻¹                ]
+       Θ = [                           ᨞                           ᨞               AₙᵀQₙ⁻¹ ]
+           [                                                       Qₙ⁻¹Aₙ          -½Qₙ⁻¹  ],
+
+   ...and where:
+
+       * :math:`Aᵢ` and :math:`Qᵢ` are the state transition matrices and covariances
+         of the state space model
+       * :math:`P₀` is the covariance of the initial state
+
+   Inverting the precision gives as the joint covariance matrix::
+
+           [Σ₀         Σ₀A₁ᵀ       Σ₀A₁ᵀA₂ᵀ    …                               ]
+           [A₁Σ₀       Σ₁          Σ₁A₂ᵀ       Σ₁A₂ᵀA₃ᵀ    …                   ]
+       Σ = [A₂A₁Σ₀     A₂Σ₁        Σ₂          Σ₂A₃ᵀ       …                   ]
+           [⋮          ⋮           ᨞           ᨞           ᨞           Σₙ₋₁Aₙᵀ ]
+           [                                   …           AₙΣₙ₋₁      Σₙ      ],
+
+   ...where:
+
+       * :math:`Σᵢ` are the marginal covariances at each time step :math:`i`
+       * :math:`Aᵢ` are the transition matrices of the state space model
+
+   If we define as :math:`Σᵢᵢ₋₁` the lower block sub-diagonal of the joint covariance,
+   and as :math:`Σᵢᵢ` the block diagonal of it, we can get the state transition matrices from:
+
+   .. math:: Aᵢ = Σᵢᵢ₋₁ (Σᵢᵢ)⁻¹
+
+   We then follow the SpInGP paper and create the matrices::
+
+              [ I               ]          [P₀             ]
+              [-A₁     I        ]          [   Q₁          ]
+       A⁻¹ =  [    ᨞       ᨞    ]      Q = [       ᨞       ]
+              [        -Aₙ     I]          [           Qₙ  ]
+
+   ...so that:
+
+   .. math:: P = A⁻ᵀQ⁻¹A⁻¹
+
+   If we solve :math:`(A⁻¹)⁻¹ P` we get::
+
+                                        [P₀⁻¹                  ]
+                                        [-Q₁⁻¹A₁   Q₁⁻¹        ]
+       (A⁻¹)⁻¹ P = Q⁻¹A⁻¹,     Q⁻¹A⁻¹ = [      ᨞       ᨞       ]
+                                        [      -Qₙ⁻¹Aₙ     Qₙ⁻¹],
+
+   ...where the block diagonal of :math:`Q⁻¹A⁻¹` holds the process noise precisions :math:`Qᵢ⁻¹`
+   and the precision of the initial state :math:`P₀⁻¹`.
+
+   To get the offsets we follow a similar strategy but solve against :math:`θ`. First we write::
+
+           [P₀⁻¹μ₀ - A₁ᵀQ₁⁻¹b₁ ]   [I   -A₁ᵀ     ][P₀⁻¹             ][μ₀]
+           [Q₁⁻¹b₁ - A₂ᵀQ₂⁻¹b₂ ]   [    I   -A₂ᵀ ][     Q₁⁻¹        ][b₁]
+       θ = [⋮                  ] = [        ᨞   ᨞][         ᨞       ][⋮ ]
+           [Qₙ⁻¹bₙ             ]   [            I][             Qₙ⁻¹][bₙ].
+
+   Then we solve :math:`(A⁻ᵀ)⁻¹θ` to get::
+
+                  [P₀⁻¹             ][μ₀]
+                  [     Q₁⁻¹        ][b₁]
+       (A⁻ᵀ)⁻¹θ = [         ᨞       ][⋮ ]
+                  [             Qₙ⁻¹][bₙ].
+
+   Finally, :math:`Q(A⁻ᵀ)⁻¹θ`::
+
+       [μ₀]
+       [b₁]
+       [⋮ ] = Q(A⁻ᵀ)⁻¹θ.
+       [bₙ]
+
+   :param theta_linear: Corresponds to :math:`θ` with shape ``[..., N+1, D]``.
+   :param theta_diag: Corresponds to the block diagonal part of :math:`Θ`
+       with shape ``[..., N+1, D, D]``.
+   :param theta_subdiag: Corresponds to the lower block sub-diagonal
+       of :math:`Θ` with shape ``[..., N, D, D]``.
+   :return: A tuple containing the 5 parameters of the state space model in the following order:
+
+       * `As` corresponds to the transition matrices :math:`Aᵢ` with shape ``[..., N, D, D]``
+       * `offsets` corresponds to the state offset vectors :math:`bᵢ` with shape ``[..., N, D]``
+       * `chol_initial_covariance` corresponds to the Cholesky of :math:`P₀`
+         with shape ``[..., D, D]``
+       * `chol_process_covariances` corresponds to the Cholesky of :math:`Qᵢ`
+         with shape ``[..., N, D, D]``
+       * `initial_mean` corresponds to the mean of the initial distribution :math:`μ₀`
+         with shape ``[..., D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+
+.. py:function:: naturals_to_ssm_params_no_smoothing(theta_linear: gpflow.base.TensorType, theta_diag: gpflow.base.TensorType, theta_subdiag: gpflow.base.TensorType) -> Tuple[gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType, gpflow.base.TensorType]
+
+   Transform the natural parameters to parameters of a
+   :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+   This is similar to :func:`naturals_to_ssm_params` but in this case the natural parameters
+   do not contain information from the future (smoothing). The updates regarding the
+   smoothing have been pushed into the partition function.
+
+   We know that the natural parameters have the following form::
+
+           [-½P₀⁻¹     A₁ᵀ Q₁⁻¹                        ]
+           [Q₁⁻¹ A₁    -½Q₁⁻¹      A₂ᵀ Q₂⁻¹            ]
+       Θ = [           ᨞           ᨞           AₙᵀQₙ⁻¹ ]
+           [                       Qₙ⁻¹Aₙ      -½Qₙ⁻¹  ],
+
+           [P₀⁻¹μ₀]   [P₀⁻¹            ][μ₀]
+           [Q₁⁻¹b₁]   [     Q₁⁻¹       ][b₁]
+       θ = [⋮     ] = [         ᨞      ][⋮ ]
+           [Qₙ⁻¹bₙ]   [            Qₙ⁻¹][bₙ],
+
+   ...where:
+
+       * :math:`bᵢ`, :math:`Aᵢ` and :math:`Qᵢ` are the state offsets, transition matrices
+         and covariances of the state space model
+       * :math:`μ₀` and :math:`P₀` are the mean and covariance of the initial state
+
+   So by inverting the block diagonal of :math:`Θ` we get the process noise covariance matrices.
+   Solving the block diagonal against the sub diagonal yields the state transition matrices.
+   Solving the block diagonal of :math:`Θ` against :math:`θ` yields the state offsets and
+   the initial mean.
+
+   :param theta_linear: Corresponds to :math:`θ` with shape ``[..., N+1, D]``.
+   :param theta_diag: Corresponds to the block diagonal part of :math:`Θ`
+       with shape ``[..., N+1, D, D]``.
+   :param theta_subdiag: Corresponds to the lower block sub-diagonal of :math:`Θ`
+       with shape ``[..., N, D, D]``.
+   :return: A tuple containing the 5 parameters of the state space model in the following order:
+
+       * `As` corresponds to the transition matrices :math:`Aᵢ` with shape ``[..., N, D, D]``
+       * `offsets` corresponds to the state offset vectors :math:`bᵢ` with shape ``[..., N, D]``
+       * `chol_initial_covariance` corresponds to the Cholesky of :math:`P₀`
+         with shape ``[..., D, D]``
+       * `chol_process_covariances` corresponds to the Cholesky of :math:`Qᵢ`
+         with shape ``[..., N, D, D]``
+       * `initial_mean` corresponds to the mean of the initial distribution :math:`μ₀`
+         with shape ``[..., D]``
+
+       Note each returned object in the tuple is a :data:`~markovflow.base.TensorType`.
+
+

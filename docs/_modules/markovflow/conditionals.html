@@ -1,0 +1,655 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.conditionals &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.conditionals</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module for evaluating conditional distributions.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">default_float</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">APPROX_INF</span>
+<span class="kn">from</span> <span class="nn">markovflow.gauss_markov</span> <span class="kn">import</span> <span class="n">GaussMarkovDistribution</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_fn_decorator</span>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="conditional_predict"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals.conditional_predict">[docs]</a><span class="k">def</span> <span class="nf">conditional_predict</span><span class="p">(</span>
+    <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">training_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+    <span class="n">training_pairwise_means</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">training_pairwise_covariances</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given :math:`∀ xₜ ∈` `new_time_points`, compute the means and</span>
+<span class="sd">    covariances of the marginal densities:</span>
+
+<span class="sd">    .. math:: p(xₜ) = ∫ d[x₋, x₊] p(xₜ|x₋, x₊) q(x₋, x₊; mₜ, Sₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)</span>
+
+<span class="sd">    Or, if :math:`Sₜ` is not given, compute the conditional density:</span>
+
+<span class="sd">    .. math:: p(xₜ|[x₋, x₊] = mₜ) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)</span>
+
+<span class="sd">    .. note:: `new_time_points` and `training_time_points` must be sorted.</span>
+
+<span class="sd">    Where:</span>
+
+<span class="sd">      - :math:`p` is the density over state trajectories specified by the kernel</span>
+<span class="sd">      - :math:`∀ xₜ ∈` `new_time_points`:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            x₊ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x&gt;xₜ\}\\</span>
+<span class="sd">            x₋ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ\}</span>
+
+<span class="sd">    Details of the computation of :math:`Pₜ` and :math:`Tₜ` are found</span>
+<span class="sd">    in :func:`conditional_statistics`.</span>
+
+<span class="sd">    :param new_time_points: Sorted time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">    :param training_time_points: Sorted time points to condition on, with shape</span>
+<span class="sd">            ``batch_shape + [num_training_time_points,]``.</span>
+<span class="sd">    :param kernel: A kernel.</span>
+<span class="sd">    :param training_pairwise_means: Pairs of states to condition on, with shape</span>
+<span class="sd">            ``batch_shape + [num_training_time_points, 2 * state_dim]``.</span>
+<span class="sd">    :param training_pairwise_covariances: Covariances of the pairs of states to condition on, with</span>
+<span class="sd">            shape ``batch_shape + [num_training_time_points, 2 * state_dim, 2 * state_dim]``.</span>
+<span class="sd">    :return: Predicted mean and covariance for the new time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">_conditional_statistics</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">training_time_points</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="c1"># projection and marginalization (if Sₜ given)</span>
+    <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">pairwise_means</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">training_pairwise_means</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">training_pairwise_covariances</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pairwise_covs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">pairwise_covs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">training_pairwise_covariances</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">base_conditional_predict</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">pairwise_means</span><span class="p">,</span> <span class="n">pairwise_state_covariances</span><span class="o">=</span><span class="n">pairwise_covs</span><span class="p">)</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="conditional_statistics"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals.conditional_statistics">[docs]</a><span class="k">def</span> <span class="nf">conditional_statistics</span><span class="p">(</span>
+    <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">training_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given :math:`∀ xₜ ∈` `new_time_points`, compute the statistics :math:`Pₜ` and :math:`Tₜ`</span>
+<span class="sd">    of the conditional densities:</span>
+
+<span class="sd">    .. math:: p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">        - :math:`p` is the density over state trajectories specified by the kernel</span>
+<span class="sd">        - :math:`∀ xₜ ∈` `new_time_points`:</span>
+
+<span class="sd">          .. math::</span>
+<span class="sd">                x₊ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x&gt;xₜ \}\\</span>
+<span class="sd">                x₋ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ \}</span>
+
+<span class="sd">    .. note:: `new_time_points` and `training_time_points` must be sorted.</span>
+
+<span class="sd">    :param new_time_points: Sorted time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``.</span>
+<span class="sd">    :param training_time_points: Sorted time points to condition on, with shape</span>
+<span class="sd">            ``batch_shape + [num_training_time_points,]``.</span>
+<span class="sd">    :param kernel: A kernel.</span>
+<span class="sd">    :return: Parameters for the conditional mean and covariance, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, 2 * state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#  remove the `indices` output from `_conditional_statistics`</span>
+    <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_conditional_statistics</span><span class="p">(</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">training_time_points</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="_conditional_statistics_from_transitions"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals._conditional_statistics_from_transitions">[docs]</a><span class="k">def</span> <span class="nf">_conditional_statistics_from_transitions</span><span class="p">(</span>
+    <span class="n">state_transitions_to_t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">process_covariances_to_t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">state_transitions_from_t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">process_covariances_from_t</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">return_precision</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Implementation details:</span>
+<span class="sd">        Given consecutive time differences Δ₁ = t - t₋ and Δ₂ = t₊ - t</span>
+<span class="sd">        of ordered triplets t₋ &lt; t &lt; t₊, we denote their values as</span>
+<span class="sd">        x₋, xₜ, x₊ and their conditional distributions as</span>
+<span class="sd">        p(x₊ | xₜ) = 𝓝(x₊; Aₜ₊xₜ, Qₜ₊)    where     [Aₜ₊ == A_tp, Qₜ₊ == Q_tp]</span>
+<span class="sd">        p(xₜ | x₋) = 𝓝(xₜ; A₋ₜx₋, Q₋ₜ)    where     [A₋ₜ == A_mt, Q₋ₜ == Q_mt]</span>
+
+<span class="sd">        This computes Dₜ, Eₜ, Tₜ (or Tₜ⁻¹) such that</span>
+<span class="sd">        p(xₜ | x₋, x₊) = 𝓝(xₜ; Dₜ @ x₋ + Eₜ @ x₊, Tₜ)</span>
+
+<span class="sd">        p(x₊|xₜ, x₋) = p(x₊|xₜ) = 𝓝(Aₜ₊xₜ, Qₜₚ)</span>
+<span class="sd">        p(xₜ|x₋) = 𝓝(A₋ₜx₋, Q₋ₜ)</span>
+<span class="sd">        p(x₊| x₋) = 𝓝(A₋₊x₋, Q₋₊ = Qₜ₊ + Aₜ₊Q₋ₜAₜ₊ᵀ)</span>
+
+<span class="sd">        p([xₜ, x₊]| x₋) = p(x₊| xₜ)p(xₜ|x₋)</span>
+<span class="sd">                      = 𝓝([A₋ₜx₋, A₋₊x₋]ᵀ, [[ Q₋ₜ, Q₋ₜAₜ₊ᵀ],</span>
+<span class="sd">                                             [ Aₜ₊Q₋ₜ, Q₋₊ ]]</span>
+
+<span class="sd">        Given this joint distribution we can obtain the mean and covariance of the</span>
+<span class="sd">        conditional distribution of</span>
+<span class="sd">        p(xₜ|[x₋, x₊]) = 𝓝(xₜ; A₋ₜx₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹(x₊ - A₋₊x₋), Q₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹Aₜ₊Q₋ₜ)</span>
+<span class="sd">                       = 𝓝(xₜ; (A₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹A₋₊)x₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹x₊,</span>
+<span class="sd">                                (Q₋ₜ⁻¹ + Aₜ₊ᵀQₜ₊⁻¹Aₜ₊)⁻¹)</span>
+
+<span class="sd">    :param state_transitions_to_t: the state transitions from t₋ to t - A₋ₜ</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">    :param process_covariances_to_t: the process covariances from t₋ to t - Q₋ₜ</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">    :param state_transitions_from_t: the state transitions from t to t₊ - A₋ₜ</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">    :param process_covariances_from_t: the process covariances from t to t₊ - Qₜ₊</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">    :param return_precision: bool, defaults to False.</span>
+<span class="sd">            if True (resp. False), conditional precision (resp. covariance) is returned</span>
+<span class="sd">    :return: parameters for the conditional mean and covariance</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">A_tp_Q_mt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_transitions_from_t</span><span class="p">,</span> <span class="n">process_covariances_to_t</span><span class="p">)</span>
+    <span class="n">Q_mt</span> <span class="o">=</span> <span class="n">process_covariances_from_t</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+        <span class="n">state_transitions_from_t</span><span class="p">,</span> <span class="n">A_tp_Q_mt</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">chol_Q_mt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">Q_mt</span><span class="p">)</span>  <span class="c1"># L</span>
+
+    <span class="c1"># V = L⁻¹ Aₜ₊Q₋ₜ</span>
+    <span class="n">L_inv_A_tp_Q_mt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span>
+        <span class="n">chol_Q_mt</span><span class="p">,</span> <span class="n">state_transitions_from_t</span> <span class="o">@</span> <span class="n">process_covariances_to_t</span>
+    <span class="p">)</span>
+
+    <span class="c1"># E = Q₋ₜAₜ₊ᵀQ₋₊⁻¹</span>
+    <span class="n">E</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span><span class="n">chol_Q_mt</span><span class="p">,</span> <span class="n">L_inv_A_tp_Q_mt</span><span class="p">,</span> <span class="n">adjoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">state_transitions_to_t</span> <span class="o">-</span> <span class="n">E</span> <span class="o">@</span> <span class="n">state_transitions_from_t</span> <span class="o">@</span> <span class="n">state_transitions_to_t</span>
+
+    <span class="c1"># Return the parameters for the conditional density:</span>
+    <span class="c1">#   p(xₜ|x₋, x₊) = 𝓝(Pₙ @ [x₋, x₊], T [or T⁻¹])</span>
+    <span class="k">if</span> <span class="n">return_precision</span><span class="p">:</span>
+        <span class="n">chol_Q_mt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">process_covariances_to_t</span><span class="p">)</span>
+        <span class="n">chol_Q_tp</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">process_covariances_from_t</span><span class="p">)</span>
+        <span class="n">state_dim</span> <span class="o">=</span> <span class="n">state_transitions_to_t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()),</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">process_covariances_to_t</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">Q_mt_inv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">chol_Q_mt</span><span class="p">,</span> <span class="n">identities</span><span class="p">)</span>
+        <span class="n">L_tp_inv_A_tp</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">triangular_solve</span><span class="p">(</span><span class="n">chol_Q_tp</span><span class="p">,</span> <span class="n">state_transitions_from_t</span><span class="p">)</span>
+        <span class="c1"># The conditional_precision T⁻¹ = Q₋ₜ⁻¹ + Aₜ₊ᵀQₜ₊⁻¹Aₜ₊</span>
+        <span class="n">T_inv</span> <span class="o">=</span> <span class="n">Q_mt_inv</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">L_tp_inv_A_tp</span><span class="p">,</span> <span class="n">L_tp_inv_A_tp</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">D</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">T_inv</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># The conditional_covariance T = Q₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹Aₜ₊Q₋ₜ == Q₋ₜ - Q₋ₜᵀAₜ₊ᵀL⁻ᵀL⁻¹Aₜ₊Q₋ₜ</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">process_covariances_to_t</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">L_inv_A_tp_Q_mt</span><span class="p">,</span> <span class="n">L_inv_A_tp_Q_mt</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">D</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">T</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="_conditional_statistics"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals._conditional_statistics">[docs]</a><span class="k">def</span> <span class="nf">_conditional_statistics</span><span class="p">(</span>
+    <span class="n">new_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">training_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ∀ xₜ ∈ new_time_points, computes the statistics Pₜ and Tₜ of the conditional densities:</span>
+<span class="sd">        p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)</span>
+<span class="sd">    where</span>
+<span class="sd">      - p is the density over state trajectories specified by the kernel</span>
+<span class="sd">      - ∀ xₜ ∈ new_time_points</span>
+<span class="sd">             x₊ = arg minₓ { |x-xₜ|, x ∈ training_time_point and x&gt;xₜ }</span>
+<span class="sd">             x₋ = arg minₓ { |x-xₜ|, x ∈ training_time_point and x⩽xₜ }</span>
+
+<span class="sd">    Warning: `new_time_points` and `training_time_points` must be sorted</span>
+
+<span class="sd">    :param new_time_points: sorted time points to generate observations for</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``</span>
+<span class="sd">    :param training_time_points: sorted time points to condition on</span>
+<span class="sd">            ``batch_shape + [num_training_time_points,]``</span>
+<span class="sd">    :param kernel: a Markovian Kernel</span>
+<span class="sd">    :return: parameters for the conditional mean and covariance, and the insertion indices</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, 2*state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points, state_dim, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_new_time_points,]``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">new_time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_shape</span><span class="p">)</span>
+    <span class="c1"># Indices of where the intermediate points would be inserted into the</span>
+    <span class="c1"># existing time points. This will be slow if new_time_points are not sorted.</span>
+    <span class="c1"># WARNING: tf.searchsorted will be slow if `new_time_points` are not sorted</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">training_time_points</span><span class="p">,</span> <span class="n">new_time_points</span><span class="p">)</span>
+    <span class="c1"># HACK - arbitrary far away point</span>
+    <span class="n">inf</span> <span class="o">=</span> <span class="n">APPROX_INF</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">training_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">time_points_augmented</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="n">training_time_points</span><span class="p">,</span> <span class="n">inf</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># For all intermediate_time_points calculate the time deltas from the previous time_point</span>
+    <span class="c1"># (delta_time_points_1) and to the next time_point (delta_time_points_2)</span>
+    <span class="n">inducing_plus</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">time_points_augmented</span><span class="p">,</span> <span class="n">indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+    <span class="n">inducing_minus</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">time_points_augmented</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+    <span class="n">dX_mt</span> <span class="o">=</span> <span class="n">new_time_points</span> <span class="o">-</span> <span class="n">inducing_minus</span>
+    <span class="n">dX_tp</span> <span class="o">=</span> <span class="n">inducing_plus</span> <span class="o">-</span> <span class="n">new_time_points</span>
+    <span class="n">A_mt</span><span class="p">,</span> <span class="n">Q_mt</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transition_statistics</span><span class="p">(</span><span class="n">transition_times</span><span class="o">=</span><span class="n">inducing_minus</span><span class="p">,</span> <span class="n">time_deltas</span><span class="o">=</span><span class="n">dX_mt</span><span class="p">)</span>
+    <span class="n">A_tp</span><span class="p">,</span> <span class="n">Q_tp</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transition_statistics</span><span class="p">(</span><span class="n">transition_times</span><span class="o">=</span><span class="n">new_time_points</span><span class="p">,</span> <span class="n">time_deltas</span><span class="o">=</span><span class="n">dX_tp</span><span class="p">)</span>
+    <span class="n">F</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="n">_conditional_statistics_from_transitions</span><span class="p">(</span><span class="n">A_mt</span><span class="p">,</span> <span class="n">Q_mt</span><span class="p">,</span> <span class="n">A_tp</span><span class="p">,</span> <span class="n">Q_tp</span><span class="p">)</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">F</span><span class="p">,</span> <span class="n">G</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Return the parameters for the conditional density:</span>
+    <span class="c1">#   p(xₜ|x₋, x₊) = 𝓝(Pₙ @ [x₋, x₊], T)</span>
+    <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">indices</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="cyclic_reduction_conditional_statistics"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals.cyclic_reduction_conditional_statistics">[docs]</a><span class="k">def</span> <span class="nf">cyclic_reduction_conditional_statistics</span><span class="p">(</span>
+    <span class="n">explained_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">conditioning_time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute :math:`Fₜ, Gₜ, Lₜ`. Such that:</span>
+
+<span class="sd">    .. math:: p(xᵉₜ | xᶜₜ₋₁,  xᶜₜ₊₁) = 𝓝(xᵉₜ; Fₜ @ xᶜₜ₋₁ + Gₜ @ xᶜₜ₊₁, Tₜ = (Lₜ Lₜᵀ)⁻¹ = Lₜ⁻ᵀLₜ⁻¹)</span>
+
+<span class="sd">    ...where superscripts :math:`e` and :math:`c` refer to explained and conditioning respectively.</span>
+
+<span class="sd">    .. note:: :math:`xᵉ` and :math:`xᶜ` must be sorted, such that:</span>
+
+<span class="sd">        .. math:: xᵉ₀ &lt; xᶜ₀ &lt; xᵉ₁ &lt; ...  &lt; xᵉₜ &lt; xᶜₜ &lt; xᶜₜ₊₁ &lt; xᶜₜ₊₁ &lt; ...</span>
+
+<span class="sd">        ...where :math:`len(xᵉ) = len(xᶜ)` or :math:`len(xᵉ) = len(xᶜ) + 1`.</span>
+
+<span class="sd">    This computes the conditional statistics :math:`Fₜ, Gₜ, Lₜ`, where</span>
+<span class="sd">    :math:`𝔼 xᵉ|xᶜ = - L⁻ᵀ Uᵀ xᶜ`, with::</span>
+
+<span class="sd">        Uᵀ = | F₁ᵀ                 [      |]  and  L⁻ᵀ = |L₁⁻ᵀ               |</span>
+<span class="sd">             |  G₁ᵀ, F₂ᵀ           [      |]             |   L₂⁻ᵀ            |</span>
+<span class="sd">             |     , G₂ᵀ,⋱         [      |]             |      L₃⁻ᵀ         |</span>
+<span class="sd">             |           ⋱ ⋱       [      |]             |        ⋱          |</span>
+<span class="sd">             |             ⋱ Fₙ₋₁ᵀ [      |]             |          ⋱        |</span>
+<span class="sd">             |               Gₙ₋₁ᵀ [ Fₙᵀ  |]             |            Lₙ⁻ᵀ   |</span>
+
+<span class="sd">    :math:`L` is the Cholesky factor of the conditional precision :math:`xᵉ|xᶜ`.</span>
+
+<span class="sd">    Statistics :math:`F` and :math:`G` are computed from the conditional mean projection</span>
+<span class="sd">    parameters :math:`D` and :math:`E` defined by :math:`𝔼 xᵉₙ|xᶜ = Dₙ @ xᶜₙ₋₁ + Eₙ @ xᶜₙ`.</span>
+
+<span class="sd">    Solving the system :math:`- (L⁻ᵀ Uᵀ xᶜ)ₙ = Dₙ @ xᶜₙ₋₁ + Eₙ @ xᶜₙ`,</span>
+<span class="sd">    we get :math:`Gₙ₋₁ᵀ = -Lₙᵀ Dₙ` and :math:`Fₙᵀ = -Lₙᵀ Eₙ`.</span>
+
+<span class="sd">    Details of the system::</span>
+
+<span class="sd">        -| L₁⁻ᵀF₁ᵀ xᶜ₁                     | = | E₁ xᶜ₁</span>
+<span class="sd">         | L₂⁻ᵀG₁ᵀxᶜ₁  + L₂⁻ᵀ F₂ᵀ xᶜ₂      |   | D₂ xᶜ₁ +   E₂ xᶜ₂</span>
+<span class="sd">         | L₃⁻ᵀ G₂ᵀ xᶜ₂ , L₃⁻ᵀ F₃ᵀ xᶜ₃,    |   | D₃ xᶜ₂ +   E₃ xᶜ₃</span>
+<span class="sd">         | ⋮                               |   | ⋮</span>
+<span class="sd">         | Lₙ⁻ᵀ Gₙ₋₁ᵀxᶜₙ₋₁,   Lₙ⁻ᵀ [Fₙᵀ]xᶜₙ|   | Dₙ xᶜₙ₋₁ +   [Eₙ] xᶜₙ</span>
+
+<span class="sd">    Remarks on size:</span>
+
+<span class="sd">    * When splitting :math:`x` of size :math:`n` into odd and even, you get</span>
+<span class="sd">      :math:`nᵉ = (n+1)//2` and :math:`nᶜ = n//2`</span>
+<span class="sd">    * At each level, cyclic reduction statistics have shape:</span>
+
+<span class="sd">      .. math::</span>
+<span class="sd">         &amp;- F : nᶜ\\</span>
+<span class="sd">         &amp;- G : nᵉ - 1\\</span>
+<span class="sd">         &amp;- L : nᵉ\\</span>
+
+<span class="sd">    Note that:</span>
+
+<span class="sd">        * :math:`F₀` is not defined (there is no time point below :math:`xᵉ₀`)</span>
+<span class="sd">        * The last element :math:`G` may not be defined if :math:`len(xᵉ) = len(xᶜ)`</span>
+
+<span class="sd">    :param explained_time_points: Sorted time points to generate observations for, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points_1,]``.</span>
+<span class="sd">    :param conditioning_time_points: Sorted time points to condition on, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points_2,]``.</span>
+<span class="sd">    :param kernel:  A kernel.</span>
+<span class="sd">    :return: Parameters for the conditional, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_conditioning, state_dim, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_explained - 1, state_dim, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_explained, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">delta_t1</span> <span class="o">=</span> <span class="n">explained_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">explained_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">delta_t2</span> <span class="o">=</span> <span class="n">conditioning_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">conditioning_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_non_negative</span><span class="p">(</span><span class="n">delta_t1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;explained_time_points must be sorted&quot;</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_non_negative</span><span class="p">(</span><span class="n">delta_t2</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;conditioning_time_points must be sorted&quot;</span><span class="p">)</span>
+
+    <span class="n">num_explained</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">explained_time_points</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">num_conditioning</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">conditioning_time_points</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_greater_equal</span><span class="p">(</span>
+        <span class="n">num_explained</span><span class="p">,</span>
+        <span class="n">num_conditioning</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;explained_time_points must be longer than conditioning_time_points&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_less_equal</span><span class="p">(</span>
+        <span class="n">num_explained</span> <span class="o">-</span> <span class="n">num_conditioning</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="n">message</span><span class="o">=</span><span class="s2">&quot;explained_time_points must be as long as conditioning_time_points&quot;</span>
+        <span class="s2">&quot; or 1 entry longer&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Indices of where the intermediate points would be inserted into the</span>
+    <span class="c1"># existing time points. This will be slow if new_time_points are not sorted.</span>
+    <span class="c1"># HACK - arbitrary far away point</span>
+    <span class="n">inf</span> <span class="o">=</span> <span class="n">APPROX_INF</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">conditioning_time_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">time_points_augmented</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="n">conditioning_time_points</span><span class="p">,</span> <span class="n">inf</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># For all intermediate_time_points calculate the time deltas from the previous time_point</span>
+    <span class="c1"># (delta_time_points_1) and to the next time_point (delta_time_points_2)</span>
+
+    <span class="c1"># this will span the range -inf to either the penultimate or last time points</span>
+    <span class="n">left_conditioning_time_points</span> <span class="o">=</span> <span class="n">time_points_augmented</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">num_explained</span><span class="p">]</span>
+    <span class="n">dX_mt</span> <span class="o">=</span> <span class="n">explained_time_points</span> <span class="o">-</span> <span class="n">left_conditioning_time_points</span>
+    <span class="c1"># this will span the range from the first time point to either the last or inf</span>
+    <span class="n">right_conditioning_time_points</span> <span class="o">=</span> <span class="n">time_points_augmented</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">num_explained</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">dX_tp</span> <span class="o">=</span> <span class="n">right_conditioning_time_points</span> <span class="o">-</span> <span class="n">explained_time_points</span>
+    <span class="n">A_mt</span><span class="p">,</span> <span class="n">Q_mt</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transition_statistics</span><span class="p">(</span>
+        <span class="n">transition_times</span><span class="o">=</span><span class="n">left_conditioning_time_points</span><span class="p">,</span> <span class="n">time_deltas</span><span class="o">=</span><span class="n">dX_mt</span>
+    <span class="p">)</span>
+    <span class="n">A_tp</span><span class="p">,</span> <span class="n">Q_tp</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">transition_statistics</span><span class="p">(</span>
+        <span class="n">transition_times</span><span class="o">=</span><span class="n">explained_time_points</span><span class="p">,</span> <span class="n">time_deltas</span><span class="o">=</span><span class="n">dX_tp</span>
+    <span class="p">)</span>
+    <span class="n">D</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">T_inv</span> <span class="o">=</span> <span class="n">_conditional_statistics_from_transitions</span><span class="p">(</span>
+        <span class="n">A_mt</span><span class="p">,</span> <span class="n">Q_mt</span><span class="p">,</span> <span class="n">A_tp</span><span class="p">,</span> <span class="n">Q_tp</span><span class="p">,</span> <span class="n">return_precision</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">T_inv</span><span class="p">)</span>
+
+    <span class="c1"># Return the parameters for the cyclic reduction parameters:</span>
+    <span class="n">F</span> <span class="o">=</span> <span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">F</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">G</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">num_conditioning</span><span class="p">],</span> <span class="n">L</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="base_conditional_predict"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals.base_conditional_predict">[docs]</a><span class="k">def</span> <span class="nf">base_conditional_predict</span><span class="p">(</span>
+    <span class="n">conditional_projections</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">conditional_covariances</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">adjacent_states</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">pairwise_state_covariances</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Predict state at new time points given conditional statistics.</span>
+
+<span class="sd">    Given conditionals statistics :math:`Pₜ, Tₜ` of :math:`p(xₜ|x₋, x₊) = 𝓝(Pₜ @ [x₋, x₊], Tₜ)`</span>
+<span class="sd">    and pairwise marginals :math:`p(xₜ₋, xₜ₊) = 𝓝(mₜ, Sₜ)`,</span>
+<span class="sd">    compute marginal mean and covariance of the marginal density:</span>
+
+<span class="sd">    .. math:: p(xₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)</span>
+
+<span class="sd">    If :math:`Sₜ` is not provided, compute the conditional mean and covariance of the</span>
+<span class="sd">    conditional density:</span>
+
+<span class="sd">    .. math:: p(xₜ|[xₜ₋, xₜ₊] = mₜ) = 𝓝(Pₜ mₜ, Tₜ)</span>
+
+<span class="sd">    :param conditional_projections: :math:`Pₜ` with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim]``.</span>
+<span class="sd">    :param conditional_covariances: :math:`Tₜ` with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``.</span>
+<span class="sd">    :param adjacent_states: Pairs of states to condition on, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points, 2 * state_dim]``.</span>
+<span class="sd">    :param pairwise_state_covariances: Covariances of the pairs of states to condition on,</span>
+<span class="sd">            with shape ``batch_shape + [num_time_points, 2 * state_dim, 2 * state_dim]``.</span>
+<span class="sd">    :return: Predicted mean and covariance for the time points, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">(</span><span class="n">conditional_projections</span> <span class="o">@</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">adjacent_states</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">covs</span> <span class="o">=</span> <span class="n">conditional_covariances</span>
+    <span class="k">if</span> <span class="n">pairwise_state_covariances</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">covs</span> <span class="o">+=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span>
+            <span class="n">conditional_projections</span> <span class="o">@</span> <span class="n">pairwise_state_covariances</span><span class="p">,</span>
+            <span class="n">conditional_projections</span><span class="p">,</span>
+            <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">means</span><span class="p">,</span> <span class="n">covs</span></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="pairwise_marginals"><a class="viewcode-back" href="../../autoapi/markovflow/conditionals/index.html#markovflow.conditionals.pairwise_marginals">[docs]</a><span class="k">def</span> <span class="nf">pairwise_marginals</span><span class="p">(</span>
+    <span class="n">dist</span><span class="p">:</span> <span class="n">GaussMarkovDistribution</span><span class="p">,</span> <span class="n">initial_mean</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">initial_covariance</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    TODO(sam): figure out what the initial mean and covariance should be for non-stationary kernels</span>
+
+<span class="sd">    For each pair of subsequent states :math:`xₖ, xₖ₊₁`, return the mean and covariance of</span>
+<span class="sd">    their joint distribution. This is assuming we start from, and revert to, the prior:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;p(xₖ) = 𝓝(μₖ, Pₖ)  \verb|(we can get this from the marginals method)|\\</span>
+<span class="sd">        &amp;p(xₖ₊₁ | xₖ) = 𝓝(Aₖμₖ, Qₖ)</span>
+
+<span class="sd">    Then:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        p(xₖ₊₁, xₖ) = 𝓝([μₖ, μₖ₊₁], [Pₖ, Pₖ Aₖᵀ])\\</span>
+<span class="sd">                                     [Aₖ Pₖ, Pₖ₊₁]</span>
+
+<span class="sd">    :param dist: The distribution.</span>
+<span class="sd">    :param initial_mean:  The prior mean (used to extend the pairwise marginals</span>
+<span class="sd">        of the distribution).</span>
+<span class="sd">    :param initial_covariance: The prior covariance (used to extend the pairwise marginal of</span>
+<span class="sd">        the state space model).</span>
+<span class="sd">    :return: Mean and covariance pairs for the marginals, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_transitions + 2, state_dim]``</span>
+<span class="sd">            ``batch_shape + [num_transitions + 2, state_dim, state_dim]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">means</span><span class="p">,</span> <span class="n">covariances</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">marginals</span>
+    <span class="n">covariances</span><span class="p">,</span> <span class="n">subsequent_covariances</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">covariance_blocks</span><span class="p">()</span>
+
+    <span class="n">initial_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">initial_mean</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">extended_means</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">initial_mean</span><span class="p">,</span> <span class="n">means</span><span class="p">,</span> <span class="n">initial_mean</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">joint_mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">extended_means</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">extended_means</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">initial_covariance</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">extended_cov</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">initial_covariance</span><span class="p">,</span> <span class="n">covariances</span><span class="p">,</span> <span class="n">initial_covariance</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">extended_subsequent_cov</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">),</span>
+            <span class="n">subsequent_covariances</span><span class="p">,</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">initial_covariance</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">joint_cov_0</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">extended_cov</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">extended_subsequent_cov</span><span class="p">)],</span>
+        <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">joint_cov_1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">extended_subsequent_cov</span><span class="p">,</span> <span class="n">extended_cov</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">joint_cov</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">joint_cov_0</span><span class="p">,</span> <span class="n">joint_cov_1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">dist</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="n">dist</span><span class="o">.</span><span class="n">num_transitions</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">shape_cov</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">shape</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">joint_mean</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">joint_cov</span><span class="p">),</span> <span class="n">shape_cov</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">joint_mean</span><span class="p">,</span> <span class="n">joint_cov</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

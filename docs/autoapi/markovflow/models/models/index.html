@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.models &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.models.pep" href="../pep/index.html" />
+    <link rel="prev" title="markovflow.models.iwvi" href="../iwvi/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.models.models.MarkovFlowModel" class="nav-link">MarkovFlowModel</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowModel.loss" class="nav-link">loss</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowModel.posterior" class="nav-link">posterior</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowModel.predict_state" class="nav-link">predict_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowModel.predict_f" class="nav-link">predict_f</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel" class="nav-link">MarkovFlowSparseModel</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel.loss" class="nav-link">loss</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel.posterior" class="nav-link">posterior</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel.predict_state" class="nav-link">predict_state</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel.predict_f" class="nav-link">predict_f</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.models.MarkovFlowSparseModel.predict_log_density" class="nav-link">predict_log_density</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.models.models">
+<span id="markovflow-models-models"></span><h1><a class="reference internal" href="#module-markovflow.models.models" title="markovflow.models.models"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.models.models</span></code></a><a class="headerlink" href="#module-markovflow.models.models" title="Permalink to this headline">¶</a></h1>
+<p>Module containing base classes for models.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Markovflow models are intended to work with eager mode in TensorFlow. Therefore
+models (and their collaborating objects) should typically avoid performing any
+computation in their <code class="xref any docutils literal notranslate"><span class="pre">__init__</span></code> methods. Because models and other objects are typically
+initialised outside of an optimisation loop, performing computation in the constructor
+means that this computation is performed ‘too early’, and optimisation is not possible.</p>
+</div>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.models.models.MarkovFlowModel">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">MarkovFlowModel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class representing Markovflow models that depend on input data.</p>
+<p>All Markovflow models are <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorFlow</span> <span class="pre">Modules</span></code></a>, so it is possible to obtain
+trainable variables via the <code class="xref py py-attr docutils literal notranslate"><span class="pre">trainable_variables</span></code> attribute. You can combine this with
+the <a class="reference internal" href="#markovflow.models.models.MarkovFlowModel.loss" title="markovflow.models.models.MarkovFlowModel.loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loss()</span></code></a> method to train the model. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">optimization_step</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Call the <a class="reference internal" href="#markovflow.models.models.MarkovFlowModel.predict_f" title="markovflow.models.models.MarkovFlowModel.predict_f"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_f()</span></code></a> method to predict marginal function values at future time points.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mean</span><span class="p">,</span> <span class="n">variance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">validation_data_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Markovflow models that extend this class must implement the <a class="reference internal" href="#markovflow.models.models.MarkovFlowModel.loss" title="markovflow.models.models.MarkovFlowModel.loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loss()</span></code></a>
+method and <a class="reference internal" href="#markovflow.models.models.MarkovFlowModel.posterior" title="markovflow.models.models.MarkovFlowModel.posterior"><code class="xref py py-attr docutils literal notranslate"><span class="pre">posterior</span></code></a> attribute.</p>
+</div>
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowModel.loss">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">loss</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowModel.loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowModel.loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the loss, which you can use to train the model.
+It should always return a scalar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowModel.posterior">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">posterior</span></code> &#x2192; <a class="reference internal" href="../../posterior/index.html#markovflow.posterior.PosteriorProcess" title="markovflow.posterior.PosteriorProcess"><span class="pre">markovflow.posterior.PosteriorProcess</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowModel.posterior"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowModel.posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a posterior process from the model, which can be used for inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowModel.predict_state">
+<code class="sig-name descname"><span class="pre">predict_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowModel.predict_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowModel.predict_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict state at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowModel.predict_f">
+<code class="sig-name descname"><span class="pre">predict_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowModel.predict_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowModel.predict_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict marginal function values at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these
+time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code> and either
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim,</span> <span class="pre">output_dim]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="markovflow.models.models.MarkovFlowSparseModel">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">MarkovFlowSparseModel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class representing Markovflow models that do not need to store the training
+data (<span class="math notranslate nohighlight">\(X, Y\)</span>) in the model to approximate the
+posterior predictions <span class="math notranslate nohighlight">\(p(f*|X, Y, x*)\)</span>.</p>
+<p>This currently applies only to sparse variational models.</p>
+<p>The <code class="xref any docutils literal notranslate"><span class="pre">optimization_step</span></code> method should typically be used to train the model. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">time_points</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">observations</span><span class="p">))</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">compat</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iterations</span><span class="p">):</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">optimization_step</span><span class="p">(</span><span class="n">input_data</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Call the <a class="reference internal" href="#markovflow.models.models.MarkovFlowSparseModel.predict_f" title="markovflow.models.models.MarkovFlowSparseModel.predict_f"><code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_f()</span></code></a> method to predict marginal function values at future time points.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mean</span><span class="p">,</span> <span class="n">variance</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">validation_data_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Markovflow models that extend this class must implement the <a class="reference internal" href="#markovflow.models.models.MarkovFlowSparseModel.loss" title="markovflow.models.models.MarkovFlowSparseModel.loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">loss()</span></code></a>
+method and <a class="reference internal" href="#markovflow.models.models.MarkovFlowSparseModel.posterior" title="markovflow.models.models.MarkovFlowSparseModel.posterior"><code class="xref py py-attr docutils literal notranslate"><span class="pre">posterior</span></code></a> attribute.</p>
+</div>
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowSparseModel.loss">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">loss</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel.loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel.loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain the loss, which can be used to train the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data at which
+to calculate the loss for training the model:</p>
+<ul class="simple">
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowSparseModel.posterior">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">posterior</span></code> &#x2192; <a class="reference internal" href="../../posterior/index.html#markovflow.posterior.PosteriorProcess" title="markovflow.posterior.PosteriorProcess"><span class="pre">markovflow.posterior.PosteriorProcess</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel.posterior"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel.posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtain a posterior process from the model, which can be used for inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.10)"><strong>NotImplementedError</strong></a> – Must be implemented in derived classes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowSparseModel.predict_state">
+<code class="sig-name descname"><span class="pre">predict_state</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel.predict_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel.predict_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict state at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowSparseModel.predict_f">
+<code class="sig-name descname"><span class="pre">predict_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel.predict_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel.predict_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict marginal function values at <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>. Note these
+time points should be sorted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points]</span></code>.</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<code class="xref any docutils literal notranslate"><span class="pre">FalseF</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code> and either
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim,</span> <span class="pre">output_dim]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">output_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.models.MarkovFlowSparseModel.predict_log_density">
+<code class="sig-name descname"><span class="pre">predict_log_density</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_output_cov</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/models.html#MarkovFlowSparseModel.predict_log_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.models.MarkovFlowSparseModel.predict_log_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the log density of the data. That is:</p>
+<div class="math notranslate nohighlight">
+\[log ∫ p(yᵢ=Yᵢ|Fᵢ)q(Fᵢ) dFᵢ\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data at which
+to calculate the loss for training the model:</p>
+<ul>
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p></li>
+<li><p><strong>full_output_cov</strong> – Either full output covariance (<a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">True</span></code></a>) or marginal
+variances (<a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.10)"><code class="xref any docutils literal notranslate"><span class="pre">False</span></code></a>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted log density at input time points, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

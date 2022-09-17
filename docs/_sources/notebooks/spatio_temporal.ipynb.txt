@@ -1,0 +1,192 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d0cc565b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "from gpflow import set_trainable\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from gpflow.kernels import RBF\n",
+    "from gpflow.likelihoods import Gaussian\n",
+    "from matplotlib import pyplot as plt\n",
+    "from markovflow.kernels import Matern32\n",
+    "from markovflow.models import SpatioTemporalSparseCVI\n",
+    "from markovflow.ssm_natgrad import SSMNaturalGradient\n",
+    "\n",
+    "np.random.seed(10)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f2d31287",
+   "metadata": {},
+   "source": [
+    "Declaring the model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4fbcb16c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "M_time = 7\n",
+    "M_space = 7\n",
+    "T = 5.0\n",
+    "\n",
+    "kernel_space = RBF(variance=1.0, lengthscales=0.5)\n",
+    "kernel_time = Matern32(variance=1.0, lengthscale=T / 2.0)\n",
+    "likelihood = Gaussian(variance=0.1)\n",
+    "\n",
+    "inducing_space = np.linspace(0.1, 0.9, M_space).reshape(-1, 1)\n",
+    "inducing_time = np.linspace(0, T, M_time).reshape(-1,)\n",
+    "\n",
+    "model = SpatioTemporalSparseCVI(\n",
+    "    inducing_time=tf.identity(inducing_time),\n",
+    "    inducing_space=tf.identity(inducing_space),\n",
+    "    kernel_space=kernel_space,\n",
+    "    kernel_time=kernel_time,\n",
+    "    likelihood=likelihood,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "49445549",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Creating data\n",
+    "num_data = 500\n",
+    "std_noise = 0.5\n",
+    "time_points = np.random.uniform(0, T, num_data).reshape(-1, 1)\n",
+    "space_points = np.random.rand(num_data, 1)\n",
+    "X = np.concatenate([space_points, time_points], -1)\n",
+    "f = lambda v: np.cos(5.0 * (v[..., 1:] + v[..., :1]))\n",
+    "F = f(X)\n",
+    "Y = F + np.random.randn(num_data, 1) * std_noise\n",
+    "data = (X, Y)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bee3c3d9",
+   "metadata": {},
+   "source": [
+    "Creating a plotting grid and plotting function"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "46e94620",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x_grid, t_grid = np.meshgrid(np.linspace(0, 1, 50), np.linspace(0, T, 50))\n",
+    "X_grid = np.concatenate([x_grid.reshape(-1, 1), t_grid.reshape(-1, 1)], axis=-1)\n",
+    "\n",
+    "\n",
+    "def plot_model(model):\n",
+    "    mu_f, var_f = model.space_time_predict_f(X_grid)\n",
+    "    fig, axarr = plt.subplots(2, 1)\n",
+    "    axarr[0].scatter(x=time_points, y=space_points, c=Y)\n",
+    "    axarr[1].scatter(x=X_grid[..., 1:], y=X_grid[..., :1], c=mu_f.numpy())\n",
+    "\n",
+    "    axarr[1].hlines(\n",
+    "        model.inducing_space, xmin=time_points.min(), xmax=time_points.max(), colors=\"r\"\n",
+    "    )\n",
+    "    axarr[1].vlines(\n",
+    "        model.inducing_time, ymin=space_points.min(), ymax=space_points.max(), colors=\"k\"\n",
+    "    )\n",
+    "\n",
+    "    plt.savefig(\"spatio_temporal.png\", dpi=300)\n",
+    "    plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c99c78b6",
+   "metadata": {},
+   "source": [
+    "Training"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6b6a4b64",
+   "metadata": {
+    "lines_to_next_cell": 1
+   },
+   "outputs": [],
+   "source": [
+    "# Start at a small learning rate\n",
+    "adam_learning_rate = 0.05\n",
+    "natgrad_learning_rate = 0.5\n",
+    "\n",
+    "adam_opt = tf.optimizers.Adam(learning_rate=adam_learning_rate)\n",
+    "natgrad_opt = SSMNaturalGradient(gamma=natgrad_learning_rate, momentum=False)\n",
+    "\n",
+    "set_trainable(model.nat2, False)\n",
+    "set_trainable(model.nat1, False)\n",
+    "\n",
+    "adam_var_list = model.kernel.trainable_variables  # trainable_variables\n",
+    "print(adam_var_list)\n",
+    "set_trainable(model.nat2, True)\n",
+    "set_trainable(model.nat1, True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "48112649",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@tf.function\n",
+    "def loss(input_data):\n",
+    "    return model.loss(input_data)\n",
+    "\n",
+    "\n",
+    "@tf.function\n",
+    "def opt_step(input_data):\n",
+    "    model.update_sites(input_data)\n",
+    "    adam_opt.minimize(lambda: loss(input_data), adam_var_list)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "80888177",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "max_iter = ci_niter(500)\n",
+    "\n",
+    "for i in range(max_iter):\n",
+    "    opt_step(data)\n",
+    "    if i % 20 == 0:\n",
+    "        plot_model(model)\n",
+    "        print(model.kernel.kernel_time.lengthscale)\n",
+    "        print(\"Iteration:\", i, \", Loss:\", model.loss(data).numpy())"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_metadata_filter": "-all",
+   "main_language": "python",
+   "notebook_metadata_filter": "-all"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

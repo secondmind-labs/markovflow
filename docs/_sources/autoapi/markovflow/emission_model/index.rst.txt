@@ -1,0 +1,259 @@
+:py:mod:`markovflow.emission_model`
+===================================
+
+.. py:module:: markovflow.emission_model
+
+.. autoapi-nested-parse::
+
+   Module containing emission models for projection.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: EmissionModel(emission_matrix: tensorflow.Tensor)
+
+   Takes output from :class:`~markovflow.state_space_model.StateSpaceModel` methods and
+   linearly projects it into a space of dimension :math:`m` (`output_dim`):
+
+   .. math::
+       &fₖ = Hₖ xₖ\\
+       &x ∈ ℝ^d\\
+       &f ∈ ℝ^m\\
+       &H ∈ ℝ^{m × d}
+
+   This class provides methods for projecting states or covariances, sampling and calculating the
+   marginals.
+
+   :param emission_matrix: The emission matrix that projects at each time point from the
+       :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+       ``batch_dim + [num_data, output_dim, state_dim]``.
+
+   .. py:method:: batch_shape() -> tensorflow.TensorShape
+      :property:
+
+      Return the shape of any leading dimension in the emission matrix that comes before
+      the last three.
+
+
+   .. py:method:: num_data() -> tensorflow.Tensor
+      :property:
+
+      Return the number of time points that the emission matrix is applied to.
+
+
+   .. py:method:: output_dim() -> int
+      :property:
+
+      Return the dimension of the output after the emission matrix is applied.
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the :class:`~markovflow.state_space_model.StateSpaceModel`
+      we emit from.
+
+
+   .. py:method:: emission_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the emission matrix.
+
+      :return: A tensor for the emission matrix, with shape
+          ``batch_dim + [num_data, output_dim, state_dim]``.
+
+
+   .. py:method:: project_state_marginals_to_f(means: tensorflow.Tensor, covariances: tensorflow.Tensor, full_output_cov: bool = False) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Project the marginal mean and covariance of states to get means and (co)variance
+      of :math:`f`.
+
+      :param means: A tensor of means with shape
+                  ``batch_shape + [num_data, state_dim]``.
+      :param covariances: A tensor of covariances with shape
+                  ``batch_shape + [num_data, state_dim, state_dim]``.
+      :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).
+      :return: The means and covariances with respective shapes
+          ``batch_shape + [num_data, output_dim]``,
+          and either ``batch_shape + [num_data, output_dim, output_dim]``
+          or ``batch_shape + [num_data, output_dim]``.
+
+
+   .. py:method:: project_state_to_f(state: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Project a state to :math:`f` by multiplying by :math:`H`.
+
+      :param state: A tensor with shape ``batch_shape + [num_data, state_dim]``.
+      :return: A tensor with shape ``batch_shape + [num_data, output_dim]``.
+
+
+   .. py:method:: project_state_covariance_to_f(covariance: tensorflow.Tensor, full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Project a state covariance :math:`S` to an :math:`f` covariance by calculating
+      :math:`HSHᵀ` (or its diagonal).
+
+      :param covariance: A tensor with shape
+                  ``batch_shape + [num_data, state_dim, state_dim]``.
+      :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).
+      :return: A tensor either with shape ``batch_shape + [num_data, output_dim, output_dim]``
+              or ``batch_shape + [num_data, output_dim]``.
+
+
+
+.. py:class:: ComposedPairEmissionModel(outer_emission_model: EmissionModel, inner_emission_model: EmissionModel)
+
+   Bases: :py:obj:`EmissionModel`
+
+   Linear projection for use with kernels that have an intermediate projection. That is,
+   there exists a projection from the state space to an intermediate space, and from that space to
+   the observation space:
+
+   .. math::
+       &fₖ = Hₒₖ gₖ = Hₒₖ Hₗ xₖ = Hₖ xₖ\\
+       &gₖ = Hₗ xₖ\\
+       &x ∈ ℝ^d\\
+       &g ∈ ℝ^l \verb|, the inner space|\\
+       &f ∈ ℝ^m \verb|, the outer space|\\
+       &H ∈ ℝ^{m × d}\\
+       &Hₒ ∈ ℝ^{m × l}\\
+       &Hₗ ∈ ℝ^{l × d}
+
+   This class provides methods for projecting states or covariances, sampling and calculating the
+   marginals, from state space to both the observation and intermediate space.
+
+   :param outer_emission_model: The emission model for projecting from the intermediate
+       space to the observation space.
+   :param inner_emission_model: The emission model for projecting from state space to the
+           intermediate space.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the
+      :class:`~markovflow.state_space_model.StateSpaceModel` we emit from.
+
+
+   .. py:method:: inner_dim() -> int
+      :property:
+
+      Return the output dimension of the inner emission model.
+
+
+   .. py:method:: inner_emission_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the emission matrix used for projecting from the state space
+      to the intermediate space.
+
+      :return: A tensor for the emission matrix, with shape
+          ``batch_dim + [num_data, inner_dim, state_dim]``.
+
+
+   .. py:method:: project_state_marginals_to_g(means: tensorflow.Tensor, covariances: tensorflow.Tensor, full_output_cov: bool = True) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Project the marginal mean and covariance of states to get means for :math:`g`.
+
+      :param means: A tensor of means with shape
+                  ``batch_shape + [num_data, state_dim]``.
+      :param covariances: A tensor of covariances with shape
+                  ``batch_shape + [num_data, state_dim, state_dim]``.
+      :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).
+      :return: The means and covariances with respective shapes
+              ``batch_shape + [num_data, inner_dim]``,
+              and either ``batch_shape + [num_data, inner_dim, inner_dim]``
+              or ``batch_shape + [num_data, inner_dim]``.
+
+
+   .. py:method:: project_state_to_g(state: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Project a state to :math:`g` by multiplying by the inner emission matrix.
+
+      :param state: A tensor with shape
+                  ``batch_shape + [num_data, state_dim]``.
+      :return: A tensor with shape
+                  ``batch_shape + [num_data, inner_dim]``.
+
+
+   .. py:method:: project_state_covariance_to_g(covariance: tensorflow.Tensor, full_output_cov: bool = True) -> tensorflow.Tensor
+
+      Project a state covariance :math:`S` to a :math:`g` covariance by
+      calculating :math:`HSHᵀ` with the inner :math:`H`.
+
+      :param covariance: A tensor with shape
+                  ``batch_shape + [num_data, state_dim, state_dim]``.
+      :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).
+      :return: A tensor either with shape
+              ``batch_shape + [num_data, inner_dim, inner_dim]``
+              or ``batch_shape + [num_data, inner_dim]``.
+
+
+
+.. py:class:: StackEmissionModel(emission_matrix: tensorflow.Tensor)
+
+   Bases: :py:obj:`EmissionModel`
+
+   Linear projection for use with a :class:`~markovflow.kernels.sde_kernel.StackKernel`, where we
+   implicitly assume that we have parallel independent SDEs that model each one of the output
+   dimensions.
+
+   In such a scenario we assume that the :math:`m` (`output_dim`) independent SDEs can be broadcast
+   together so the `output_dim` is part of the `batch_shape` (last dim in the `batch_shape`).
+
+   So the emission matrix that defines the `StackEmissionModel` has the following shape:
+
+   ``batch_shape + [num_data, 1, state_dim]``
+
+   ...where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``.
+   The singleton pre-last dimension is for the individual `output_dim` of each kernel.
+   Remember that each kernel explicitly models one of the output dimensions.
+
+   We effectively run :math:`m` (`output_dim`) independent SDEs as follows:
+
+   .. math::
+       &fₖ⁽ᵐ⁾ = Hₖ⁽ᵐ⁾ xₖ⁽ᵐ⁾\\
+       &x⁽ᵐ⁾ ∈ ℝᵈ\\
+       &f⁽ᵐ⁾∈ ℝ\\
+       &H⁽ᵐ⁾ ∈ ℝ^{1 × d}
+
+   This class provides methods for projecting states or covariances and calculating the marginals
+   from the state space to the observation space. It is acting as the base :class:`EmissionModel`
+   class with an extra transposition in the end to make sure that the `output_dim` gets moved from
+   the `batch_shape` to the last dim of the projected matrices.
+
+   :param emission_matrix: The emission matrix that projects from the
+       :class:`~markovflow.state_space_model.StateSpaceModel`, with shape
+       ``batch_shape + [num_data, 1, state_dim]`` where ``batch_shape = (..., num_kernels)``.
+
+   .. py:method:: output_dim() -> int
+      :property:
+
+      Return the dimension of the output after the emission matrix is applied.
+
+
+   .. py:method:: project_state_to_f(state: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Project each of the `num_kernel` states :math:`s` to :math:`f` by multiplying by
+      the corresponding :math:`H`.
+
+      :param state: A tensor with shape ``batch_shape + [num_data, state_dim]``
+          where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``.
+      :return: A tensor with shape ``batch_shape[:-1] + [num_data, output_dim]``.
+
+
+   .. py:method:: project_state_covariance_to_f(covariance: tensorflow.Tensor, full_output_cov: bool = False) -> tensorflow.Tensor
+
+      Project a state covariance :math:`S` to an :math:`f` covariance by calculating
+      :math:`HSHᵀ` (or its diagonal). If it is called with `full_output_cov=True` it will return
+      the same as `full_output_cov=False` but in a compatible (diagonal) shape.
+
+      :param covariance: A tensor with shape ``batch_shape + [num_data, state_dim, state_dim]``
+          where ``batch_shape = (..., num_kernels)`` and ``num_kernels = output_dim``
+      :param full_output_cov: Full output covariance (`True`) or marginal variances (`False`).
+      :return: A tensor either with shape
+          ``batch_shape[:-1] + [num_data, output_dim, output_dim]``
+          or ``batch_shape[:-1] + [num_data, output_dim]``.
+
+
+

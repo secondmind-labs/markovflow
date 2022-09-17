@@ -1,0 +1,121 @@
+:py:mod:`markovflow.utils`
+==========================
+
+.. py:module:: markovflow.utils
+
+.. autoapi-nested-parse::
+
+   Module containing utility functions.
+
+
+
+Module Contents
+---------------
+
+.. py:function:: tf_scope_fn_decorator(fn)
+
+   Decorator to wrap the function call in a name_scope
+   of the form ".{name of function}".
+
+   The prefix `.` is required because names_scopes cannot be prefixed with `_`.
+
+   Without this some function names (such as private functions) would raise an error.
+
+
+.. py:function:: tf_scope_class_decorator(cls)
+
+   Decorator to wrap all the methods in a class in a name_scope
+   of the form "{name of class}.{name of method}".
+
+   Do not decorate the top level; TensorBoard renders badly if there is only one block.
+
+
+.. py:function:: block_diag(matrices: List[tensorflow.Tensor]) -> tensorflow.Tensor
+
+   Construct block diagonal matrices from a list of batched 2D tensors.
+
+   :param matrices: A list of tensors with shape ``[..., Nᵢ, Mᵢ]``. That is, a list of
+       matrices with the same batch dimension.
+   :return: A matrix with the input matrices stacked along its main diagonal, with
+       shape ``[..., ∑ᵢ,Nᵢ, ∑ᵢ,Mᵢ]``.
+
+
+.. py:function:: to_delta_time(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+   Convert a tensor of time points to differences between the times. This function returns:
+
+   .. math:: Δtₖ = tₖ₊₁ -  tₖ
+
+   Time points must be a strictly increasing vector, for example:
+
+   .. math:: tₖ₊₁ >  tₖ, so Δtₖ > 0
+
+   :param time_points: A tensor :math:`tₖ` with shape ``[..., a]``.
+   :return: A tensor :math:`Δtₖ` with shape ``[..., a - 1]``.
+   :raises InvalidArgumentError: Raises if :math:`Δtₖ ≤ 0`.
+
+
+.. py:function:: kronecker_product(matrices: List[tensorflow.Tensor]) -> tensorflow.Tensor
+
+   Return the tensor representing the Kronecker product of the argument matrices.
+
+   :param matrices: The list of matrices to compute the Kronecker product from.
+   :return: The Kronecker product tensor.
+
+
+.. py:function:: augment_square_matrix(matrix: tensorflow.Tensor, extra_dim: int, fill_zeros: bool = False) -> tensorflow.Tensor
+
+   Augment a square matrix to match `state_dim + extra_dim`, where
+   `state_dim` is the dimensionality of the inner square matrix of matrix.
+
+   Effectively it creates a block diagonal by padding (if necessary) with an identity or zeros:
+
+   .. math:: matrix -> [[matrix, 0s], [0s, (I or 0s)]]
+
+   :param matrix: A tensor with shape ``[..., state_dim, state_dim]``.
+   :param extra_dim: The extra dimension we want to augment it with. If `extra_dim` is :math:`0`,
+       the matrix remains unaltered.
+   :param fill_zeros: Whether to fill with zeros or identity.
+   :return: A tensor with shape ``[..., max_dim, max_dim]``,
+       where `max_dim = state_dim + extra_dim`.
+
+
+.. py:function:: augment_matrix(matrix: tensorflow.Tensor, extra_dim: int) -> tensorflow.Tensor
+
+   Augment a non-square matrix so that the last dimension becomes
+   `state_dim + extra_dim`, where `state_dim` is the size of the last dimension of the matrix.
+
+   Effectively it expands the matrix (if necessary) with zeros in the last dimension
+   to match `max_dim = state_dim + extra_dim`. In other words:
+
+   .. math:: matrix -> [matrix, 0s]
+
+   :param matrix: A tensor with shape ``[..., state_dim]``.
+   :param extra_dim: The extra dimension we want to augment it with. If `extra_dim` is :math:`0`
+       the matrix remains unaltered.
+   :return: A tensor with shape ``[..., max_dim]``, where `max_dim = state_dim + extra_dim`.
+
+
+.. py:function:: batch_base_conditional(Kmn: tensorflow.Tensor, Kmm: tensorflow.Tensor, Knn: tensorflow.Tensor, f: tensorflow.Tensor, *, q_sqrt: Optional[tensorflow.Tensor] = None, white=False)
+
+   Given a g1_n and g2_n, and distributions ps and qs such that
+     p_n(g2_n) = N(g2_n; 0, Kmm)  (independent of n)
+     p_n(g1_n) = N(g1; 0, knn)
+     p_n(g1_n | g2_n) = N(g1_n; knm (Kmm⁻¹) g2_n, knn - knm (Kmm⁻¹) kmn)
+
+   And
+     q_n(g2_n) = N(g2_n; f_n, q_sqrt_n q_sqrt_nᵀ)
+
+   This method computes the means and (co)variances of
+     q_n(g1_n) = ∫ q_n(g2_n) p_n(g1_n| g2_n)
+
+   :param Kmn: [M, ..., N]
+   :param Kmm: [M, M]
+   :param Knn: [..., N, N]  or  N
+   :param f: [M, N]
+   :param q_sqrt: If this is a Tensor, it must have shape [N, M, M] (lower
+       triangular) or [M, N] (diagonal)
+   :param white: bool
+   :return: [N,], [N,]
+
+

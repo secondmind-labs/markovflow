@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.likelihoods.mutlistage_likelihood &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.likelihoods.mutlistage_likelihood</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+
+<span class="sd">&quot;&quot;&quot; Module containing the MultiStageLikelihood &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">tensorflow_probability</span> <span class="k">as</span> <span class="nn">tfp</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Bernoulli</span><span class="p">,</span> <span class="n">MultiLatentLikelihood</span><span class="p">,</span> <span class="n">Poisson</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods.utils</span> <span class="kn">import</span> <span class="n">inv_probit</span>
+
+
+<div class="viewcode-block" id="MultiStageLikelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood">[docs]</a><span class="k">class</span> <span class="nc">MultiStageLikelihood</span><span class="p">(</span><span class="n">MultiLatentLikelihood</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Multistage Likelihood as described in</span>
+
+<span class="sd">    @inproceedings{seeger2016bayesian,</span>
+<span class="sd">      title={Bayesian intermittent demand forecasting for large inventories},</span>
+<span class="sd">      author={Seeger, Matthias W and Salinas, David and Flunkert, Valentin},</span>
+<span class="sd">      booktitle={Advances in Neural Information Processing Systems},</span>
+<span class="sd">      pages={4646--4654},</span>
+<span class="sd">      year={2016}</span>
+<span class="sd">    }</span>
+
+<span class="sd">    This relates scalar data y to variables F = [F0, F1, F2]</span>
+<span class="sd">    through the log-conditional density</span>
+
+<span class="sd">    log p(Y|F) = δ(Y=0) * log σ(F0)</span>
+<span class="sd">                + δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))</span>
+<span class="sd">                + δ(Y&gt;1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))</span>
+
+<span class="sd">    This can be interpreted as a decision tree</span>
+<span class="sd">          σ(F0) -&gt; Y = 0</span>
+<span class="sd">         /</span>
+<span class="sd">    root -&gt; 1-σ(F0) -&gt; 1-σ(F1) -&gt; Y ~ Poisson(λ(F2)) + 2</span>
+<span class="sd">                  \</span>
+<span class="sd">                   σ(F1) -&gt; Y = 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invlink_bernoulli</span><span class="o">=</span><span class="n">inv_probit</span><span class="p">,</span> <span class="n">invlink_poisson</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">latent_dim</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invlink_bernoulli</span> <span class="o">=</span> <span class="n">invlink_bernoulli</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invlink_poisson</span> <span class="o">=</span> <span class="n">invlink_poisson</span>
+
+<div class="viewcode-block" id="MultiStageLikelihood._split_f"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._split_f">[docs]</a>    <span class="k">def</span> <span class="nf">_split_f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Splits the input tensor F into 3 tensors along the last dimension</span>
+<span class="sd">        :param F: tensor of shape [..., 3]</span>
+<span class="sd">        :return: tuple of 3 tensors of shape [..., 1]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">F0</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">F1</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">F2</span> <span class="o">=</span> <span class="n">F</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">F0</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">F2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiStageLikelihood._log_prob"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._log_prob">[docs]</a>    <span class="k">def</span> <span class="nf">_log_prob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the log-conditional density</span>
+<span class="sd">        log p(Y|F) = δ(Y=0) * log σ(F0)</span>
+<span class="sd">                + δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))</span>
+<span class="sd">                + δ(Y&gt;1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))</span>
+
+<span class="sd">        :param F: tensor of shape [..., 3]</span>
+<span class="sd">        :param Y: tensor of shape [..., 1]</span>
+<span class="sd">        :return:  tensor of shape [...]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">F0</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">F2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_f</span><span class="p">(</span><span class="n">F</span><span class="p">)</span>
+
+        <span class="c1"># flags</span>
+        <span class="n">true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">false</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="n">bern</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_bernoulli</span><span class="p">)</span>
+        <span class="n">poisson</span> <span class="o">=</span> <span class="n">Poisson</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_poisson</span><span class="p">)</span>
+
+        <span class="n">lp0</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F0</span><span class="p">,</span> <span class="n">true</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># log σ(F0)</span>
+        <span class="n">lpn0</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F0</span><span class="p">,</span> <span class="n">false</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># log(1 - σ(F0))</span>
+        <span class="n">lp1</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F1</span><span class="p">,</span> <span class="n">true</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># log σ(F1)</span>
+        <span class="n">lpn1</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F1</span><span class="p">,</span> <span class="n">false</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># log(1 - σ(F1))</span>
+        <span class="n">lp2</span> <span class="o">=</span> <span class="n">poisson</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">F2</span><span class="p">,</span> <span class="n">Y</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># log Poisson(Y-2|λ(F2))</span>
+
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">logp</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">lp0</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">lpn0</span> <span class="o">+</span> <span class="n">lp1</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">lpn0</span> <span class="o">+</span> <span class="n">lpn1</span> <span class="o">+</span> <span class="n">lp2</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">logp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiStageLikelihood._variational_expectations"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._variational_expectations">[docs]</a>    <span class="k">def</span> <span class="nf">_variational_expectations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns E_q(F) log p(Y|F) under the factored distribution</span>
+<span class="sd">        q(F) = ∏ₖ q(Fₖ) = ∏ₖ 𝓝(Fmuₖ, Fvarₖ)</span>
+
+<span class="sd">        E_q(F) log p(Y|F) = δ(Y=0) * E_q(F0) log σ(F0)</span>
+<span class="sd">                + δ(Y=1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log σ(F1))</span>
+<span class="sd">                + δ(Y&gt;1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log(1-σ(F1))</span>
+<span class="sd">                            + E_q(F2) log Poisson(Y-2|λ(F2)))</span>
+
+<span class="sd">        :param Fmu: mean function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Fvar: variance of function evaluation Tensor, with shape [..., latent_dim]</span>
+<span class="sd">        :param Y: observation Tensor, with shape [..., observation_dim]:</span>
+<span class="sd">        :returns: variational expectations, with shape [...]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Fmu0</span><span class="p">,</span> <span class="n">Fmu1</span><span class="p">,</span> <span class="n">Fmu2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_f</span><span class="p">(</span><span class="n">Fmu</span><span class="p">)</span>
+        <span class="n">Fvar0</span><span class="p">,</span> <span class="n">Fvar1</span><span class="p">,</span> <span class="n">Fvar2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_f</span><span class="p">(</span><span class="n">Fvar</span><span class="p">)</span>
+
+        <span class="c1"># flags</span>
+        <span class="n">true</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="n">false</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+
+        <span class="n">bern</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_bernoulli</span><span class="p">)</span>
+        <span class="n">poisson</span> <span class="o">=</span> <span class="n">Poisson</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_poisson</span><span class="p">)</span>
+
+        <span class="n">ve0</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu0</span><span class="p">,</span> <span class="n">Fvar0</span><span class="p">,</span> <span class="n">true</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># E_q(F0) log σ(F0)</span>
+        <span class="n">ven0</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu0</span><span class="p">,</span> <span class="n">Fvar0</span><span class="p">,</span> <span class="n">false</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># E_q(F0) log(1 - σ(F0))</span>
+        <span class="n">ve1</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu1</span><span class="p">,</span> <span class="n">Fvar1</span><span class="p">,</span> <span class="n">true</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># E_q(F1) log σ(F1)</span>
+        <span class="n">ven1</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu1</span><span class="p">,</span> <span class="n">Fvar1</span><span class="p">,</span> <span class="n">false</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># E_q(F1) log(1 - σ(F1))</span>
+        <span class="c1"># E_q(F2) log Poisson(Y-2|λ(F2))</span>
+        <span class="n">ve2</span> <span class="o">=</span> <span class="n">poisson</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu2</span><span class="p">,</span> <span class="n">Fvar2</span><span class="p">,</span> <span class="n">Y</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">ve0</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ven0</span> <span class="o">+</span> <span class="n">ve1</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">ven0</span> <span class="o">+</span> <span class="n">ven1</span> <span class="o">+</span> <span class="n">ve2</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="MultiStageLikelihood._predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">_predict_log_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="MultiStageLikelihood._predict_mean_and_var"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_mean_and_var">[docs]</a>    <span class="k">def</span> <span class="nf">_predict_mean_and_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="MultiStageLikelihood.sample_y"><a class="viewcode-back" href="../../../autoapi/markovflow/likelihoods/mutlistage_likelihood/index.html#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood.sample_y">[docs]</a>    <span class="k">def</span> <span class="nf">sample_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F_samples</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given values of the latent processes F,</span>
+<span class="sd">        samples observations from P(Y|F)</span>
+<span class="sd">        :param F_samples: batch_shape + [3]</span>
+<span class="sd">        :return: batch_shape + [1]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">bern</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_bernoulli</span><span class="p">)</span>
+        <span class="n">poisson</span> <span class="o">=</span> <span class="n">Poisson</span><span class="p">(</span><span class="n">invlink</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">invlink_poisson</span><span class="p">)</span>
+
+        <span class="n">F0</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">F2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_f</span><span class="p">(</span><span class="n">F_samples</span><span class="p">)</span>
+
+        <span class="c1"># Calculate rates for the 3 levels</span>
+        <span class="n">bern_rate0</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">invlink</span><span class="p">(</span><span class="n">F0</span><span class="p">)</span>
+        <span class="n">bern_rate1</span> <span class="o">=</span> <span class="n">bern</span><span class="o">.</span><span class="n">invlink</span><span class="p">(</span><span class="n">F1</span><span class="p">)</span>
+        <span class="n">poiss_rate</span> <span class="o">=</span> <span class="n">poisson</span><span class="o">.</span><span class="n">invlink</span><span class="p">(</span><span class="n">F2</span><span class="p">)</span>
+
+        <span class="c1"># Sample bernoullis and poisson</span>
+        <span class="n">eta0</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Bernoulli</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="n">bern_rate0</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+        <span class="n">eta1</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Bernoulli</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="n">bern_rate1</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+        <span class="n">lmbda</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Poisson</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="n">poiss_rate</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+
+        <span class="c1"># Mask</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">F_samples</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="n">ones</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">F_samples</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">output_ones</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">eta1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">output_larger</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">eta0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">eta1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">output_ones</span><span class="p">,</span> <span class="n">ones</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">output_larger</span><span class="p">,</span> <span class="n">lmbda</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

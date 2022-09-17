@@ -1,0 +1,52 @@
+:py:mod:`markovflow.base`
+=========================
+
+.. py:module:: markovflow.base
+
+.. autoapi-nested-parse::
+
+   Module containing type aliases, attributes and helper functions.
+
+   .. autodata:: SampleShape
+
+
+
+Module Contents
+---------------
+
+.. py:function:: ordered()
+
+   A bijector to be used when parameterising inducing points so that we ensure they remain ordered.
+   TensorFlow Probability unfortunately got their naming the wrong way around, see
+   https://github.com/tensorflow/probability/issues/765 - we need to construct
+   Invert(Ordered()) to obtain a Parameter that is always ordered!
+
+   Note: when using TensorFlow Probability >= 0.12.0 this can be replaced with
+   `tfp.bijectors.Ascending`.
+
+
+.. py:data:: SampleShape
+   
+
+   A type that is either a ``Tuple``, a ``List``, or an ``int``.
+
+
+.. py:data:: APPROX_INF
+   :annotation: = 10000000000.0
+
+   Constant defining an appropriate level of approximate inference.
+
+
+.. py:data:: AUTO_NAMESCOPE
+   :annotation: = AUTO_NAMESCOPE
+
+   Name of environmental variable which if set enables a well structured TensorFlow graph for
+   tensorboard debugging. In rare cases may cause issues, and will clutter the stacktrace so off by
+   default.
+
+
+.. py:function:: auto_namescope_enabled() -> bool
+
+   Return `True` if autonamescoping is enabled. See the description of AUTO_NAMESCOPE.
+
+

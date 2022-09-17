@@ -1,0 +1,192 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "2df52935",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "# Classification using importance-weighted SGPR\n",
+    "\n",
+    "This notebook explains how to use Markovflow to build and optimise a GP classifier (in 1D of\n",
+    "course!) using importance-weighted variational inference."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e8430852",
+   "metadata": {
+    "lines_to_next_cell": 0
+   },
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from gpflow.likelihoods import Bernoulli\n",
+    "\n",
+    "from markovflow.models.iwvi import ImportanceWeightedVI\n",
+    "from markovflow.kernels import Matern32\n",
+    "\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5ce48f6b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Setup\n",
+    "learning_rate = 1e-3\n",
+    "importance_K = 10\n",
+    "\n",
+    "# toy data\n",
+    "num_data = 100\n",
+    "time_points = np.linspace(0, 10, num_data).reshape(-1,)\n",
+    "observations = np.cos(2*np.pi * time_points / 3.).reshape(-1, 1) + np.random.randn(num_data, 1) * .8\n",
+    "observations = (observations > 0).astype(float)\n",
+    "data = (tf.convert_to_tensor(time_points), tf.convert_to_tensor(observations))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2b17dcf5",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "# model setup\n",
+    "num_inducing = 20\n",
+    "inducing_points = np.linspace(-1, 11, num_inducing).reshape(-1,)\n",
+    "kernel = Matern32(lengthscale=2.0, variance=4.0)\n",
+    "likelihood = Bernoulli()\n",
+    "m = ImportanceWeightedVI(kernel=kernel,\n",
+    "                         inducing_points=tf.constant(inducing_points, dtype=tf.float64),\n",
+    "                         likelihood=likelihood,\n",
+    "                         num_importance_samples=importance_K)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "31fb22f2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# optimizer setup\n",
+    "variational_variables = m.dist_q.trainable_variables\n",
+    "hyperparam_variables = m.kernel.trainable_variables\n",
+    "adam_variational = tf.optimizers.Adam(learning_rate)\n",
+    "adam_hyper = tf.optimizers.Adam(learning_rate)\n",
+    "\n",
+    "_dregs = lambda: -m.dregs_objective(data)\n",
+    "_iwvi_elbo = lambda: -m.elbo(data)\n",
+    "\n",
+    "@tf.function\n",
+    "def step():\n",
+    "    adam_variational.minimize(_dregs, var_list=variational_variables)\n",
+    "    adam_hyper.minimize(_iwvi_elbo, var_list=hyperparam_variables)\n",
+    "\n",
+    "@tf.function\n",
+    "def elbo_eval():\n",
+    "    return m.elbo(data)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e9ab34d8",
+   "metadata": {
+    "lines_to_next_cell": 1
+   },
+   "outputs": [],
+   "source": [
+    "# a function to plot the data and model fit\n",
+    "\n",
+    "def plot(model):\n",
+    "\n",
+    "    time_grid = np.linspace(0, 10, 200).reshape(-1,)\n",
+    "\n",
+    "    num_samples = 50\n",
+    "    samples_q_s = model.posterior.proposal_process.sample_state(time_grid, num_samples)\n",
+    "    samples_iwvi = model.posterior.sample_f(time_grid, num_samples, input_data=data)\n",
+    "\n",
+    "    _, axarr = plt.subplots(2, 1, sharex=True, sharey=True)\n",
+    "    # plot data\n",
+    "    axarr[0].plot(time_points, observations, 'kx')\n",
+    "    axarr[0].set_title('proposal')\n",
+    "    axarr[0].plot(time_grid, samples_q_s[..., 0].numpy().T, alpha=.1, color='red')\n",
+    "\n",
+    "    axarr[1].plot(time_points, observations, 'kx')\n",
+    "    axarr[1].set_title('importance-weighted')\n",
+    "    axarr[1].plot(time_grid, samples_iwvi[..., 0].numpy().T, alpha=.1, color='blue')\n",
+    "    axarr[1].set_ylim(-1.5, 2.5)\n",
+    "\n",
+    "    # plot mean by numerically integrating the iwvi posterior\n",
+    "    eps = 1e-3\n",
+    "    inv_link = lambda x : eps + (1-eps) * likelihood.invlink(x)\n",
+    "    probs = m.posterior.expected_value(time_grid, data, inv_link)\n",
+    "    axarr[1].plot(time_grid, probs, color='black', lw=1.6)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7fc2afce",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot(m)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6c01913b",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# the optimisation loop\n",
+    "elbos, elbo_stds = [], []\n",
+    "max_iter = ci_niter(2000)\n",
+    "for i in range(max_iter):\n",
+    "    step()\n",
+    "    if i % 10 == 0:\n",
+    "        elbos_i = [elbo_eval().numpy() for _ in range(10)]\n",
+    "        elbos.append(np.mean(elbos_i))\n",
+    "        elbo_stds.append(np.std(elbos_i))\n",
+    "        print(i, elbos[-1], elbo_stds[-1])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "66df3378",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot(m)"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

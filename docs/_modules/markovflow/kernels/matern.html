@@ -1,0 +1,696 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kernels.matern &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.kernels.matern</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing the Matern family of kernels.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">default_float</span>
+<span class="kn">from</span> <span class="nn">gpflow.utilities</span> <span class="kn">import</span> <span class="n">positive</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.kernels.sde_kernel</span> <span class="kn">import</span> <span class="n">StationaryKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span><span class="p">,</span> <span class="n">tf_scope_fn_decorator</span>
+
+
+<div class="viewcode-block" id="Matern12"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">Matern12</span><span class="p">(</span><span class="n">StationaryKernel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the Matern1/2 kernel. This kernel has the formula:</span>
+
+<span class="sd">    .. math:: C(x, x&#39;) = σ² exp(-|x - x&#39;| / ℓ)</span>
+
+<span class="sd">    ...where lengthscale :math:`ℓ` and signal variance :math:`σ²` are kernel parameters.</span>
+
+<span class="sd">    This defines an SDE where:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;F = - 1/ℓ\\</span>
+<span class="sd">        &amp;L = 1</span>
+
+<span class="sd">    ...so that :math:`Aₖ = exp(-Δtₖ/ℓ)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lengthscale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param lengthscale: A value for the lengthscale parameter.</span>
+<span class="sd">        :param variance: A value for the variance parameter.</span>
+<span class="sd">        :param output_dim: The output dimension of the kernel.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+
+        <span class="n">_check_lengthscale_and_variance</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">variance</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lengthscale&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">variance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variance&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern12.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the state dimension of the kernel, which is always one.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Matern12.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state transition matrices kernel.</span>
+
+<span class="sd">        The state dimension is one, so the matrix exponential reduces to a standard one:</span>
+
+<span class="sd">        .. math:: Aₖ = exp(-Δtₖ/ℓ)</span>
+
+<span class="sd">        Because this is a stationary kernel, `transition_times` is ignored.</span>
+
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``. Ignored.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_rank_at_least</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;time_deltas cannot be a scalar.&quot;</span><span class="p">)</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">time_deltas</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_transitions</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern12.feedback_matrix"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.feedback_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the feedback matrix :math:`F`. This is where:</span>
+
+<span class="sd">        .. math:: dx(t)/dt = F x(t) + L w(t)</span>
+
+<span class="sd">        For this kernel, note that :math:`F = - 1 / ℓ`.</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">([[</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span><span class="p">]])</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern12.steady_state_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.steady_state_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the steady state covariance :math:`P∞`. For this kernel,</span>
+<span class="sd">        this is the variance hyperparameter.</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variance</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">)))</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern12.lengthscale"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.lengthscale">[docs]</a>    <span class="k">def</span> <span class="nf">lengthscale</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the lengthscale parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern12.variance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern12.variance">[docs]</a>    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variance parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span></div></div>
+
+
+<div class="viewcode-block" id="OrnsteinUhlenbeck"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">OrnsteinUhlenbeck</span><span class="p">(</span><span class="n">StationaryKernel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the Ornstein–Uhlenbeck kernel.</span>
+<span class="sd">    This is an alternative parameterization of the Matern1/2 kernel.</span>
+<span class="sd">    This kernel has the formula:</span>
+
+<span class="sd">    .. math:: C(x, x&#39;) = q/2λ exp(-λ|x - x&#39;|)</span>
+
+<span class="sd">    ...where decay :math:`λ` and diffusion coefficient :math:`q` are kernel parameters.</span>
+
+<span class="sd">    This defines an SDE where:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;F = - λ\\</span>
+<span class="sd">        &amp;L = q</span>
+
+<span class="sd">    ...so that :math:`Aₖ = exp(-λ Δtₖ)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">decay</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">diffusion</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param decay: A value for the decay parameter.</span>
+<span class="sd">        :param diffusion: A value for the diffusion parameter.</span>
+<span class="sd">        :param output_dim: The output dimension of the kernel.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+
+        <span class="n">_check_lengthscale_and_variance</span><span class="p">(</span><span class="n">decay</span><span class="p">,</span> <span class="n">diffusion</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_decay</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">decay</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;decay&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_diffusion</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">diffusion</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;diffusion&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="OrnsteinUhlenbeck.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the state dimension of the kernel, which is always one.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="OrnsteinUhlenbeck.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state transition matrices kernel.</span>
+
+<span class="sd">        The state dimension is one, so the matrix exponential reduces to a standard one:</span>
+
+<span class="sd">        .. math:: Aₖ = exp(-λ Δtₖ)</span>
+
+<span class="sd">        Because this is a stationary kernel, `transition_times` is ignored.</span>
+
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``. Ignored.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_rank_at_least</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;time_deltas cannot be a scalar.&quot;</span><span class="p">)</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">time_deltas</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decay</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_transitions</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="OrnsteinUhlenbeck.feedback_matrix"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.feedback_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the feedback matrix :math:`F`. This is where:</span>
+
+<span class="sd">        .. math:: dx(t)/dt = F x(t) + L w(t)</span>
+
+<span class="sd">        For this kernel, note that :math:`F = -λ`.</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">([[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_decay</span><span class="p">]])</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="OrnsteinUhlenbeck.steady_state_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.steady_state_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the steady state covariance :math:`P∞`. For this kernel,</span>
+<span class="sd">        this is q/2λ.</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diffusion</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decay</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">))</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="OrnsteinUhlenbeck.decay"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.decay">[docs]</a>    <span class="k">def</span> <span class="nf">decay</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the decay parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decay</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="OrnsteinUhlenbeck.diffusion"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.OrnsteinUhlenbeck.diffusion">[docs]</a>    <span class="k">def</span> <span class="nf">diffusion</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the diffusion parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diffusion</span></div></div>
+
+
+<div class="viewcode-block" id="Matern32"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">Matern32</span><span class="p">(</span><span class="n">StationaryKernel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the Matern3/2 kernel. This kernel has the formula:</span>
+
+<span class="sd">    .. math:: C(x, x&#39;) = σ² (1 + λ|x - x&#39;|) exp(λ|x - x&#39;|)</span>
+
+<span class="sd">    ...where :math:`λ = √3 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`</span>
+<span class="sd">    are kernel parameters.</span>
+
+<span class="sd">    The transition matrix :math:`F` in the SDE form for this kernel is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        F = &amp;[[0, 1]\\</span>
+<span class="sd">            &amp;[[-λ², -2λ]]</span>
+
+<span class="sd">    Covariance for the initial state is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        P∞ = [&amp;[1, 0],\\</span>
+<span class="sd">              &amp;[0, λ²]] * \verb|variance|</span>
+
+<span class="sd">    ...where `variance` is a kernel parameter.</span>
+
+<span class="sd">    Since the characteristic equation for the feedback matrix :math:`F` for this kernel</span>
+<span class="sd">    is :math:`(λI + F)² = 0`, the state transition matrix is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        Aₖ &amp;= expm(FΔtₖ)\\</span>
+<span class="sd">           &amp;= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\</span>
+<span class="sd">           &amp;= exp(-λΔtₖ) (I + (λI + F)Δtₖ)</span>
+
+<span class="sd">    ...where :math:`expm` is the matrix exponential operator. Note that all higher order terms of</span>
+<span class="sd">    :math:`expm((λI + F)Δtₖ)` disappear.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lengthscale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param lengthscale: A value for the lengthscale parameter.</span>
+<span class="sd">        :param variance: A value for the variance parameter.</span>
+<span class="sd">        :param output_dim: The output dimension of the kernel.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+
+        <span class="n">_check_lengthscale_and_variance</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">variance</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lengthscale&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">variance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variance&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32._lambda"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32._lambda">[docs]</a>    <span class="k">def</span> <span class="nf">_lambda</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; λ the scalar used elsewhere in the docstrings &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the state dimension of the kernel, which is always two.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">2</span></div>
+
+<div class="viewcode-block" id="Matern32.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state transition matrices for the kernel.</span>
+
+<span class="sd">        Because this is a stationary kernel, `transition_times` is ignored.</span>
+
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``. Ignored.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_rank_at_least</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;time_deltas cannot be a scalar.&quot;</span><span class="p">)</span>
+        <span class="c1"># [state_dim, state_dim]</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="c1"># [..., num_transitions, 1, 1]</span>
+        <span class="n">extended_time_deltas</span> <span class="o">=</span> <span class="n">time_deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="c1"># (λI + F)t [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">F_lambda_I_t</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feedback_matrix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">*</span> <span class="n">I</span><span class="p">)</span> <span class="o">*</span> <span class="n">extended_time_deltas</span>
+
+        <span class="c1"># expm(-λΔtₖ)(I + (λI + F)Δtₖ) [... num_transitions, state_dim, state_dim]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">*</span> <span class="n">extended_time_deltas</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">I</span> <span class="o">+</span> <span class="n">F_lambda_I_t</span><span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32.feedback_matrix"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.feedback_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the feedback matrix :math:`F`. This is where:</span>
+
+<span class="sd">        .. math:: dx(t)/dt = F x(t) + L w(t)</span>
+
+<span class="sd">        For this kernel, note that:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            F = &amp;[0    &amp;1]\\</span>
+<span class="sd">                &amp;[-λ²  &amp;-2λ]</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">),</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">]])</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32.steady_state_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.steady_state_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the steady state covariance :math:`P∞`. This is given by:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            P∞ = σ² [&amp;[1, 0],\\</span>
+<span class="sd">                     &amp;[0, λ²]]</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">)]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32.lengthscale"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.lengthscale">[docs]</a>    <span class="k">def</span> <span class="nf">lengthscale</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the lengthscale parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern32.variance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern32.variance">[docs]</a>    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variance parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span></div></div>
+
+
+<div class="viewcode-block" id="Matern52"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">Matern52</span><span class="p">(</span><span class="n">StationaryKernel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the Matern5/2 kernel. This kernel has the formula:</span>
+
+<span class="sd">    .. math:: C(x, x&#39;) = σ² (1 + λ|x - x&#39;| + λ²|x - x&#39;|²/3) exp(λ|x - x&#39;|)</span>
+
+<span class="sd">    ...where :math:`λ = √5 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`</span>
+<span class="sd">    are kernel parameters.</span>
+
+<span class="sd">    The transition matrix :math:`F` in the SDE form for this kernel is::</span>
+
+<span class="sd">        F = [  0,    1,   0]</span>
+<span class="sd">            [  0,    0,   1]</span>
+<span class="sd">            [-λ³, -3λ², -3λ]</span>
+
+<span class="sd">    Covariance for the initial state is::</span>
+
+<span class="sd">        P∞ = σ² [    1,    0, -λ²/3]</span>
+<span class="sd">                [    0, λ²/3,     0]</span>
+<span class="sd">                [-λ²/3,    0,    λ⁴]</span>
+
+<span class="sd">    Since the characteristic equation for the feedback matrix :math:`F` for this kernel</span>
+<span class="sd">    is :math:`(λI + F)³ = 0`, the state transition matrix is:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        Aₖ &amp;= expm(FΔtₖ)\\</span>
+<span class="sd">           &amp;= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\</span>
+<span class="sd">           &amp;= exp(-λΔtₖ) (I + (λI + F)Δtₖ + (λI + F)²Δtₖ²/2)</span>
+
+<span class="sd">    ...where :math:`expm` is the matrix exponential operator. Note that all</span>
+<span class="sd">    higher order terms disappear.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lengthscale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param lengthscale: A value for the lengthscale parameter.</span>
+<span class="sd">        :param variance: A value for the variance parameter.</span>
+<span class="sd">        :param output_dim: The output dimension of the kernel.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+        <span class="n">_check_lengthscale_and_variance</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">variance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;lengthscale&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">variance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">positive</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;variance&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52._lambda"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52._lambda">[docs]</a>    <span class="k">def</span> <span class="nf">_lambda</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; λ the scalar used elsewhere in the docstrings &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the state dimension of the kernel, which is always three.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">3</span></div>
+
+<div class="viewcode-block" id="Matern52.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state transition matrices for the kernel.</span>
+
+<span class="sd">        Because this is a stationary kernel, `transition_times` is ignored.</span>
+
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``. Ignored.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_rank_at_least</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;time_deltas cannot be a scalar.&quot;</span><span class="p">)</span>
+        <span class="c1"># [state_dim, state_dim]</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="n">extended_time_deltas</span> <span class="o">=</span> <span class="n">time_deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="c1"># (λI + F)t [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">F_lambda_I_t</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feedback_matrix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">*</span> <span class="n">I</span><span class="p">)</span> <span class="o">*</span> <span class="n">extended_time_deltas</span>
+
+        <span class="c1"># expm(-λΔtₖ)(I + (λI + F)Δtₖ + (λI + F)²Δtₖ²/2) [... num_transitions, state_dim, state_dim]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">*</span> <span class="n">extended_time_deltas</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">I</span> <span class="o">+</span> <span class="n">F_lambda_I_t</span> <span class="o">+</span> <span class="n">F_lambda_I_t</span> <span class="o">@</span> <span class="n">F_lambda_I_t</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52.feedback_matrix"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.feedback_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the feedback matrix :math:`F`. This is where:</span>
+
+<span class="sd">        .. math:: dx(t)/dt = F x(t) + L w(t)</span>
+
+<span class="sd">        For this kernel, note that::</span>
+
+<span class="sd">            F = [[  0,    1,   0]</span>
+<span class="sd">                 [  0,    0,   1]</span>
+<span class="sd">                 [-λ³, -3λ², -3λ]]</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">**</span> <span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.0</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">),</span> <span class="o">-</span><span class="mf">3.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">],</span></div>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52.steady_state_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.steady_state_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the steady state covariance :math:`P∞`. This is given by::</span>
+
+<span class="sd">            P∞ = σ² [    1,    0, -λ²/3]</span>
+<span class="sd">                    [    0, λ²/3,     0]</span>
+<span class="sd">                    [-λ²/3,    0,    λ⁴]</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lambda_23</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3.0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span>
+            <span class="n">value</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">lambda_23</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">lambda_23</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">lambda_23</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lambda</span> <span class="o">**</span> <span class="mi">4</span><span class="p">]],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">(),</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52.lengthscale"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.lengthscale">[docs]</a>    <span class="k">def</span> <span class="nf">lengthscale</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the lengthscale parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lengthscale</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Matern52.variance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels.Matern52.variance">[docs]</a>    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variance parameter. This is a GPflow</span>
+<span class="sd">        `Parameter &lt;https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter&gt;`_.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variance</span></div></div>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="_check_lengthscale_and_variance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/matern/index.html#markovflow.kernels._check_lengthscale_and_variance">[docs]</a><span class="k">def</span> <span class="nf">_check_lengthscale_and_variance</span><span class="p">(</span><span class="n">lengthscale</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Verify that the lengthscale and variance are positive&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">lengthscale</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lengthscale must be positive.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">variance</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;variance must be positive.&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.sparse_variational &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.sparse_variational</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for sparse variational inference, for use with large data sets.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">ordered</span>
+<span class="kn">from</span> <span class="nn">markovflow.gauss_markov</span> <span class="kn">import</span> <span class="n">GaussMarkovDistribution</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span><span class="p">,</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.models</span> <span class="kn">import</span> <span class="n">MarkovFlowSparseModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">AnalyticPosteriorProcess</span><span class="p">,</span> <span class="n">PosteriorProcess</span>
+
+
+<div class="viewcode-block" id="SparseVariationalGaussianProcess"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess">[docs]</a><span class="k">class</span> <span class="nc">SparseVariationalGaussianProcess</span><span class="p">(</span><span class="n">MarkovFlowSparseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Approximate a :class:`~markovflow.gauss_markov.GaussMarkovDistribution` with a general</span>
+<span class="sd">    likelihood using a Gaussian posterior. Additionally uses a number of pseudo, or inducing,</span>
+<span class="sd">    points to represent the distribution over a typically larger number of data points.</span>
+
+<span class="sd">    The following notation is used:</span>
+
+<span class="sd">        * :math:`x` - the time points of the training data</span>
+<span class="sd">        * :math:`z` - the time points of the inducing/pseudo points</span>
+<span class="sd">        * :math:`y` - observations corresponding to time points :math:`x`</span>
+<span class="sd">        * :math:`s(.)` - the latent state of the Markov chain</span>
+<span class="sd">        * :math:`f(.)` - the noise free predictions of the model</span>
+<span class="sd">        * :math:`p(y | f)` - the likelihood</span>
+<span class="sd">        * :math:`p(.)` - the true distribution</span>
+<span class="sd">        * :math:`q(.)` - the variational distribution</span>
+
+<span class="sd">    Subscript is used to denote dependence for notational convenience, for</span>
+<span class="sd">    example :math:`fₖ === f(k)`.</span>
+
+<span class="sd">    With a prior generative model comprising a Gauss-Markov distribution, an emission model and an</span>
+<span class="sd">    arbitrary likelihood on the emitted variables, these define:</span>
+
+<span class="sd">        * :math:`p(xₖ₊₁| xₖ)`</span>
+<span class="sd">        * :math:`fₖ = H xₖ`</span>
+<span class="sd">        * :math:`p(yₖ | fₖ)`</span>
+
+<span class="sd">    As per a :class:`~markovflow.models.variational.VariationalGaussianProcess`</span>
+<span class="sd">    (VGP) model, we have:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;log p(y) &gt;= ℒ(q)</span>
+
+<span class="sd">        &amp;ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]</span>
+
+<span class="sd">    ...where :math:`f` is defined over the entire function space.</span>
+
+<span class="sd">    Here this reduces to the joint of the evidence lower bound (ELBO) defined over both the</span>
+<span class="sd">    data :math:`x` and the inducing points :math:`z`, which we rewrite as:</span>
+
+<span class="sd">    .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(f(z)) ‖ p(f(z))]</span>
+
+<span class="sd">    This turns the inference problem into an optimisation problem: find the optimal :math:`q`.</span>
+
+<span class="sd">    The first term is the variational expectations and have the same form as a VGP model.</span>
+<span class="sd">    However, we must now use use the inducing states to predict the marginals of the</span>
+<span class="sd">    variational distribution at the original data points.</span>
+
+<span class="sd">    The second is the KL from the prior to the approximation, but evaluated at the inducing points.</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">      @inproceedings{,</span>
+<span class="sd">          title={Doubly Sparse Variational Gaussian Processes},</span>
+<span class="sd">          author={Adam, Eleftheriadis, Artemev, Durrande, Hensman},</span>
+<span class="sd">          booktitle={},</span>
+<span class="sd">          pages={},</span>
+<span class="sd">          year={},</span>
+<span class="sd">          organization={}</span>
+<span class="sd">      }</span>
+
+<span class="sd">    .. note:: Since this class extends :class:`~markovflow.models.models.MarkovFlowSparseModel`,</span>
+<span class="sd">       it does not depend on input data. Input data is passed during the optimisation</span>
+<span class="sd">       step as a tuple of time points and observations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">inducing_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">initial_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GaussMarkovDistribution</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernel: A kernel that defines a prior over functions.</span>
+<span class="sd">        :param likelihood: A likelihood.</span>
+<span class="sd">        :param inducing_points: The points in time on which inference should be performed,</span>
+<span class="sd">            with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param num_data: The total number of observations.</span>
+<span class="sd">            (relevant when feeding in external minibatches).</span>
+<span class="sd">        :param initial_distribution: An initial configuration for the variational distribution,</span>
+<span class="sd">            with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_num_data</span> <span class="o">=</span> <span class="n">num_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>  <span class="c1"># To collect tf.Module trainable_variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+        <span class="c1"># by default set the inducing points to not trainable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">inducing_points</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ordered</span><span class="p">(),</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">initial_distribution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">initial_distribution</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">build_finite_distribution</span><span class="p">(</span><span class="n">inducing_points</span><span class="p">)</span>
+
+        <span class="c1"># q will approximate the posterior after optimisation.</span>
+        <span class="c1"># This needs to be an instance attribute to provide trainable variables</span>
+        <span class="c1"># when calling tf.Module trainable_variables. This is fine though, since</span>
+        <span class="c1"># `GaussMarkovDistribution` doesn&#39;t do any computation in its initialiser.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span> <span class="o">=</span> <span class="n">initial_distribution</span><span class="o">.</span><span class="n">create_trainable_copy</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span> <span class="o">=</span> <span class="n">AnalyticPosteriorProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span><span class="p">,</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span>
+            <span class="n">likelihood</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="p">,</span>
+            <span class="n">mean_function</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_data</span> <span class="o">=</span> <span class="n">num_data</span>
+
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.elbo">[docs]</a>    <span class="k">def</span> <span class="nf">elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the evidence lower bound (ELBO) :math:`log p(y)`. We rewrite this as:</span>
+
+<span class="sd">        .. math:: ℒ(q(x, z)) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) df - KL[q(s(z)) ‖ p(s(z))]</span>
+
+<span class="sd">        The first term is the &#39;variational expectation&#39; (VE), and has the same form as per a</span>
+<span class="sd">        :class:`~markovflow.models.variational.VariationalGaussianProcess` (VGP) model. However,</span>
+<span class="sd">        we must now use the inducing states to predict the marginals of the</span>
+<span class="sd">        variational distribution at the original data points.</span>
+
+<span class="sd">        The second is the KL divergence from the prior to the approximation, but evaluated at the</span>
+<span class="sd">        inducing points.</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :return: A scalar tensor (summed over the batch_shape dimension) representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="c1"># predict the variational posterior at the original time points.</span>
+        <span class="c1"># calculate sₓ ~ q(sₓ) given that we know q(s(z)), x, z,</span>
+        <span class="c1"># and then project to function space fₓ = H*sₓ ~ q(fₓ).</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c1"># VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfx</span>
+        <span class="n">ve_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># KL[q(s(z))|| p(s(z))]</span>
+        <span class="n">kl_fz</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_data</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_data</span><span class="p">,</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">minibatch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">num_data</span> <span class="o">/</span> <span class="n">minibatch_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">kl_fz</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># Return ELBO({fₓ, fz}) = VE(fₓ) - KL[q(s(z)) || p(s(z))]</span>
+        <span class="k">return</span> <span class="n">ve_fx</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">-</span> <span class="n">kl_fz</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.time_points"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.time_points">[docs]</a>    <span class="k">def</span> <span class="nf">time_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the time points of the sparse process which essentially are the locations of the</span>
+<span class="sd">        inducing points.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_inducing]``. Same as inducing inputs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.kernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.kernel">[docs]</a>    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SDEKernel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the kernel of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.likelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Likelihood</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the likelihood of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.mean_function"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.mean_function">[docs]</a>    <span class="k">def</span> <span class="nf">mean_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeanFunction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GaussMarkovDistribution</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the prior Gauss-Markov distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">build_finite_distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GaussMarkovDistribution</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variational distribution as a Gauss-Markov distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PosteriorProcess</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain a posterior process for inference.</span>
+
+<span class="sd">        For this class this is the :class:`~markovflow.posterior.AnalyticPosteriorProcess`</span>
+<span class="sd">        built from the variational distribution. This will be a locally optimal</span>
+<span class="sd">        variational approximation of the posterior after optimisation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span></div>
+
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the loss, which is the negative evidence lower bound (ELBO).</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">elbo</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparseVariationalGaussianProcess.predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_variational/index.html#markovflow.models.SparseVariationalGaussianProcess.predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_log_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log density of the data at the new data points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

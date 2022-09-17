@@ -1,0 +1,1881 @@
+:py:mod:`markovflow.kernels`
+============================
+
+.. py:module:: markovflow.kernels
+
+.. autoapi-nested-parse::
+
+   Package containing kernels.
+
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   constant/index.rst
+   kernel/index.rst
+   latent_exp_generated/index.rst
+   matern/index.rst
+   periodic/index.rst
+   piecewise_stationary/index.rst
+   sde_kernel/index.rst
+
+
+Package Contents
+----------------
+
+.. py:class:: Constant(variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Introduces a constant variance. This kernel has the formula:
+
+   .. math:: C(x, x') = σ²
+
+   ...where :math:`σ²` is a kernel parameter representing the constant variance, which is
+   supplied as a parameter to the constructor.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is :math:`F = [[1]]`.
+
+   Covariance for the steady state is :math:`P∞ = [[σ²]]`.
+
+   The state transition matrix is :math:`Aₖ = [[1]]`.
+
+   The process covariance is :math:`Qₖ = [[0]]`.
+
+   :param variance: Initial variance for the kernel. Must be a positive float.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number used to make sure that
+       matrix inversion is numerically stable.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The state transition matrix at time step :math:`k` is :math:`Aₖ = [[1]]`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the process covariance matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The process covariance for time step k is :math:`Qₖ = [[0]]`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+         `` batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Return the `state_transitions` and `process_covariances`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Note this is ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tuple of two tensors with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+      This is given by :math:`P∞ = [[σ²]]`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter.
+
+
+
+.. py:class:: Kernel(name=None)
+
+   Bases: :py:obj:`tensorflow.Module`, :py:obj:`abc.ABC`
+
+   Abstract class generating a :class:`~markovflow.state_space_model.StateSpaceModel` for a
+   given set of time points.
+
+   For a given set of time points :math:`tₖ`, define a state space model of the form:
+
+   .. math:: xₖ₊₁ = Aₖ xₖ + qₖ
+
+   ...where:
+
+   .. math::
+       &qₖ \sim 𝓝(0, Qₖ)\\
+       &x₀ \sim 𝓝(μ₀, P₀)\\
+       &xₖ ∈ ℝ^d\\
+       &Aₖ ∈ ℝ^{d × d}\\
+       &Qₖ ∈ ℝ^{d × d}\\
+       &μ₀ ∈ ℝ^{d × 1}\\
+       &P₀ ∈ ℝ^{d × d}\\
+       &d \verb| is the state_dim|
+
+   And an :class:`~markovflow.emission_model.EmissionModel` for a given output dimension:
+
+   .. math:: fₖ = H xₖ
+
+   ...where:
+
+   .. math::
+       &x ∈ ℝ^d\\
+       &f ∈ ℝ^m\\
+       &H ∈ ℝ^{m × d}\\
+       &m \verb| is the output_dim|
+
+   .. note:: Implementations of this class should typically avoid performing computation in their
+             `__init__` method. Performing computation in the constructor conflicts with
+             running in TensorFlow's eager mode.
+
+   .. py:method:: output_dim() -> int
+      :property:
+
+      Return the output dimension of the kernel.
+
+
+   .. py:method:: build_finite_distribution(time_points: tensorflow.Tensor) -> markovflow.gauss_markov.GaussMarkovDistribution
+      :abstractmethod:
+
+      Return the :class:`~markovflow.gauss_markov.GaussMarkovDistribution` that this kernel
+      represents on the provided time points.
+
+      .. note:: Currently the only representation we can use is a
+          :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      :param time_points: The times between which to define the distribution,
+          with shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+      :abstractmethod:
+
+      Return the :class:`~markovflow.emission_model.EmissionModel` associated with this kernel
+      that maps from the latent :class:`~markovflow.gauss_markov.GaussMarkovDistribution`
+      to the observations.
+
+      :param time_points: The time points over which the emission model is defined,
+          with shape ``batch_shape + [num_data]``.
+
+
+
+.. py:class:: LatentExponentiallyGenerated(N: tensorflow.Tensor, R: tensorflow.Tensor, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the LEG-GPs kernel.
+
+   This kernel defines an SDE with state dimension :math:`d`, whose dynamics are governed by:
+
+   .. math:: dx = -½ G x dt + N dw (w Brownian motion)
+
+   ...with :math:`G = N Nᵀ + R - Rᵀ`, and :math:`N, R` both arbitrary square matrices of
+   size :math:`d × d`.
+
+   Note that:
+
+       * :math:`C = R - Rᵀ` is skew symmetric :math:`(Cᵀ = -C)`
+       * If :math:`d` is even, :math:`C` has imaginary conjugate eigenvalue pairs
+         :math:`(iλ₁ ,-iλ₁, ...)`
+       * :math:`expm(C)` is an orthogonal matrix (specifying an isometry)
+
+   The key reference is::
+
+     @article{loper2020general,
+         title={General linear-time inference for Gaussian Processes on one dimension},
+         author={Loper, Jackson and Blei, David and Cunningham, John P and Paninski, Liam},
+         journal={arXiv preprint arXiv:2003.05554},
+         year={2020}
+   }
+
+   :param N: The Noise mixing matrix.
+   :param R: The Rotation inducing matrix.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Obtain the state transition matrices. That is:
+
+      .. math:: Aₖ = expm[-½G Δtₖ]
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor of shape batch_shape + [num_transitions, state_dim, state_dim]
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix.
+
+      Here, this is :math:`F (=-G/2)` with shape :math:`d × d`.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Obtain the steady state covariance :math:`P∞ = I`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Obtain the process covariance at time :math:`k`. This is calculated as:
+
+      .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ = I - Aₖ Aₖᵀ
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+
+.. py:class:: Matern12(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern1/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² exp(-|x - x'| / ℓ)
+
+   ...where lengthscale :math:`ℓ` and signal variance :math:`σ²` are kernel parameters.
+
+   This defines an SDE where:
+
+   .. math::
+       &F = - 1/ℓ\\
+       &L = 1
+
+   ...so that :math:`Aₖ = exp(-Δtₖ/ℓ)`.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always one.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices kernel.
+
+      The state dimension is one, so the matrix exponential reduces to a standard one:
+
+      .. math:: Aₖ = exp(-Δtₖ/ℓ)
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that :math:`F = - 1 / ℓ`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. For this kernel,
+      this is the variance hyperparameter.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: Matern32(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern3/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² (1 + λ|x - x'|) exp(λ|x - x'|)
+
+   ...where :math:`λ = √3 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`
+   are kernel parameters.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is:
+
+   .. math::
+       F = &[[0, 1]\\
+           &[[-λ², -2λ]]
+
+   Covariance for the initial state is:
+
+   .. math::
+       P∞ = [&[1, 0],\\
+             &[0, λ²]] * \verb|variance|
+
+   ...where `variance` is a kernel parameter.
+
+   Since the characteristic equation for the feedback matrix :math:`F` for this kernel
+   is :math:`(λI + F)² = 0`, the state transition matrix is:
+
+   .. math::
+       Aₖ &= expm(FΔtₖ)\\
+          &= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+          &= exp(-λΔtₖ) (I + (λI + F)Δtₖ)
+
+   ...where :math:`expm` is the matrix exponential operator. Note that all higher order terms of
+   :math:`expm((λI + F)Δtₖ)` disappear.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always two.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices for the kernel.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that:
+
+      .. math::
+          F = &[0    &1]\\
+              &[-λ²  &-2λ]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. This is given by:
+
+      .. math::
+          P∞ = σ² [&[1, 0],\\
+                   &[0, λ²]]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: Matern52(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern5/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² (1 + λ|x - x'| + λ²|x - x'|²/3) exp(λ|x - x'|)
+
+   ...where :math:`λ = √5 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`
+   are kernel parameters.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is::
+
+       F = [  0,    1,   0]
+           [  0,    0,   1]
+           [-λ³, -3λ², -3λ]
+
+   Covariance for the initial state is::
+
+       P∞ = σ² [    1,    0, -λ²/3]
+               [    0, λ²/3,     0]
+               [-λ²/3,    0,    λ⁴]
+
+   Since the characteristic equation for the feedback matrix :math:`F` for this kernel
+   is :math:`(λI + F)³ = 0`, the state transition matrix is:
+
+   .. math::
+       Aₖ &= expm(FΔtₖ)\\
+          &= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+          &= exp(-λΔtₖ) (I + (λI + F)Δtₖ + (λI + F)²Δtₖ²/2)
+
+   ...where :math:`expm` is the matrix exponential operator. Note that all
+   higher order terms disappear.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always three.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices for the kernel.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that::
+
+          F = [[  0,    1,   0]
+               [  0,    0,   1]
+               [-λ³, -3λ², -3λ]]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. This is given by::
+
+          P∞ = σ² [    1,    0, -λ²/3]
+                  [    0, λ²/3,     0]
+                  [-λ²/3,    0,    λ⁴]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: OrnsteinUhlenbeck(decay: float, diffusion: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Ornstein–Uhlenbeck kernel.
+   This is an alternative parameterization of the Matern1/2 kernel.
+   This kernel has the formula:
+
+   .. math:: C(x, x') = q/2λ exp(-λ|x - x'|)
+
+   ...where decay :math:`λ` and diffusion coefficient :math:`q` are kernel parameters.
+
+   This defines an SDE where:
+
+   .. math::
+       &F = - λ\\
+       &L = q
+
+   ...so that :math:`Aₖ = exp(-λ Δtₖ)`.
+
+   :param decay: A value for the decay parameter.
+   :param diffusion: A value for the diffusion parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always one.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices kernel.
+
+      The state dimension is one, so the matrix exponential reduces to a standard one:
+
+      .. math:: Aₖ = exp(-λ Δtₖ)
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that :math:`F = -λ`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. For this kernel,
+      this is q/2λ.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: decay() -> gpflow.Parameter
+      :property:
+
+      Return the decay parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: diffusion() -> gpflow.Parameter
+      :property:
+
+      Return the diffusion parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: HarmonicOscillator(variance: float, period: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents a periodic kernel. The definition is in the paper `"Explicit Link Between Periodic
+   Covariance Functions and State Space Models" <http://proceedings.mlr.press/v33/solin14.pdf>`_.
+
+   This kernel has the formula:
+
+   .. math:: C(x, x') = σ² cos(2π/p * (x-x'))
+
+   ...where:
+
+       * :math:`σ²` is a kernel parameter, representing the constant variance
+         this kernel introduces
+       * :math:`p` is the period of the oscillator in radius
+
+   The transition matrix :math:`F` in the SDE form for this kernel is:
+
+   .. math::
+       F = [&[0,  -λ],\\
+            &[λ,  0]].
+
+   ...where :math:`λ = 2π / period`.
+
+   Covariance for the steady state is:
+
+   .. math::
+       P∞ = [&[σ², 0],\\
+             &[0,  σ²]].
+
+   The state transition matrix is:
+
+   .. math::
+       Aₖ = [&[cos(Δtₖλ),  -sin(Δtₖλ)],\\
+             &[sin(Δtₖλ),  cos(Δtₖλ)]]
+
+   The process covariance is:
+
+   .. math::
+       Qₖ = [&[0, 0],\\
+             &[0, 0]].
+
+   :param variance: Initial variance for the kernel. Must be a positive float.
+   :param period: The period of the Harmonic oscillator, in radius. Must be a positive float.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number used to make sure that
+       matrix inversion is numerically stable.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the kernel.
+
+      The state transition matrix at time step :math:`k` is:
+
+      .. math::
+          Aₖ = [&[cos(Δtₖλ),  -sin(Δtₖλ)],\\
+                &[sin(Δtₖλ),  cos(Δtₖλ)]].
+
+      ...where :math:`λ = 2π / period`.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the kernel.
+
+      The process covariance for time step k is:
+
+      .. math::
+          Qₖ = [&[0, 0],\\
+                &[0, 0]].
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that:
+
+      .. math::
+          F = [&[0,  -λ],\\
+               &[λ,  0]].
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The steady state covariance :math:`P∞` is given by:
+
+      .. math::
+          P∞ = [&[σ², 0],\\
+                &[0,  σ²]].
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: period() -> gpflow.Parameter
+      :property:
+
+      Return the period parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: PiecewiseKernel(kernels: List[markovflow.kernels.sde_kernel.StationaryKernel], change_points: gpflow.base.TensorType, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.NonStationaryKernel`
+
+   Construct an SDE kernel whose state dynamic is governed by different SDEs. These are on the
+   :math:`K+1` intervals specified by the :math:`K` change points :math:`cₖ`.
+
+   On interval :math:`[cₖ, cₖ₊₁]`, the dynamics are governed by a SDE kernel :math:`kₖ`
+   where :math:`c₀ = -∞`:
+
+   .. math::
+       &dx(t)/dt = Fₖ x(t) + Lₖ w(t),\\
+       &f(t) = Hₖ x(t)
+
+   Note the following:
+
+       * This is currently restricted to cases where the kernels are the same.
+       * State space models constructed by marginalizing out the process to
+         time points :math:`t` are only valid if no transitions cross a change point.
+
+
+   :param kernels: An iterable over the kernels forming this kernel.
+   :param change_points: Sorted change points.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the :class:`~markovflow.emission_model.EmissionModel` associated with this kernel
+      that maps from the latent :class:`~markovflow.state_space_model.StateSpaceModel`
+      to the observations.
+
+      The emission matrix is the Kronecker product of all the children emission matrices.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+          ``batch_shape + [num_data]``.
+
+
+   .. py:method:: initial_covariance(initial_time_point: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This is the covariance of the stationary distribution :math:`P∞` for the kernel active at
+      the time passed in.
+
+      :param initial_time_point: The time point associated with the first state, with shape
+          ``batch_shape + [1,]``.
+      :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.
+
+
+   .. py:method:: split_time_indices(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Gives each time point an index that refers to which interval it resides in.
+
+      The sub-kernel that governs the SDE is different on different sub intervals,
+      as specified by the change points.
+
+      If there are :math:`K` change points, then :math:`0` is the index before the first
+      change point and :math:`K + 1` is the index after the last change point.
+
+      :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+      :return: A tensor of indices in range 0 - `num_change_points`, with shape
+          ``batch_shape + [num_time_points]``.
+
+
+   .. py:method:: split_input(input_tensor: tensorflow.Tensor, indices: tensorflow.Tensor) -> List[tensorflow.Tensor]
+
+      Partitions `input_tensor` into regions determined by the change points.
+
+      If there are :math:`K` change points, then :math:`0` is the index before the first
+      change point and :math:`K + 1` is the index after the last change point.
+
+      :param input_tensor: An arbitrary input tensor, with shape ``batch_shape + [N]``.
+      :param indices: The index for each input of the input tensor,
+          with shape ``batch_shape + [N]``.
+      :return: A list of tensors each with shape ``batch_shape + [Nₖ]``,
+          where :math:`(Σₖ Nₖ = N)`.
+
+
+   .. py:method:: steady_state_covariances(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      For each time point, return the steady state covariance of the kernel active for that
+      time point.
+
+      :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+      :return: The steady state covariance at each time point, with shape
+          ``batch_shape + [num_time_points, state_dim, state_dim]``.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel` :math:`Aₖ = exp(FΔtₖ)`.
+
+      .. note:: Transitions are only valid if they do not cross a change point.
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Return :meth:`state_transitions` and :meth:`process_covariances` together to
+      save having to compute them twice.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tuple of two tensors, with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrices(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      For each time point, return the non-stationary feedback matrix :math:`F(t)`
+      of the kernel active for that time point.
+
+      :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+      :return: The feedback matrix at each time point, with shape
+          ``batch_shape + [num_time_points, state_dim, state_dim]``.
+
+
+   .. py:method:: state_offsets(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state offsets :math:`bₖ` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
+
+
+   .. py:method:: state_means(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+
+      For each time point, return the state mean of the kernel active for that
+      time point.
+
+      :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.
+      :return: The state mean at each time point ``batch_shape + [num_time_points, state_dim]``.
+
+
+
+.. py:class:: ConcatKernel(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`StationaryKernel`, :py:obj:`abc.ABC`
+
+   Abstract class implementing the state space model of multiple kernels that have been
+   combined together. Combined with differing emission models this can give rise to the
+   :class:`Sum` kernel or to a multi-output kernel.
+
+   The state space of any :class:`ConcatKernel` consists of all the state spaces of
+   child kernels concatenated (in the tensorflow.concat sense) together:
+
+   .. math::
+      [x¹(t),\\
+      x²(t)]
+
+   So the SDE of the kernel becomes:
+
+   .. math::
+       &dx(t)/dt = &[[F¹ 0],     &[x¹(t)    &[[L¹ 0],   &[w¹(t),\\
+       &           &[0  F²]]     &x²(t)]  + &[0  L²]]   &w²(t)]\\
+       &f(t) = [H¹ H²] x(t)
+
+   :param kernels: A list of child kernels that will have their state spaces
+                   concatenated together.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+                  maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: kernels() -> List[SDEKernel]
+      :property:
+
+      Return a list of child kernels.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel` :math:`Aₖ = exp(FΔtₖ)`.
+
+      The state transition matrix is the block diagonal matrix of the child state
+      transition matrices.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: initial_mean(batch_shape: tensorflow.TensorShape) -> tensorflow.Tensor
+
+      Return the initial mean of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The combined mean is the child means concatenated together:
+
+      .. math:: [μ1 μ2, ...]
+
+      ...to form a longer mean vector.
+
+      :param batch_shape: A tuple of leading dimensions for the initial mean.
+      :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix. This is the block diagonal matrix of
+      child feedback matrices.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance. This is the block diagonal matrix of
+      child steady state covariance matrices.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+
+.. py:class:: FactorAnalysisKernel(weight_function: Callable[[gpflow.base.TensorType], gpflow.base.TensorType], kernels: List[SDEKernel], output_dim: int, trainable: bool = True, jitter: float = 0.0)
+
+   Bases: :py:obj:`ConcatKernel`
+
+   Produces an emission model which performs a linear mixing of Gaussian
+   processes according to a known time varying weight function and a learnable loading matrix:
+
+   .. math:: fᵢ(t) = Σⱼₖ Aᵢⱼ(t)Bⱼₖgₖ(t)
+
+   ...where:
+
+       * :math:`\{fᵢ\}ₙ` are the observable processes
+       * :math:`\{gₖ\}ₘ` are the latent GPs
+       * :math:`A^{n × m}` is a known, possibly time dependant, weight matrix
+       * :math:`B^{m × m}` is either the identity or a trainable loading matrix
+
+   :param weight_function: A function that, given :data:`~markovflow.base.TensorType`
+       time points with shape ``batch_shape + [num_data, ]``, returns a weight matrix
+       with the relative mixing of the tensors, with shape
+       ``batch_shape + [num_data, output_dim, n_latents]``.
+   :param kernels: An iterable over child kernels that will have their state spaces
+           concatenated together, with shape ``[n_latents, ]``.
+   :param output_dim: The output dimension of the kernel. This should have the same shape as
+           the `output_dim` of the weight matrix returned by the weight function.
+   :param trainable: Whether the loading matrix :math:`B` should be trainable.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+                  maintain numerical stability during inversion.
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the emission matrix :math:`WH`. This is where:
+
+      .. math:: H = H₁ ⊕ H₂ ⊕ ... ⊕ Hₙ
+
+      ...as per the multi-output kernel, and :math:`W = AB`.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+                      ``batch_shape + [num_data, ]``.
+      :return: The emission model associated with this kernel.
+
+
+
+.. py:class:: IndependentMultiOutput(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`ConcatKernel`
+
+   Takes a concatenated state space model consisting of multiple child
+   kernels and projects the state space associated with each kernel into a separate observation
+   vector.
+
+   The result is similar to training several kernels on the same data separately,
+   except that because of the covariance terms in the state space there can be correlation
+   between the separate observation vectors.
+
+   :param kernels: An iterable over child kernels which will have their state spaces
+                   concatenated together.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+                  maintain numerical stability during inversion.
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the emission matrix :math:`H`. This is the direct sum of the child emission
+      matrices, for example:
+
+      .. math:: H = H₁ ⊕ H₂ ⊕ ... ⊕ Hₙ
+
+      ...where :math:`\{Hᵢ\}ₙ` are the emission matrices of the child kernels.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+                      ``batch_shape + [num_data]``.
+      :return: The emission model associated with this kernel.
+
+
+
+.. py:class:: IndependentMultiOutputStack(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`StackKernel`
+
+   Takes a stacked state space model consisting of multiple child kernels and projects the
+   state space associated with each kernel into a separate observation vector.
+
+   The result is similar to training several kernels on the same data separately.
+   There will be no correlations between the processes, in the prior or the posterior.
+
+   :param kernels: An iterable over child kernels which will have their state spaces
+       concatenated together. Since we model each output independently the length of the
+       kernel list defines the number of the outputs.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the emission matrix :math:`H`. This is a stacking of the child emission matrices,
+      which are first augmented (if necessary) so that they have the same state_dim.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+          ``batch_shape + [num_data]`` where ``batch_shape = (..., num_kernels)``.
+      :return: The emission model associated with this kernel.
+
+
+   .. py:method:: __add__(other: IndependentMultiOutputStack) -> IndependentMultiOutputStack
+
+      Operator for combining kernel objects by summing them.
+
+      Overrides the base class :meth:`SDEKernel.__add__` method.
+
+
+   .. py:method:: __mul__(other: IndependentMultiOutputStack) -> IndependentMultiOutputStack
+
+      Operator for combining kernel objects by multiplying them.
+
+      Overrides the base class :meth:`SDEKernel.__mul__` method.
+
+
+
+.. py:class:: NonStationaryKernel(output_dim: int = 1, jitter: float = 0)
+
+   Bases: :py:obj:`SDEKernel`, :py:obj:`abc.ABC`
+
+   Abstract class representing non-stationary kernels defined by the Stochastic Differential
+   Equation:
+
+   .. math::
+       &dx(t)/dt = F(t) x(t) + L(t) w(t),\\
+       &f(t) = H(t) x(t)
+
+   For most kernels :math:`H` will not be time varying; that is, :math:`f(t) = H x(t)`.
+
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: feedback_matrices(time_points: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      The non-stationary feedback matrix :math:`F(t)` at times :math:`t`, where:
+
+      .. math:: dx(t)/dt = F(t) x(t) + L w(t)
+
+      :param time_points: The times at which the feedback matrix is evaluated, with shape
+          ``batch_shape + [num_time_points]``.
+      :return: A tensor with shape ``batch_shape + [num_time_points, state_dim, state_dim]``.
+
+
+   .. py:method:: state_offsets(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the state offsets :math:`bₖ` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
+
+
+
+.. py:class:: Product(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`StationaryKernel`
+
+   Multiplies a list of child kernels.
+
+   The feedback matrix is the Kronecker product of the feedback matrices from the child kernels.
+   We will use a product kernel with two child kernels as an example. Let :math:`A` and
+   :math:`B` be the feedback matrix from these two child kernels. The feedback matrix :math:`F`
+   of the product kernel is:
+
+   .. math::
+       &F &= &A ⊗ B\\
+       &  &= &[[A₁₁ B, ..., A₁ₙ B],\\
+       &  &  &...,\\
+       &  &  &[Aₙ₁ B, ..., Aₙₙ B]]
+
+   ...where :math:`⊗` is the Kronecker product operator.
+
+   The state transition matrix is the Kronecker product of the state transition matrices from
+   the child kernels. Let :math:`Aₖ` and :math:`Bₖ` be the state transition matrix from these two
+   child kernels at time step :math:`k`. The state transition matrix
+   :math:`Sₖ` of the product kernel is:
+
+   .. math::
+       &Sₖ &= &Aₖ ⊗ Bₖ\\
+       &   &= &[[Aₖ₁₁ Bₖ, ..., Aₖ₁ₙ Bₖ],\\
+       &   &  &...,\\
+       &   &  &[Aₖₙ₁ Bₖ, ..., Aₖₙₙ Bₖ]]
+
+   The steady state covariance matrix is the Kronecker product of the steady covariance matrix
+   from the child kernels. Let :math:`A∞` and :math:`B∞` be the steady covariance matrix from
+   these two child kernels. The state transition matrix :math:`P∞` of the product kernel is:
+
+   .. math::
+       &P∞ &= &A∞ ⊗ B∞\\
+       &   &= &[[A∞₁₁ B∞, ..., A∞ B∞],\\
+       &   &  &...,\\
+       &   &  &[A∞ₙ₁ B∞, ..., A∞ₙₙ B∞]]
+
+   The process covariance matrix :math:`Qₖ` at time step :math:`k` is calculated using the
+   same formula as defined in the parent class SDEKernel:
+
+   .. math:: Qₖ = P∞ - Sₖ P∞ Sₖᵀ
+
+   ...where the steady state matrix :math:`P∞` and the state transition :math:`Sₖ`
+   are defined above.
+
+   :param kernels: An iterable over the kernels to be multiplied together.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: kernels() -> List[SDEKernel]
+      :property:
+
+      Return a list of child kernels.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition. This is the Kronecker product of the child state transitions.
+
+      :param transition_times: A tensor of times at which to produce matrices, shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix. This is the Kronecker product of the child feedback matrices.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance. This is the Kronecker product
+      of the child steady state covariances.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the emission matrix. This is the
+      Kronecker product of all the child emission matrices.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+          ``batch_shape + [num_data]``.
+
+
+
+.. py:class:: SDEKernel(output_dim: int = 1, jitter: float = 0)
+
+   Bases: :py:obj:`markovflow.kernels.kernel.Kernel`, :py:obj:`abc.ABC`
+
+   Abstract class representing kernels defined by the Stochastic Differential Equation:
+
+   .. math::
+       &dx(t)/dt = F(t) x(t) + L(t) w(t),\\
+       &f(t) = H(t) x(t)
+
+   For most kernels :math:`F, L, H` are not time varying; these have the more restricted form:
+
+   .. math::
+       &dx(t)/dt = F x(t) + L w(t),\\
+       &f(t) = H x(t)
+
+   ...with :math:`w(t)` white noise process with spectral density :math:`Q_c`, where:
+
+   .. math::
+       &x ∈ ℝ^d\\
+       &F, L ∈ ℝ^{d × d}\\
+       &H ∈ ℝ^{d × o}\\
+       &Q_c ∈ ℝ^d\\
+       &d \verb|is the state dimension|\\
+       &o \verb|is the observation dimension|
+
+   See the documentation for the :class:`StationaryKernel` class.
+
+   Usually:
+
+   .. math:: x(t) = [a(t), da(t)/dt, d²a(t)/dt ...]
+
+   ...for some :math:`a(t)`, so the state dimension represents the degree of the stochastic
+   differential equation in terms of :math:`a(t)`. Writing it in the above form is a standard
+   trick for converting a higher order linear differential equation into a first order linear one.
+
+   Since :math:`F, L, H` are constant matrices, the solution can be written analytically.
+   For a given set of time points :math:`tₖ`, we can solve this SDE and define a state
+   space model of the form:
+
+   .. math:: xₖ₊₁ = Aₖ xₖ + bₖ + qₖ
+
+   ...where:
+
+   .. math::
+       &qₖ \sim 𝓝(0, Qₖ)\\
+       &x₀ \sim 𝓝(μ₀, P₀)\\
+       &xₖ ∈ ℝ^d\\
+       &Aₖ ∈ ℝ^{d × d}\\
+       &bₖ ∈ ℝ^d\\
+       &Qₖ ∈ ℝ^{d × d}\\
+       &μ₀ ∈ ℝ^{d × 1}\\
+       &P₀ ∈ ℝ^{d × d}
+
+   If :math:`Δtₖ = tₖ₊₁ - tₖ`, then the transition matrix :math:`Aₜ` between states
+   :math:`x(tₖ)` and :math:`x(tₖ₊₁)` is given by:
+
+   .. math:: Aₖ = exp(FΔtₖ)
+
+   The process noise covariance matrix :math:`Qₖ` between states :math:`x(tₖ)` and
+   :math:`x(tₖ₊₁)` is given by:
+
+   .. math:: Qₖ = ∫ exp(F (Δtₖ - τ)) L Q_c Lᵀ exp(F (Δtₖ - τ))ᵀ dτ
+
+   We can write this in terms of the steady state covariance :math:`P∞` as:
+
+   .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ
+
+   We also define an emission model for a given output dimension:
+
+   .. math:: fₖ = H xₖ
+
+   ...where:
+
+   .. math::
+       &x ∈ ℝ^d\\
+       &f ∈ ℝ^m\\
+       &H ∈ ℝ^{m × d}\\
+       &m \verb| is the output_dim|
+
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: output_dim() -> int
+      :property:
+
+      Return the output dimension of the kernel.
+
+
+   .. py:method:: build_finite_distribution(time_points: tensorflow.Tensor) -> markovflow.gauss_markov.GaussMarkovDistribution
+
+      Return the :class:`~markovflow.gauss_markov.GaussMarkovDistribution` that this kernel
+      represents on the provided time points.
+
+      .. note:: Currently the only representation we can use is
+          :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      :param time_points: The times between which to define the distribution, with
+          shape ``batch_shape + [num_data]``.
+
+
+   .. py:method:: state_space_model(time_points: tensorflow.Tensor) -> markovflow.state_space_model.StateSpaceModel
+
+      Return the :class:`~markovflow.state_space_model.StateSpaceModel` that this
+      kernel represents on the provided time points.
+
+      :param time_points: The times between which to define the state space model, with shape
+          ``batch_shape + [num_data]``. This must be strictly increasing.
+
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the :class:`~markovflow.emission_model.EmissionModel` associated with this kernel
+      that maps from the latent :class:`~markovflow.state_space_model.StateSpaceModel`
+      to the observations.
+
+      For any :class:`SDEKernel`, the state representation is usually:
+
+      .. math:: x(t) = [a(t), da(t)/dt, d²a(t)/dt ...] \verb| for some | a(t)
+
+      In this case, we are interested only in the first element of :math:`x`. That is, the
+      output :math:`f(t)` is given by :math:`f(t) = a(t)`, so :math:`H` is given by
+      :math:`[1, 0, 0, ...]`.
+
+      If different behaviour is required, this method should be overridden.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+          ``batch_shape + [num_data]``.
+
+
+   .. py:method:: initial_mean(batch_shape: tensorflow.TensorShape) -> tensorflow.Tensor
+
+      Return the initial mean of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+
+      :param batch_shape: Leading dimensions for the initial mean.
+      :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: initial_covariance(initial_time_point: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      For stationary kernels this is typically the covariance of the stationary distribution for
+      :math:`x, P∞`.
+
+      In the general case the initial covariance depends on time, so we  need the
+      `initial_time_point` to generate it.
+
+      :param initial_time_point: The time_point associated with the first state, with shape
+          ``batch_shape + [1,]``.
+      :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics_from_time_points(time_points: tensorflow.Tensor)
+
+      Generate the transition matrices when the time deltas are
+      between adjacent `time_points`.
+
+      :param time_points: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions + 1]``.
+      :return: A tuple of two tensors, with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+      :abstractmethod:
+
+      Return the :meth:`state_transitions` and :meth:`process_covariances` together to
+      save having to compute them twice.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tuple of two tensors, with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: state_offsets(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the state offsets :math:`bₖ` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+      :abstractmethod:
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel` :math:`Aₖ = exp(FΔtₖ)`.
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the process covariance matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      The process covariance at time :math:`k` is calculated as:
+
+      .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ
+
+      These transition matrices can be overridden for more specific use cases if necessary.
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: jitter_matrix() -> tensorflow.Tensor
+      :property:
+
+      Jitter to add to the output of :meth:`process_covariances` and
+      :meth:`initial_covariance` shape.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: __add__(other: SDEKernel) -> Sum
+
+      Operator for combining kernel objects by summing them. 
+
+
+   .. py:method:: __mul__(other: SDEKernel) -> Product
+
+      Operator for combining kernel objects by multiplying them. 
+
+
+
+.. py:class:: StackKernel(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`StationaryKernel`
+
+   Implements the state space model of multiple kernels that have been combined together.
+   Unlike a :class:`ConcatKernel`, it manages the multiple
+   kernels by introducing a leading dimension (stacking), rather than forming a block
+   diagonal form of each parameter explicitly.
+
+   The prior of both a :class:`StackKernel` and a :class:`ConcatKernel` is the same (independent).
+   However, posterior state space models built upon a :class:`StackKernel` will maintain this
+   independency, in contrast to the posteriors building upon a :class:`ConcatKernel`,
+   which model correlations between the processes.
+
+   Combined with different emission models this can give rise to a multi-output stack
+   kernel, and perhaps in the future an additive kernel.
+
+   The state space of this kernel consists of all the state space of the child kernels
+   stacked (in the tensorflow.stack sense) together, with padded zeros when the state space
+   of one of the kernels is larger than any of the others::
+
+       [ x₁⁽¹⁾(t) ] ᨞
+       [   0   ]   [ x₁⁽ᵐ⁾(t) ]
+                 ᨞ [ x₂⁽ᵐ⁾(t) ]
+
+   ...where :math:`m` are the number of kernels / outputs.
+
+   So the SDE of the kernel becomes::
+
+       dx(t)/dt = [F⁽¹⁾] ᨞   [x⁽¹⁾(t)] ᨞    + [L⁽¹⁾] ᨞    [w⁽¹⁾(t)] ᨞
+                     ᨞ [F⁽ᵐ⁾]   ᨞ [x⁽ᵐ⁾(t)]      ᨞ [L⁽ᵐ⁾]    ᨞ [w⁽ᵐ⁾(t)]
+
+       f(t) = [H⁽¹⁾] ᨞   [x⁽¹⁾(t)] ᨞
+                 ᨞ [H⁽ᵐ⁾]   ᨞ [x⁽ᵐ⁾(t)]
+
+   :param kernels: A list of child kernels that will have their state spaces
+       concatenated together. Since we model each output independently, the length of the
+       kernel list defines the number of the outputs. Note that each kernel should have
+       individual `output_dim` 1.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+                  maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+
+   .. py:method:: kernels() -> List[SDEKernel]
+      :property:
+
+      Return a list of child kernels.
+
+
+   .. py:method:: _check_batch_shape_is_compatible(batch_shape: tensorflow.TensorShape) -> None
+
+      Helper method to check the compatibility of batch_shape.
+      For the `StackKernel` the batch_shape must have the following shape:
+
+                  (..., num_kernels)
+
+      In any other case this method raises a tf.errors.InvalidArgumentError.
+
+      :param batch_shape: a tuple with the shape to check
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel` :math:`Aₖ = exp(FΔtₖ)`.
+
+      The state transition matrix is the stacked matrix of the child state
+      transition matrices, padded with zeros (if necessary) to match the largest state dim
+      across kernels.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]`` where ``batch_shape = (..., num_kernels)``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``
+          where ``batch_shape = (..., num_kernels)``.
+
+
+   .. py:method:: initial_mean(batch_shape: tensorflow.TensorShape) -> tensorflow.Tensor
+
+      Return the initial mean of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+
+      We override :meth:`SDEKernel.initial_mean` from the
+      parent class to check there is a compatible `batch_shape`.
+
+      :param batch_shape: A tuple of leading dimensions for the initial mean, where batch_shape
+          can be ``(..., num_kernels)``.
+      :return: A tensor of zeros with shape ``batch_shape + [state_dim]``, where
+          ``batch_shape = (..., num_kernels)``.
+
+
+   .. py:method:: state_offsets(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state offsets :math:`bₖ` of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+
+      We override :meth:`SDEKernel.state_offsets` from the
+      parent class to check there is a compatible `batch_shape`.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix. This is the stacked matrix of child feedback matrices, padded
+      with zeros to have matching state dims.
+
+      :return: A tensor with shape ``[num_kernels, state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance. This is the stacked matrix of child steady state
+      covariance matrices, padded with the identity (if necessary) to have matching state dims.
+
+      Note that we further append a singleton dimensions after the `num_kernels` so it
+      can broadcast across the number of data.
+
+      :return: A tensor with shape ``[num_kernels, 1, state_dim, state_dim]``.
+
+
+   .. py:method:: initial_covariance(initial_time_point: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This is typically the covariance of the stationary distribution for :math:`x, P∞`.
+
+      We override :meth:`SDEKernel.initial_covariance` from the
+      parent class to check there is a compatible `batch_shape`.
+
+      :param initial_time_point: The time point associated with the first state, shape
+          ``batch_shape + [1,]``.
+      :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``,
+          where ``batch_shape = (..., num_kernels)``.
+
+
+
+.. py:class:: StationaryKernel(output_dim: int = 1, jitter: float = 0, state_mean: Optional[tensorflow.Tensor] = None, **kwargs)
+
+   Bases: :py:obj:`SDEKernel`, :py:obj:`abc.ABC`
+
+   Abstract class representing stationary kernels defined by the Stochastic Differential Equation:
+
+   .. math::
+       &dx(t)/dt = F x(t) + L w(t),\\
+       &f(t) = H(t) x(t)
+
+   For most kernels :math:`H` will not be time varying; that is, :math:`f(t) = H x(t)`.
+
+   :param output_dim: The output dimension of the kernel.
+   :param state_mean: A tensor with shape [state_dim,].
+
+   .. py:method:: initial_mean(batch_shape: tensorflow.TensorShape) -> tensorflow.Tensor
+
+      Return the initial mean of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      This will usually be zero, but can be overridden if necessary.
+
+      :param batch_shape: Leading dimensions for the initial mean.
+      :return: A tensor of zeros with shape ``batch_shape + [state_dim]``.
+
+
+   .. py:method:: set_state_mean(state_mean: tensorflow.Tensor, trainable: bool = False)
+
+      Sets the state mean for the kernel.
+
+      :param state_mean: A tensor with shape [state_dim,].
+      :param trainable: Boolean value to set the state mean trainable.
+
+
+   .. py:method:: initial_covariance(initial_time_point: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the initial covariance of the generated
+      :class:`~markovflow.state_space_model.StateSpaceModel`.
+
+      For stationary kernels this is the covariance of the stationary distribution for
+      :math:`x,P∞` and is independent of the time passed in.
+
+      :param initial_time_point: The time point associated with the first state, with shape
+          ``batch_shape + [1,]``.
+      :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.
+
+
+   .. py:method:: transition_statistics(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> Tuple[tensorflow.Tensor, tensorflow.Tensor]
+
+      Return :meth:`state_transitions` and :meth:`process_covariances` together to save
+      having to compute them twice.
+
+      By default this uses the state transitions to calculate the process covariance:
+
+      .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tuple of two tensors, with respective shapes
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+          ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: state_offsets(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      :math:`dx = F (x - m)dt         o  x(t) = A x(0) + (I-A)m`
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`, given implicitly by:
+
+      .. math:: F P∞ + P∞ Fᵀ + LQ_cLᵀ = 0
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: state_mean() -> tensorflow.Tensor
+      :property:
+
+      Return the state mean.
+
+      :return: A tensor with shape ``[state_dim,]``.
+
+
+
+.. py:class:: Sum(kernels: List[SDEKernel], jitter: float = 0.0)
+
+   Bases: :py:obj:`ConcatKernel`
+
+   Sums a list of child kernels.
+
+   There are two ways to implement this kernel: Stacked and Concatenated.
+
+   This class implements the Concatenated version, where the state space of the :class:`Sum`
+   kernel includes covariance terms between the child kernels.
+
+   :param kernels: A list of child kernels that will have their state spaces
+                   concatenated together.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+                  maintain numerical stability during inversion.
+
+   .. py:method:: generate_emission_model(time_points: tensorflow.Tensor) -> markovflow.emission_model.EmissionModel
+
+      Generate the emission matrix :math:`H`. This is the concatenation:
+
+      .. math:: H = [H₁, H₂, ..., Hₙ]
+
+      ...where :math:`\{Hᵢ\}ₙ` are the emission matrices of the child kernels. Thus the state
+      dimension for this kernel is the sum of the state dimension of the child kernels.
+
+      :param time_points: The time points over which the emission model is defined, with shape
+                      ``batch_shape + [num_data]``.
+      :return: The emission model associated with this kernel, with emission matrix with shape
+                      ``batch_shape + [num_data, output_dim, state_dim]``.
+
+
+

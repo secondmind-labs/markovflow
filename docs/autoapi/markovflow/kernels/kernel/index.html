@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kernels.kernel &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.kernels.latent_exp_generated" href="../latent_exp_generated/index.html" />
+    <link rel="prev" title="markovflow.kernels.constant" href="../constant/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.kernels.kernel.Kernel" class="nav-link">Kernel</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.kernel.Kernel.output_dim" class="nav-link">output_dim</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.kernel.Kernel.build_finite_distribution" class="nav-link">build_finite_distribution</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.kernels.kernel.Kernel.generate_emission_model" class="nav-link">generate_emission_model</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.kernels.kernel">
+<span id="markovflow-kernels-kernel"></span><h1><a class="reference internal" href="#module-markovflow.kernels.kernel" title="markovflow.kernels.kernel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.kernels.kernel</span></code></a><a class="headerlink" href="#module-markovflow.kernels.kernel" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a base class for kernels.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.kernels.kernel.Kernel">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Kernel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/kernels/kernel.html#Kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.kernel.Kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Module" title="(in TensorFlow v2.4)"><code class="docutils literal notranslate"><span class="pre">tf.Module</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.10)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract class generating a <a class="reference internal" href="../../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a> for a
+given set of time points.</p>
+<p>For a given set of time points <span class="math notranslate nohighlight">\(tₖ\)</span>, define a state space model of the form:</p>
+<div class="math notranslate nohighlight">
+\[xₖ₊₁ = Aₖ xₖ + qₖ\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;qₖ \sim 𝓝(0, Qₖ)\\
+&amp;x₀ \sim 𝓝(μ₀, P₀)\\
+&amp;xₖ ∈ ℝ^d\\
+&amp;Aₖ ∈ ℝ^{d × d}\\
+&amp;Qₖ ∈ ℝ^{d × d}\\
+&amp;μ₀ ∈ ℝ^{d × 1}\\
+&amp;P₀ ∈ ℝ^{d × d}\\
+&amp;d \verb| is the state_dim|\end{split}\]</div>
+<p>And an <a class="reference internal" href="../../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a> for a given output dimension:</p>
+<div class="math notranslate nohighlight">
+\[fₖ = H xₖ\]</div>
+<p>…where:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;x ∈ ℝ^d\\
+&amp;f ∈ ℝ^m\\
+&amp;H ∈ ℝ^{m × d}\\
+&amp;m \verb| is the output_dim|\end{split}\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementations of this class should typically avoid performing computation in their
+<code class="xref any docutils literal notranslate"><span class="pre">__init__</span></code> method. Performing computation in the constructor conflicts with
+running in TensorFlow’s eager mode.</p>
+</div>
+<dl class="py method">
+<dt id="markovflow.kernels.kernel.Kernel.output_dim">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">output_dim</span></code> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/kernel.html#Kernel.output_dim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.kernel.Kernel.output_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output dimension of the kernel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.kernel.Kernel.build_finite_distribution">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">build_finite_distribution</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/kernel.html#Kernel.build_finite_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.kernel.Kernel.build_finite_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussMarkovDistribution</span></code></a> that this kernel
+represents on the provided time points.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently the only representation we can use is a
+<a class="reference internal" href="../../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSpaceModel</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – The times between which to define the distribution,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.kernels.kernel.Kernel.generate_emission_model">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">generate_emission_model</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="../../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><span class="pre">markovflow.emission_model.EmissionModel</span></a><a class="reference internal" href="../../../../_modules/markovflow/kernels/kernel.html#Kernel.generate_emission_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.kernels.kernel.Kernel.generate_emission_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="../../emission_model/index.html#markovflow.emission_model.EmissionModel" title="markovflow.emission_model.EmissionModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">EmissionModel</span></code></a> associated with this kernel
+that maps from the latent <a class="reference internal" href="../../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><code class="xref py py-class docutils literal notranslate"><span class="pre">GaussMarkovDistribution</span></code></a>
+to the observations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – The time points over which the emission model is defined,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

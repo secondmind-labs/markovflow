@@ -1,0 +1,97 @@
+:py:mod:`markovflow.kernels.latent_exp_generated`
+=================================================
+
+.. py:module:: markovflow.kernels.latent_exp_generated
+
+.. autoapi-nested-parse::
+
+   Module containing the LEG-GPs family of kernels.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: LatentExponentiallyGenerated(N: tensorflow.Tensor, R: tensorflow.Tensor, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the LEG-GPs kernel.
+
+   This kernel defines an SDE with state dimension :math:`d`, whose dynamics are governed by:
+
+   .. math:: dx = -½ G x dt + N dw (w Brownian motion)
+
+   ...with :math:`G = N Nᵀ + R - Rᵀ`, and :math:`N, R` both arbitrary square matrices of
+   size :math:`d × d`.
+
+   Note that:
+
+       * :math:`C = R - Rᵀ` is skew symmetric :math:`(Cᵀ = -C)`
+       * If :math:`d` is even, :math:`C` has imaginary conjugate eigenvalue pairs
+         :math:`(iλ₁ ,-iλ₁, ...)`
+       * :math:`expm(C)` is an orthogonal matrix (specifying an isometry)
+
+   The key reference is::
+
+     @article{loper2020general,
+         title={General linear-time inference for Gaussian Processes on one dimension},
+         author={Loper, Jackson and Blei, David and Cunningham, John P and Paninski, Liam},
+         journal={arXiv preprint arXiv:2003.05554},
+         year={2020}
+   }
+
+   :param N: The Noise mixing matrix.
+   :param R: The Rotation inducing matrix.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Obtain the state transition matrices. That is:
+
+      .. math:: Aₖ = expm[-½G Δtₖ]
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor of shape batch_shape + [num_transitions, state_dim, state_dim]
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix.
+
+      Here, this is :math:`F (=-G/2)` with shape :math:`d × d`.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Obtain the steady state covariance :math:`P∞ = I`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: process_covariances(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Obtain the process covariance at time :math:`k`. This is calculated as:
+
+      .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ = I - Aₖ Aₖᵀ
+
+      :param transition_times: Time points at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :param time_deltas: Time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+

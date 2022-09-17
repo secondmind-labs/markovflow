@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kernels.latent_exp_generated &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.kernels.latent_exp_generated</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing the LEG-GPs family of kernels.&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">default_float</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.kernels.sde_kernel</span> <span class="kn">import</span> <span class="n">StationaryKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+<span class="n">expm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">expm</span>
+
+
+<div class="viewcode-block" id="LatentExponentiallyGenerated"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">LatentExponentiallyGenerated</span><span class="p">(</span><span class="n">StationaryKernel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents the LEG-GPs kernel.</span>
+
+<span class="sd">    This kernel defines an SDE with state dimension :math:`d`, whose dynamics are governed by:</span>
+
+<span class="sd">    .. math:: dx = -½ G x dt + N dw (w Brownian motion)</span>
+
+<span class="sd">    ...with :math:`G = N Nᵀ + R - Rᵀ`, and :math:`N, R` both arbitrary square matrices of</span>
+<span class="sd">    size :math:`d × d`.</span>
+
+<span class="sd">    Note that:</span>
+
+<span class="sd">        * :math:`C = R - Rᵀ` is skew symmetric :math:`(Cᵀ = -C)`</span>
+<span class="sd">        * If :math:`d` is even, :math:`C` has imaginary conjugate eigenvalue pairs</span>
+<span class="sd">          :math:`(iλ₁ ,-iλ₁, ...)`</span>
+<span class="sd">        * :math:`expm(C)` is an orthogonal matrix (specifying an isometry)</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">      @article{loper2020general,</span>
+<span class="sd">          title={General linear-time inference for Gaussian Processes on one dimension},</span>
+<span class="sd">          author={Loper, Jackson and Blei, David and Cunningham, John P and Paninski, Liam},</span>
+<span class="sd">          journal={arXiv preprint arXiv:2003.05554},</span>
+<span class="sd">          year={2020}</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">R</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param N: The Noise mixing matrix.</span>
+<span class="sd">        :param R: The Rotation inducing matrix.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">N</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;state_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">]),</span> <span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;state_dim&quot;</span><span class="p">,</span> <span class="s2">&quot;state_dim&quot;</span><span class="p">])]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_scope</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;N&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LatentExponentiallyGenerated.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the state dimension.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span></div>
+
+<div class="viewcode-block" id="LatentExponentiallyGenerated.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the state transition matrices. That is:</span>
+
+<span class="sd">        .. math:: Aₖ = expm[-½G Δtₖ]</span>
+
+<span class="sd">        :param transition_times: Time points at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :param time_deltas: Time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor of shape batch_shape + [num_transitions, state_dim, state_dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_rank_at_least</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;time_deltas cannot be a scalar.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># [..., num_transitions, 1, 1]</span>
+        <span class="n">extended_time_deltas</span> <span class="o">=</span> <span class="n">time_deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="n">expm</span><span class="p">(</span><span class="n">extended_time_deltas</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">feedback_matrix</span><span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">),</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state_transitions</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LatentExponentiallyGenerated.feedback_matrix"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated.feedback_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the feedback matrix.</span>
+
+<span class="sd">        Here, this is :math:`F (=-G/2)` with shape :math:`d × d`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="o">-</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span>
+                <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">/</span> <span class="mf">2.0</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="LatentExponentiallyGenerated.steady_state_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated.steady_state_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the steady state covariance :math:`P∞ = I`.</span>
+
+<span class="sd">        :return: A tensor with shape ``[state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="LatentExponentiallyGenerated.process_covariances"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/latent_exp_generated/index.html#markovflow.kernels.LatentExponentiallyGenerated.process_covariances">[docs]</a>    <span class="k">def</span> <span class="nf">process_covariances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtain the process covariance at time :math:`k`. This is calculated as:</span>
+
+<span class="sd">        .. math:: Qₖ = P∞ - Aₖ P∞ Aₖᵀ = I - Aₖ Aₖᵀ</span>
+
+<span class="sd">        :param transition_times: Time points at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :param time_deltas: Time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># [state_dim, state_dim]</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span><span class="n">transition_times</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">)</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">I</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">,</span> <span class="n">state_transitions</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

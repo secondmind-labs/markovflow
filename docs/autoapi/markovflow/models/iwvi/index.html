@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.iwvi &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.models.models" href="../models/index.html" />
+    <link rel="prev" title="markovflow.models.gaussian_process_regression" href="../gaussian_process_regression/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.models.iwvi.ImportanceWeightedVI" class="nav-link">ImportanceWeightedVI</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.iwvi.ImportanceWeightedVI.elbo" class="nav-link">elbo</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.models.iwvi.ImportanceWeightedVI.dregs_objective" class="nav-link">dregs_objective</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.models.iwvi">
+<span id="markovflow-models-iwvi"></span><h1><a class="reference internal" href="#module-markovflow.models.iwvi" title="markovflow.models.iwvi"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.models.iwvi</span></code></a><a class="headerlink" href="#module-markovflow.models.iwvi" title="Permalink to this headline">¶</a></h1>
+<p>Module containing a model for importance-weighted variational inference.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.models.iwvi.ImportanceWeightedVI">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ImportanceWeightedVI</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inducing_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">likelihood</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.likelihoods.Likelihood</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_importance_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_distribution</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../mean_function/index.html#markovflow.mean_function.MeanFunction" title="markovflow.mean_function.MeanFunction"><span class="pre">markovflow.mean_function.MeanFunction</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/models/iwvi.html#ImportanceWeightedVI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.iwvi.ImportanceWeightedVI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../sparse_variational/index.html#markovflow.models.sparse_variational.SparseVariationalGaussianProcess" title="markovflow.models.sparse_variational.SparseVariationalGaussianProcess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markovflow.models.sparse_variational.SparseVariationalGaussianProcess</span></code></a></p>
+<p>Performs importance-weighted variational inference (IWVI).</p>
+<p>The <a class="reference external" href="https://papers.nips.cc/paper/7699-importance-weighting-and-variational-inference.pdf">key reference</a> is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inproceedings</span><span class="p">{</span><span class="n">domke2018importance</span><span class="p">,</span>
+  <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Importance</span> <span class="n">weighting</span> <span class="ow">and</span> <span class="n">variational</span> <span class="n">inference</span><span class="p">},</span>
+  <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Domke</span><span class="p">,</span> <span class="n">Justin</span> <span class="ow">and</span> <span class="n">Sheldon</span><span class="p">,</span> <span class="n">Daniel</span> <span class="n">R</span><span class="p">},</span>
+  <span class="n">booktitle</span><span class="o">=</span><span class="p">{</span><span class="n">Advances</span> <span class="ow">in</span> <span class="n">neural</span> <span class="n">information</span> <span class="n">processing</span> <span class="n">systems</span><span class="p">},</span>
+  <span class="n">pages</span><span class="o">=</span><span class="p">{</span><span class="mi">4470</span><span class="o">--</span><span class="mi">4479</span><span class="p">},</span>
+  <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2018</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The idea is based on the observation that an estimator of the evidence lower bound (ELBO)
+can be obtained from an importance weight <span class="math notranslate nohighlight">\(w\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[L₁ = log w(x₁),    x₁ ~ q(x)\]</div>
+<p>…where <span class="math notranslate nohighlight">\(x\)</span> is the latent variable of the model (a GP, or set of GPs in our case)
+and the function <span class="math notranslate nohighlight">\(w\)</span> is:</p>
+<div class="math notranslate nohighlight">
+\[w(x) = p(y | x) p(x) / q(x)\]</div>
+<p>It follows that:</p>
+<div class="math notranslate nohighlight">
+\[ELBO = 𝔼ₓ₁[ L₁ ]\]</div>
+<p>…and:</p>
+<div class="math notranslate nohighlight">
+\[log p(y) = log 𝔼ₓ₁[ w(x₁) ]\]</div>
+<p>It turns out that there are a series of lower bounds given by taking multiple importance
+samples:</p>
+<div class="math notranslate nohighlight">
+\[Lₙ = log (1/n) Σᵢⁿ w(xᵢ),     xᵢ ~ q(x)\]</div>
+<p>And we have the relation:</p>
+<div class="math notranslate nohighlight">
+\[log p(y) &gt;= 𝔼[Lₙ] &gt;= 𝔼[Lₙ₋₁] &gt;= ... &gt;= 𝔼[L₁] = ELBO\]</div>
+<p>This means that we can improve tightness of the ELBO to the log marginal likelihood by
+increasing <span class="math notranslate nohighlight">\(n\)</span>, which we refer to in this class as <code class="xref any docutils literal notranslate"><span class="pre">num_importance_samples</span></code>.
+The trade-offs are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The objective function is now always stochastic, even for cases where the ELBO
+of the parent class is non-stochastic</p></li>
+<li><p>We have to do more computations (evaluate the weights <span class="math notranslate nohighlight">\(n\)</span> times)</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kernel</strong> – A kernel that defines a prior over functions.</p></li>
+<li><p><strong>inducing_points</strong> – The points in time on which inference should be performed,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_inducing]</span></code>.</p></li>
+<li><p><strong>likelihood</strong> – A likelihood.</p></li>
+<li><p><strong>num_importance_samples</strong> – The number of samples for the importance-weighted estimator.</p></li>
+<li><p><strong>initial_distribution</strong> – An initial configuration for the variational distribution,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_inducing]</span></code>.</p></li>
+<li><p><strong>mean_function</strong> – The mean function for the GP. Defaults to no mean function.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.models.iwvi.ImportanceWeightedVI.elbo">
+<code class="sig-name descname"><span class="pre">elbo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/iwvi.html#ImportanceWeightedVI.elbo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.iwvi.ImportanceWeightedVI.elbo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the importance-weighted ELBO using K samples. The procedure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.</span><span class="o">..</span><span class="n">K</span><span class="p">:</span>
+    <span class="n">uₖ</span> <span class="o">~</span> <span class="n">q</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="n">sₖ</span> <span class="o">~</span> <span class="n">p</span><span class="p">(</span><span class="n">s</span> <span class="o">|</span> <span class="n">u</span><span class="p">)</span>
+    <span class="n">wₖ</span> <span class="o">=</span> <span class="n">p</span><span class="p">(</span><span class="n">y</span> <span class="o">|</span> <span class="n">sₖ</span><span class="p">)</span><span class="n">p</span><span class="p">(</span><span class="n">uₖ</span><span class="p">)</span> <span class="o">/</span> <span class="n">q</span><span class="p">(</span><span class="n">uₖ</span><span class="p">)</span>
+
+<span class="n">ELBO</span> <span class="o">=</span> <span class="n">log</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">K</span><span class="p">)</span> <span class="n">Σₖwₖ</span>
+</pre></div>
+</div>
+<p>Everything is computed in log-space for stability. Note that gradients
+of this ELBO may have high variance with regard to the variational parameters;
+see the DREGS gradient estimator method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data at which
+to calculate the loss for training the model:</p>
+<ul class="simple">
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A scalar tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.models.iwvi.ImportanceWeightedVI.dregs_objective">
+<code class="sig-name descname"><span class="pre">dregs_objective</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../../_modules/markovflow/models/iwvi.html#ImportanceWeightedVI.dregs_objective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.models.iwvi.ImportanceWeightedVI.dregs_objective" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute a scalar tensor that, when differentiated using <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/gradients" title="(in TensorFlow v2.4)"><code class="xref any docutils literal notranslate"><span class="pre">tf.gradients</span></code></a>,
+produces the DREGS variance controlled gradient.</p>
+<p>See <a class="reference external" href="https://openreview.net/pdf?id=HkG3e205K7">“Doubly Reparameterized Gradient Estimators For Monte Carlo Objectives”</a> for a derivation.</p>
+<p>We recommend using these gradients for training variational
+parameters and gradients of the importance-weighted ELBO for training hyperparameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_data</strong> – <p>A tuple of time points and observations containing the data at which
+to calculate the loss for training the model:</p>
+<ul class="simple">
+<li><p>A tensor of inputs with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data]</span></code></p></li>
+<li><p>A tensor of observations with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_data,</span> <span class="pre">observation_dim]</span></code></p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A scalar tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

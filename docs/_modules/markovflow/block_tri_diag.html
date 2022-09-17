@@ -1,0 +1,762 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.block_tri_diag &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../index.html">
+    
+      <img src="../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.block_tri_diag</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module representing block tridiagonal matrices.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">banded_matrices.banded</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BandedMatrixTensor</span><span class="p">,</span>
+    <span class="n">band_to_block</span><span class="p">,</span>
+    <span class="n">block_to_band</span><span class="p">,</span>
+    <span class="n">cholesky_band</span><span class="p">,</span>
+    <span class="n">inverse_from_cholesky_band</span><span class="p">,</span>
+    <span class="n">product_band_mat</span><span class="p">,</span>
+    <span class="n">solve_triang_mat</span><span class="p">,</span>
+    <span class="n">unpack_banded_matrix_to_dense</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span><span class="p">,</span> <span class="n">tf_scope_fn_decorator</span>
+
+
+<div class="viewcode-block" id="BlockTriDiagonal"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">BlockTriDiagonal</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Abstract class representing a block tridiagonal matrix.</span>
+
+<span class="sd">    All precisions in Markovflow are of this form, so this class provides an adapter between the</span>
+<span class="sd">    TensorFlow banded_matrices and the MarkovFlow code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">diagonal</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">sub_diagonal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.</span>
+<span class="sd">        :param symmetric: Whether the block tridiagonal matrix will be symmetric.</span>
+<span class="sd">        :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_diag</span> <span class="o">=</span> <span class="n">diagonal</span>
+        <span class="c1"># check the shape of the diagonal</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">diagonal</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Last two dimensions of the block diagonal must match.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_greater_equal</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Outer dimensions of the block matrix must</span>
+<span class="s2">                                                     be greater than 0.&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sub_diagonal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_greater</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;There is no sub-diagonal with outer</span>
+<span class="s2">                                                   dimension of one.&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># check the sub diagonal has the required shape if it exists</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">sub_diagonal</span><span class="p">),</span>
+                <span class="n">shape</span><span class="p">,</span>
+                <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;Sub_diagonal has shape </span><span class="si">{</span><span class="n">sub_diagonal</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">                                                  but must have shape: </span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="o">=</span> <span class="n">sub_diagonal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span> <span class="o">=</span> <span class="n">symmetric</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.as_band"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.as_band">[docs]</a>    <span class="k">def</span> <span class="nf">as_band</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BandedMatrixTensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a TensorFlow tensor (or NumPy array) representing a banded matrix.</span>
+
+<span class="sd">        The (dense) tensor should be of dimension :math:`K×N`, where :math:`K` is the bandwidth</span>
+<span class="sd">        of the represented :math:`N×N` matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_band</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.bandwidth"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.bandwidth">[docs]</a>    <span class="k">def</span> <span class="nf">bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the (lower) bandwidth of the tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bandwidth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bandwidth</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span>
+        <span class="k">return</span> <span class="n">bandwidth</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.batch_shape"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.batch_shape">[docs]</a>    <span class="k">def</span> <span class="nf">batch_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the batch shape of this object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.inner_dim"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.inner_dim">[docs]</a>    <span class="k">def</span> <span class="nf">inner_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the inner dimension of the block tridiagonal matrix. That is,</span>
+<span class="sd">        the dimensions of the block.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.outer_dim"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.outer_dim">[docs]</a>    <span class="k">def</span> <span class="nf">outer_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the outer dimension of the block tridiagonal matrix. That is, the number of blocks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="p">)[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.block_diagonal"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.block_diagonal">[docs]</a>    <span class="k">def</span> <span class="nf">block_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the block diagonal.</span>
+
+<span class="sd">        :return: Diagonal with shape ``[... outer_dim, inner_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diag</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BlockTriDiagonal.block_sub_diagonal"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.block_sub_diagonal">[docs]</a>    <span class="k">def</span> <span class="nf">block_sub_diagonal</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the block sub-diagonal, if it exists.</span>
+
+<span class="sd">        :return: Sub-diagonal with shape ``[... outer_dim, inner_dim, inner_dim]`` or `None`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span></div>
+
+<div class="viewcode-block" id="BlockTriDiagonal.to_dense"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.to_dense">[docs]</a>    <span class="k">def</span> <span class="nf">to_dense</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert this object to a dense tensor.</span>
+
+<span class="sd">        This is useful mainly for debugging and testing purposes.</span>
+
+<span class="sd">        :return: A tensor with shape ``[... outer_dim * inner_dim, outer_dim * inner_dim]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lower</span> <span class="o">=</span> <span class="n">unpack_banded_matrix_to_dense</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">,</span> <span class="n">lower_bandwidth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bandwidth</span><span class="p">,</span> <span class="n">upper_bandwidth</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">lower</span>
+                <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">lower</span><span class="p">)</span>
+                <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">lower</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">lower</span></div>
+
+<div class="viewcode-block" id="BlockTriDiagonal.dense_mult"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.dense_mult">[docs]</a>    <span class="k">def</span> <span class="nf">dense_mult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">transpose_left</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiply a dense vector by this object.</span>
+
+<span class="sd">        If this object is :math:`L` and right is :math:`x`, calculate :math:`Lx` as a dense tensor.</span>
+
+<span class="sd">        :param right: A tensor with shape ``[... outer_dim, inner_dim]``.</span>
+<span class="sd">        :param transpose_left: Whether to transpose :math:`L` before multiplying.</span>
+<span class="sd">        :return: A tensor with shape ``[... outer_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># [..., outer_dim * inner_dim, 1]</span>
+        <span class="n">right_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_right</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+
+        <span class="c1"># [..., outer_dim * inner_dim, 1]</span>
+        <span class="n">prod</span> <span class="o">=</span> <span class="n">product_band_mat</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">,</span>
+            <span class="n">right_flat</span><span class="p">,</span>
+            <span class="n">left_lower_bandwidth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bandwidth</span><span class="p">,</span>
+            <span class="n">left_upper_bandwidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">transpose_left</span><span class="o">=</span><span class="n">transpose_left</span><span class="p">,</span>
+            <span class="n">symmetrise_left</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [..., outer_dim, inner_dim]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unflatten_right</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span></div>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BlockTriDiagonal.__add__"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal.__add__">[docs]</a>    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add two :class:`BlockTriDiagonal` tensors together.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="BlockTriDiagonal._convert_to_band"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal._convert_to_band">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_to_band</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BandedMatrixTensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: A `BandedMatrixTensor` representation of this matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># [... outer_dim * inner_dim, inner_dim]</span>
+            <span class="n">concatted</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">padding_zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="c1"># [... outer_dim, inner_dim, state_dim]</span>
+            <span class="n">padded_sub_diag</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span><span class="p">,</span> <span class="n">padding_zeros</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">transposed</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">,</span> <span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="p">),</span> <span class="n">padded_sub_diag</span><span class="p">]))</span>
+            <span class="c1"># [... outer_dim * inner_dim, 2 * inner_dim]</span>
+            <span class="n">concatted</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">transposed</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">]],</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">block_to_band</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">concatted</span><span class="p">),</span>
+            <span class="n">block_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span>
+            <span class="n">symmetric</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_symmetric</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="BlockTriDiagonal._flatten_right"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal._flatten_right">[docs]</a>    <span class="k">def</span> <span class="nf">_flatten_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.</span>
+
+<span class="sd">        :param right: the tensor whose shape we want to alter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">broadcast_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">right</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">right_shape_flat</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">broadcast_shape</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">right_shape_flat</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockTriDiagonal._unflatten_right"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal._unflatten_right">[docs]</a>    <span class="k">def</span> <span class="nf">_unflatten_right</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flat_right</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reshape the rhs for banded_ops compatibility. See also self._assert_compatible_right_shape.</span>
+
+<span class="sd">        :param flat_right: the tensor whose shape we want to alter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">broadcast_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">flat_right</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">right_shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">broadcast_shape</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">flat_right</span><span class="p">,</span> <span class="n">right_shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BlockTriDiagonal._assert_compatible_right_shape"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.BlockTriDiagonal._assert_compatible_right_shape">[docs]</a>    <span class="k">def</span> <span class="nf">_assert_compatible_right_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make sure the Tensor &#39;right&#39; is a suitable right-hand-side tensor for</span>
+<span class="sd">        multiplication and solving. The inner and outer dims should match, and</span>
+<span class="sd">        the broadcast_dim should be compatible.</span>
+
+<span class="sd">        :param right: the tensor whose shape we want to check.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+
+        <span class="c1"># make sure right&#39;s outer_dim and inner_dim match</span>
+        <span class="n">outer_dim</span><span class="p">,</span> <span class="n">inner_dim</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">([</span><span class="n">outer_dim</span><span class="p">,</span> <span class="n">inner_dim</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">right</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># right is trying to broadcast over self.batch-shape. Assert that</span>
+            <span class="c1"># right&#39;s implied batch_shape is compatible</span>
+            <span class="k">if</span> <span class="n">right</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">ndims</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">)):</span>
+                <span class="n">right_batch_shape</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">))</span> <span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">right_batch_shape</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+            <span class="n">shapes_match</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">right_batch_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">),</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">right_batch_shape</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">shapes_match</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="LowerTriangularBlockTriDiagonal"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">BlockTriDiagonal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a lower triangular block tridiagonal matrix::</span>
+
+<span class="sd">               [D₁              ]</span>
+<span class="sd">               [A₁ D₂           ]</span>
+<span class="sd">               [    A₂ D₃       ]</span>
+<span class="sd">               [        ᨞  ᨞    ]</span>
+<span class="sd">               [         Aₙ₋₁ Dₙ]</span>
+
+<span class="sd">    This is typically the Cholesky of a :class:`SymmetricBlockTriDiagonal`.</span>
+
+<span class="sd">    Each matrix :math:`Dᵢ` is lower triangular and square with dimension `inner_dim`.</span>
+<span class="sd">    :math:`Aᵢ` is square with dimension `inner_dim`.</span>
+
+<span class="sd">    The `outer_dim` is :math:`n`; that is, the number of block matrices on the main diagonal.</span>
+
+<span class="sd">    :math:`Dᵢ` are the diagonal matrices and :math:`Aᵢ` are the sub-diagonal matrices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diagonal</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">sub_diagonal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.</span>
+<span class="sd">        :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">diagonal</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sub_diagonal</span><span class="o">=</span><span class="n">sub_diagonal</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.block_diagonal_of_inverse">[docs]</a>    <span class="k">def</span> <span class="nf">block_diagonal_of_inverse</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If this object is :math:`L` and :math:`M = LLᵀ`, return the block diagonal</span>
+<span class="sd">        elements of :math:`M⁻¹`.</span>
+
+<span class="sd">        :math:`M⁻¹` will not, in general, be a banded matrix, and we are normally interested</span>
+<span class="sd">        only in the diagonal elements.</span>
+
+<span class="sd">        :return: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># the slice is to only grab the diagonal elements</span>
+        <span class="c1"># [..., inner_dim, outer_dim * inner_dim]</span>
+        <span class="n">band</span> <span class="o">=</span> <span class="n">band_to_block</span><span class="p">(</span>
+            <span class="n">inverse_from_cholesky_band</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span>
+        <span class="p">)</span>
+
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span><span class="n">band</span><span class="p">),</span> <span class="n">shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LowerTriangularBlockTriDiagonal.solve"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">right</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">transpose_left</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If this object is :math:`L` and right is :math:`x`, calculate :math:`L⁻¹ x`</span>
+<span class="sd">        as a dense tensor.</span>
+
+<span class="sd">        :param right: A tensor with shape ``[... outer_dim, inner_dim]``.</span>
+<span class="sd">        :param transpose_left: Whether to transpose :math:`L` before solving.</span>
+<span class="sd">        :return: A tensor with shape ``[... outer_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assert_compatible_right_shape</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+        <span class="n">right_flat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flatten_right</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+        <span class="n">solved</span> <span class="o">=</span> <span class="n">solve_triang_mat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">,</span> <span class="n">right_flat</span><span class="p">,</span> <span class="n">transpose_left</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unflatten_right</span><span class="p">(</span><span class="n">solved</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LowerTriangularBlockTriDiagonal.abs_log_det"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.abs_log_det">[docs]</a>    <span class="k">def</span> <span class="nf">abs_log_det</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the absolute log determinant of this matrix.</span>
+<span class="sd">        This is just the log of the product of diagonal elements (since it is lower triangular).</span>
+
+<span class="sd">        For numerical stability and nicer gradients, we do:</span>
+
+<span class="sd">        .. math:: log |L| = Σₙ log |Lₙₙ| =  Σₙ  ½ log |Lₙₙ|²</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape``, representing the log determinant.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:])),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="LowerTriangularBlockTriDiagonal.__add__"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.LowerTriangularBlockTriDiagonal.__add__">[docs]</a>    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;LowerTriangularBlockTriDiagonal&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LowerTriangularBlockTriDiagonal&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add two :class:`LowerTriangularBlockTriDiagonal` tensors together.&quot;&quot;&quot;</span>
+        <span class="n">sub_diag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sub_diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sub_diag</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_diag</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+
+        <span class="k">return</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_diagonal</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">block_diagonal</span><span class="p">,</span> <span class="n">sub_diag</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SymmetricBlockTriDiagonal"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">SymmetricBlockTriDiagonal</span><span class="p">(</span><span class="n">BlockTriDiagonal</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a symmetric block tridiagonal matrix::</span>
+
+<span class="sd">               [D₁ A₁ᵀ              ]</span>
+<span class="sd">               [A₁ D₂  A₂ᵀ          ]</span>
+<span class="sd">               [    A₂ D₃ A₂ᵀ       ]</span>
+<span class="sd">               [        ᨞  ᨞   Aₙ₋₁ᵀ]</span>
+<span class="sd">               [         Aₙ₋₁  Dₙ   ]</span>
+
+<span class="sd">    This is the form of the precision matrix for a</span>
+<span class="sd">    :class:`~markovflow.state_space_model.StateSpaceModel`.</span>
+
+<span class="sd">    Each matrix :math:`Dᵢ` is symmetric square with dimension `inner_dim`.</span>
+<span class="sd">    :math:`Aᵢ` is square with dimension `inner_dim`.</span>
+
+<span class="sd">    The `outer_dim` is :math:`n`; that is, the number of block matrices on the main diagonal.</span>
+
+<span class="sd">    :math:`Dᵢ` are the diagonal matrices and :math:`Aᵢ` are the sub-diagonal matrices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">diagonal</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">sub_diagonal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param diagonal: A tensor with shape ``[... outer_dim, inner_dim, inner_dim]``.</span>
+<span class="sd">        :param sub_diagonal: A tensor with shape ``[... outer_dim - 1, inner_dim, inner_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">diagonal</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sub_diagonal</span><span class="o">=</span><span class="n">sub_diagonal</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SymmetricBlockTriDiagonal.__add__"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.__add__">[docs]</a>    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;SymmetricBlockTriDiagonal&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SymmetricBlockTriDiagonal&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add two :class:`SymmetricBlockTriDiagonal` tensors together.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sub_diag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sub_diag</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sub_diag</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+
+        <span class="k">return</span> <span class="n">SymmetricBlockTriDiagonal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_diagonal</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">block_diagonal</span><span class="p">,</span> <span class="n">sub_diag</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SymmetricBlockTriDiagonal.cholesky"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.cholesky">[docs]</a>    <span class="k">def</span> <span class="nf">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the Cholesky factorisation of this matrix.</span>
+
+<span class="sd">        Cholesky factorisations require a symmetric matrix.</span>
+<span class="sd">        The `cholesky_band` matrix only operates on the lower triangle, so no copy is needed.</span>
+
+<span class="sd">        Cholesky factorisations preserve band structure, so the result is a</span>
+<span class="sd">        :class:`LowerTriangularBlockTriDiagonal` with the same shape.</span>
+
+<span class="sd">        :return: A matrix of the same shape, representing the Cholesky.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_banded_to_block_tri</span><span class="p">(</span><span class="n">cholesky_band</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_band</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SymmetricBlockTriDiagonal.upper_diagonal_lower"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag.SymmetricBlockTriDiagonal.upper_diagonal_lower">[docs]</a>    <span class="k">def</span> <span class="nf">upper_diagonal_lower</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">,</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For this matrix, calculate the :math:`UDUᵀ` factorisation. This is where::</span>
+
+<span class="sd">            Uᵀ =  [ I             ]       D = [ D₀          ]</span>
+<span class="sd">                  [U₁ᵀ, I         ]           [    D₁       ]</span>
+<span class="sd">                  [    U₂ᵀ, I     ]           [       ᨞     ]</span>
+<span class="sd">                  [         ᨞  ᨞ ]            [         ᨞  ]</span>
+<span class="sd">                  [         Uₙᵀ, I]           [           Dₙ]</span>
+
+<span class="sd">        :math:`D₀, D₁... Dₙ` are symmetric.</span>
+
+<span class="sd">        This is related to the Cholesky :math:`LLᵀ` and :math:`LDLᵀ` decompositions, but is more</span>
+<span class="sd">        natural when dealing with the inverses of matrices. That is, if</span>
+<span class="sd">        :math:`K⁻¹ = UDUᵀ` then :math:`K = LD⁻¹Lᵀ` where :math:`L=U⁻ᵀ`.</span>
+
+<span class="sd">        This can be used to find the :class:`~markovflow.state_space_model.StateSpaceModel`</span>
+<span class="sd">        that represents this :class:`SymmetricBlockTriDiagonal`, since:</span>
+
+<span class="sd">        .. math:: K⁻¹ = A⁻ᵀ Q⁻¹ A⁻¹</span>
+
+<span class="sd">        Hence we can identify the state transition matrices :math:`Aᵢ = -Uᵢᵀ`</span>
+<span class="sd">        and the initial and process noise covariance matrices :math:`D₀= P₀⁻¹, Dᵢ= Qᵢ⁻¹`</span>
+<span class="sd">        with the above form:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            K = &amp;| D₀ + U₁ D₁ U₁ᵀ &amp;| U₁ D₁          &amp;| 0...\\</span>
+<span class="sd">                &amp;| D₁ U₁ᵀ         &amp;| D₁ + U₂ D₂ U₂ᵀ &amp;|  U₂ D₂         &amp;| 0...\\</span>
+<span class="sd">                &amp;|   0            &amp;| D₂ U₂ᵀ         &amp;| D₂ + D₃ U₃ D₃ᵀ &amp;| U₃ D₃ &amp;| 0...\\</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        We can write the following recurrence relation:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">           &amp;Dₙ = Kₙₙ\\</span>
+<span class="sd">           &amp;Dₖ = Kₖₖ - Kₖₖ₊₁ᵀ Dₖ₊₁⁻¹Kₖₖ₊₁\\</span>
+<span class="sd">           &amp;Uₖᵀ = Dₖ⁻¹ Kₖₖ₋₁</span>
+
+<span class="sd">        ...where :math:`Kⱼₖ` is the block matrix at location j, k of this matrix.</span>
+<span class="sd">        This method allows us to return the posterior from a</span>
+<span class="sd">        :class:`~markovflow.kalman_filter.KalmanFilter` as a</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel`.</span>
+
+<span class="sd">        :return: A tuple of :math:`Uᵀ` and `chol_D`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># must have a sub diagonal, otherwise there are no Us</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">chol_D_s</span><span class="p">,</span> <span class="n">counter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Calculate Dₖ iteratively, given by::</span>
+
+<span class="sd">                Dₖ = Kₖₖ - Kₖₖ₊₁ᵀ Dₖ₊₁⁻¹Kₖₖ₊₁</span>
+
+<span class="sd">            ...where Kⱼₖ is the block matrix at location j, k of this matrix.</span>
+<span class="sd">            This loop proceeds backwards, from the last state to the first.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">diag_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">counter</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># [... inner_dim, inner_dim]</span>
+            <span class="n">sub_diag_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">counter</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># [... inner_dim, inner_dim]</span>
+
+            <span class="c1"># Dₖ₊₁⁻¹Kₖₖ₊₁</span>
+            <span class="n">d_inv_k</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">chol_D_s</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">sub_diag_k</span><span class="p">)</span>
+
+            <span class="c1"># Dₖ = Kₖₖ - Kₖₖ₊₁ᵀ Dₖ₊₁⁻¹Kₖₖ₊₁ [... inner_dim, inner_dim]</span>
+            <span class="n">D_k</span> <span class="o">=</span> <span class="n">diag_k</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">sub_diag_k</span><span class="p">,</span> <span class="n">d_inv_k</span><span class="p">,</span> <span class="n">transpose_a</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># add chol_Dₖ to the list of chol_Ds</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">D_k</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]),</span> <span class="n">chol_D_s</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">),</span>
+                <span class="n">counter</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># set up the loop variables and shape invariants</span>
+        <span class="c1"># chol_Dₙ = chol_Kₙₙ [... 1, inner_dim, inner_dim]</span>
+        <span class="n">loop_vars</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:]),</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">shape_invars</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">)),</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([]),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># [chol_D₀, chol_D₁, chol_D₂, ....] [... outer_dim, inner_dim, inner_dim]</span>
+        <span class="n">chol_d_s</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">while_loop</span><span class="p">(</span>
+            <span class="n">cond</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_</span><span class="p">,</span> <span class="n">counter</span><span class="p">:</span> <span class="n">counter</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+            <span class="n">loop_vars</span><span class="o">=</span><span class="n">loop_vars</span><span class="p">,</span>
+            <span class="n">shape_invariants</span><span class="o">=</span><span class="n">shape_invars</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">identities</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inner_dim</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_diag</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="n">batch_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_shape</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outer_dim</span><span class="p">,),</span>
+        <span class="p">)</span>
+
+        <span class="n">chol_d_s</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">identities</span><span class="p">))</span>
+        <span class="c1"># Uₖᵀ = Dₖ⁻¹ Kₖₖ₋₁ [... outer_dim - 1, inner_dim, inner_dim]</span>
+        <span class="n">u_s</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">chol_d_s</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sub_diag</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">identities</span><span class="p">,</span> <span class="n">u_s</span><span class="p">),</span>
+            <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">chol_d_s</span><span class="p">),</span></div></div>
+        <span class="p">)</span>
+
+
+<span class="nd">@tf_scope_fn_decorator</span>
+<div class="viewcode-block" id="_banded_to_block_tri"><a class="viewcode-back" href="../../autoapi/markovflow/block_tri_diag/index.html#markovflow.block_tri_diag._banded_to_block_tri">[docs]</a><span class="k">def</span> <span class="nf">_banded_to_block_tri</span><span class="p">(</span>
+    <span class="n">banded</span><span class="p">:</span> <span class="n">BandedMatrixTensor</span><span class="p">,</span> <span class="n">block_size</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a banded matrix to a LowerTriangularBlockTriDiagonal.</span>
+
+<span class="sd">    NOTE This is designed for internal use with this module as it doesn&#39;t check the shapes, so</span>
+<span class="sd">    may not work for `BandedMatrixTensor`s that aren&#39;t LowerTriangularBlockTriDiagonal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="n">band_to_block</span><span class="p">(</span><span class="n">banded</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">block_size</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">batch_shape</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">num_diags_inner</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">outer_inner</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">outer</span> <span class="o">=</span> <span class="n">outer_inner</span> <span class="o">//</span> <span class="n">block_size</span>
+    <span class="n">num_diags</span> <span class="o">=</span> <span class="n">num_diags_inner</span> <span class="o">//</span> <span class="n">block_size</span>
+    <span class="k">assert</span> <span class="n">num_diags</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="mi">2</span><span class="p">,</span>
+    <span class="p">),</span> <span class="s2">&quot;&quot;&quot;Banded matrix tensor has &quot; + num_diags + &quot; block diagonals</span>
+<span class="s2">                                   so isn&#39;t block tri diagonal&quot;&quot;&quot;</span>
+
+    <span class="n">shape1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="n">num_diags</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">outer_inner</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">shape2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">batch_shape</span><span class="p">,</span> <span class="p">[</span><span class="n">num_diags</span><span class="p">,</span> <span class="n">outer</span><span class="p">,</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">block_size</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># [... num_diags, outer, block_size, block_size]</span>
+    <span class="n">diags</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span>
+        <span class="c1"># [... num_diags, outer, block_size, block_size]</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="c1"># [... num_diags, outer * block_size, block_size]</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">matrix_transpose</span><span class="p">(</span>
+                <span class="c1"># [... num_diags, block_size, outer * block_size]</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">shape1</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">shape2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">sub_diag</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">num_diags</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="c1"># [... outer - 1, block_size, block_size]</span>
+        <span class="n">sub_diag</span> <span class="o">=</span> <span class="n">diags</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">diags</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+    <span class="k">return</span> <span class="n">LowerTriangularBlockTriDiagonal</span><span class="p">(</span><span class="n">diag</span><span class="p">,</span> <span class="n">sub_diag</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

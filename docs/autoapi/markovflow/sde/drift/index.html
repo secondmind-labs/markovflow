@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.sde.drift &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.sde.sde_utils" href="../sde_utils/index.html" />
+    <link rel="prev" title="markovflow.sde" href="../index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.sde.drift.LinearDrift" class="nav-link">LinearDrift</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.drift.LinearDrift.set_from_ssm" class="nav-link">set_from_ssm</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.sde.drift.LinearDrift.to_ssm" class="nav-link">to_ssm</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.sde.drift">
+<span id="markovflow-sde-drift"></span><h1><a class="reference internal" href="#module-markovflow.sde.drift" title="markovflow.sde.drift"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.sde.drift</span></code></a><a class="headerlink" href="#module-markovflow.sde.drift" title="Permalink to this headline">¶</a></h1>
+<p>Module containing classes for different drifts.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.sde.drift.LinearDrift">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">LinearDrift</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/sde/drift.html#LinearDrift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.drift.LinearDrift" title="Permalink to this definition">¶</a></dt>
+<dd><p>A linear drift of the form, f(x_t, t) = A_t * x_t + b_t.</p>
+<p>Initialize the linear drift with the parameters A and b defining it as f(x_t, t) = A_t * x_t + b_t.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> – <code class="xref any docutils literal notranslate"><span class="pre">A</span></code> parameter of the linear drift with shape <code class="xref any docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]`</span></code></p></li>
+<li><p><strong>b</strong> – <code class="xref any docutils literal notranslate"><span class="pre">b</span></code> parameter of the linear drift with shape <code class="xref any docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions,</span> <span class="pre">state_dim]</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.sde.drift.LinearDrift.set_from_ssm">
+<code class="sig-name descname"><span class="pre">set_from_ssm</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../../state_space_model/index.html#markovflow.state_space_model.StateSpaceModel" title="markovflow.state_space_model.StateSpaceModel"><span class="pre">markovflow.state_space_model.StateSpaceModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/sde/drift.html#LinearDrift.set_from_ssm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.drift.LinearDrift.set_from_ssm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximately converts a StateSpaceModel into a linear drift of the form: f(x(t), t) = A(t) * x(t) + b(t),</p>
+<p>Given the linear drift f(x(t), t) = A(t) * x(t) + b(t), of a continuous time SDE. The conditional distribution
+of two  states  x(t_{k+1}), x(t_{k}) is given by</p>
+<blockquote>
+<div><blockquote>
+<div><p>x(t_{k+1}) | x(t_{k}) = C_k x(t_{k}) +  b_k + n_k,</p>
+</div></blockquote>
+<p>with C_k = exp( int_{t_{k} &lt; t &lt; t_{k+1}}  A(t) dt) and b_k = [C_k - I] A(t)^{-1} b(t).</p>
+</div></blockquote>
+<p>Taking the limit of small-time intervals ( dt = t_{k+1} - t_{k} -&gt; 0). The first order Taylor expansion of
+the exponential  for small-time intervals ( dt = t_{k+1} - t_{k} -&gt; 0), gives the approximation:</p>
+<blockquote>
+<div><p>C_k ~= I + A(t_{k}) dt     and     b_k ~=  b(t_{k}) dt</p>
+</div></blockquote>
+<p>Therefore,</p>
+<p>A = (SSM.state_transitions - I)/dt
+b = SSM.state_offsets / dt</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.sde.drift.LinearDrift.to_ssm">
+<code class="sig-name descname"><span class="pre">to_ssm</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transition_times</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_chol_covariance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">gpflow.base.TensorType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/sde/drift.html#LinearDrift.to_ssm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.sde.drift.LinearDrift.to_ssm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximately converts a linear drift SDE of the form: f(x(t), t) = A(t) * x(t) + b(t) to a StateSpaceModel.</p>
+<p>For details, look into the docstring of <a class="reference internal" href="#markovflow.sde.drift.LinearDrift.set_from_ssm" title="markovflow.sde.drift.LinearDrift.set_from_ssm"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">set_from_ssm</span></code></a> function.</p>
+<p>SSM.state_transitions = (A + I) * dt
+SSM.state_offsets = b * dt</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

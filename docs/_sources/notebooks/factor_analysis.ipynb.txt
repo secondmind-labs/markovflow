@@ -1,0 +1,474 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "ba40bd10",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "# Factor Analysis"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8701a333",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Debug magic:\n",
+    "%matplotlib inline\n",
+    "%load_ext autoreload\n",
+    "%autoreload 2\n",
+    "\n",
+    "import os\n",
+    "\n",
+    "from gpflow import default_float\n",
+    "\n",
+    "os.environ[\"CUDA_VISIBLE_DEVICES\"] = \"-1\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4e18d5e3",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Generate the data"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6d20f167",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Generate the latents"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "638f4972",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "jitter = 1e-6\n",
+    "\n",
+    "import numpy as np\n",
+    "import matplotlib\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from markovflow.kernels import Matern52, Matern32\n",
+    "from markovflow.ssm_natgrad import SSMNaturalGradient\n",
+    "\n",
+    "kernels = [Matern52(lengthscale=1, variance=1, jitter=jitter), Matern32(lengthscale=10, variance=1, jitter=jitter)]\n",
+    "\n",
+    "Bn = 1  # batch\n",
+    "m = 1  # output dimension per latent\n",
+    "\n",
+    "N = 300  # number of datapoints\n",
+    "o = 5  # observation dimension output dimension\n",
+    "k = len(kernels)  # number of latents GPs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e8a8211d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#  Ground truth latent function\n",
+    "def Gfn(X):\n",
+    "    G = np.empty((1, X.shape[0], k))\n",
+    "    G[0, :, 0] = np.sin(X)\n",
+    "    G[0, :, 1] = np.sin(X/5)\n",
+    "    return G\n",
+    "\n",
+    "\n",
+    "X_grid = 20*np.linspace(0,1, 500)\n",
+    "\n",
+    "X = 20*np.sort(np.random.rand(N))\n",
+    "G = Gfn(X)\n",
+    "G_grid = Gfn(X_grid)\n",
+    "\n",
+    "\n",
+    "plt.figure()\n",
+    "plt.plot(X_grid, G_grid[0, ...], 'k-',alpha=.2)\n",
+    "plt.plot(X, G[0, ...], 'x')\n",
+    "    \n",
+    "# inducing point locations and make X and Z right shape\n",
+    "n_inducing = 40\n",
+    "Z = np.linspace(np.min(X), np.max(X), n_inducing)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "af35a66b",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Combine the latents"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "13048202",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "A = np.random.rand(Bn, o, k)\n",
+    "def Afn(times):\n",
+    "    x = np.einsum('t,...ik->...tik', times, A)\n",
+    "    return x\n",
+    "\n",
+    "\n",
+    "B_gen = np.random.rand(k, k)\n",
+    "print(B_gen.shape)\n",
+    "\n",
+    "# N data, k mixture outputs, 4 latents, m outputs per latent\n",
+    "W = np.einsum('...ij,jk->...ik', Afn(X), B_gen)\n",
+    "print(W.shape)\n",
+    "print(G.shape)\n",
+    "F = np.einsum('...tik,...tk->...ti', W, G)\n",
+    "\n",
+    "likelihood_variance = 0.1 # oberservation noise variance.\n",
+    "eta = np.random.normal(np.zeros_like(F), likelihood_variance)\n",
+    "Y = F + eta\n",
+    "\n",
+    "print(F.shape)\n",
+    "print(Y.shape)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d3dccee1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "_ = plt.plot(X, F[0, ...], '-', alpha=1/np.sqrt(k))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7524f55e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Plot something, maybe use B = 2, plot B graphs.\n",
+    "_ = plt.plot(X, Y[0, ...], 'x', alpha=1/np.sqrt(k))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "11d9a4b1",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "We now have X as our time data, F as our FA noiseless output, and G as our latent functions we will model with a GP prior\n",
+    "\n",
+    "X is shape - batch (i.e. 1) x num data\n",
+    "Z is shape - batch (i.e. 1) x num inducing\n",
+    "Y is shape - batch (i.e. k == 10) x num data\n",
+    "\n",
+    "We need to learn Bn == 3 GPs and combine them"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bf91eb96",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "## Fit the data and recover the latents"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "104feea5",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Create a SVGP model using a GPFA kernel"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "be08845c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import tensorflow as tf\n",
+    "\n",
+    "from gpflow.likelihoods import Gaussian\n",
+    "\n",
+    "from markovflow.models.sparse_variational import SparseVariationalGaussianProcess as SVGP\n",
+    "from markovflow.kernels import FactorAnalysisKernel\n",
+    "\n",
+    "tf_X = tf.constant(np.repeat(X[None, :], Bn, axis=0), default_float())  # [Bn, N]\n",
+    "tf_Z = tf.constant(np.repeat(Z[None, :], Bn, axis=0), default_float())  # [Bn, N]\n",
+    "tf_Y = tf.constant(Y, default_float())  # [k, N, m]\n",
+    "\n",
+    "tf_A = tf.constant(A)\n",
+    "\n",
+    "\n",
+    "def tf_Afn(times):\n",
+    "    x = tf.einsum('...t,...ik->...tik', times, tf_A)\n",
+    "    return x \n",
+    "\n",
+    "\n",
+    "kernel = FactorAnalysisKernel(tf_Afn, kernels, o, True)\n",
+    "\n",
+    "# Create the SVGP model\n",
+    "lik = Gaussian(likelihood_variance)\n",
+    "\n",
+    "svgp = SVGP(kernel=kernel, inducing_points=tf_Z, likelihood=lik)\n",
+    "\n",
+    "data = (tf_X, tf_Y)\n",
+    "\n",
+    "print(tf_X.shape)\n",
+    "print(tf_Z.shape)\n",
+    "print(tf_Y.shape)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "06de692b",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Train the SVGP Factor analyis model\n",
+    "\n",
+    "Everytime the ELBO starts to reduce we reduce the learning rate and continue"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "758faffb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "opt_ng = SSMNaturalGradient(.99)\n",
+    "opt_adam = tf.optimizers.Adam(0.01)\n",
+    "\n",
+    "last_elbo = tf.Variable(0., dtype=default_float())\n",
+    "\n",
+    "\n",
+    "@tf.function\n",
+    "def loss():\n",
+    "    elbo = svgp.elbo(data)\n",
+    "    last_elbo.assign(elbo)\n",
+    "    return -elbo\n",
+    "\n",
+    "\n",
+    "@tf.function\n",
+    "def step():\n",
+    "    opt_adam.minimize(loss, svgp.kernel.trainable_variables)\n",
+    "    opt_ng.minimize(loss, ssm=svgp.dist_q)\n",
+    "\n",
+    "\n",
+    "elbos = []\n",
+    "max_iter = ci_niter(100)\n",
+    "for it in range(max_iter):\n",
+    "    step()\n",
+    "    elbos.append(last_elbo.value())\n",
+    "    if it % 10 == 0:\n",
+    "        print(it, last_elbo.value())\n",
+    "\n",
+    "\n",
+    "plt.figure(figsize=(12, 6))\n",
+    "plt.plot(elbos)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "60c7c1b5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "last_elbo = tf.Variable(0., dtype=default_float())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4157e319",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "last_elbo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8583fb20",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Generate the marginal means and variances\n",
+    "\n",
+    "We do this at the training points for the latent and obervable processes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2e1e3cc4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x_grid = np.linspace(X.min(), X.max(), 500)\n",
+    "X_grid = np.repeat(x_grid[None, :], Bn, axis = 0) # [Bn, N]\n",
+    "tf_X_grid = tf.constant(X_grid)\n",
+    "\n",
+    "\n",
+    "posterior = svgp.posterior\n",
+    "f_mus, f_covs = posterior.predict_f(X_grid)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "80b81528",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(f_mus.shape, f_covs.shape)\n",
+    "f_means = f_mus[0, ...]\n",
+    "f_vars = f_covs[0, ...]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0b8a4d3e",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "print(f_means.shape, f_vars.shape)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "db4d72f8",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "### Plot the obervable processes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d1fe9566",
+   "metadata": {
+    "lines_to_next_cell": 0
+   },
+   "outputs": [],
+   "source": [
+    "plt.figure(figsize=(12, 6))\n",
+    "\n",
+    "f_means = f_mus[0,...]\n",
+    "f_vars = f_covs[0,...]\n",
+    "\n",
+    "cmap = matplotlib.cm.get_cmap('viridis')\n",
+    "cols = cmap(np.linspace(0, 1, o))\n",
+    "\n",
+    "plt.figure(figsize=(12, 6))\n",
+    "for ind in range(o):\n",
+    "    plt.plot(X,\n",
+    "             ind + Y[0, :, ind],\n",
+    "             color=cols[ind], marker='x', linestyle='none')\n",
+    "    \n",
+    "    m = f_means[..., ind]\n",
+    "    s = f_vars[..., ind]\n",
+    "    plt.plot(x_grid, ind + m, color=cols[ind], lw=2)\n",
+    "    lb = m - 2*np.sqrt(s)\n",
+    "    ub = m + 2*np.sqrt(s)\n",
+    "    plt.fill_between(x_grid, ind + lb, ind + ub, color=cols[ind], alpha=0.2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b5def4e8",
+   "metadata": {},
+   "source": [
+    "### Plot the latents"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "14b8ade5",
+   "metadata": {
+    "lines_to_next_cell": 0
+   },
+   "outputs": [],
+   "source": [
+    "s_mus, s_covs = posterior.predict_state(X_grid)\n",
+    "latent_emission_model = svgp.kernel._latent_components.generate_emission_model(X_grid)\n",
+    "g_mus, g_covs = latent_emission_model.project_state_marginals_to_f(s_mus, s_covs)\n",
+    "g_means = g_mus[0, ...]\n",
+    "g_vars = g_covs[0, ...]\n",
+    "\n",
+    "cmap = matplotlib.cm.get_cmap('viridis')\n",
+    "cols = cmap(np.linspace(0, 1, o))\n",
+    "\n",
+    "plt.figure(figsize=(12, 6))\n",
+    "for ind in range(k):\n",
+    "    plt.plot(X,\n",
+    "             G[0, :, ind],\n",
+    "             color=cols[ind], marker='x', linestyle='none')\n",
+    "    \n",
+    "    m = g_means[..., ind]\n",
+    "    s = g_vars[..., ind]\n",
+    "    plt.plot(x_grid, ind + m, color=cols[ind], lw=2)\n",
+    "    lb = m - 2*np.sqrt(s)\n",
+    "    ub = m + 2*np.sqrt(s)\n",
+    "    plt.fill_between(x_grid, ind + lb, ind + ub, color=cols[ind], alpha=0.2)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "06149e0f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(g_mus.shape, g_vars.shape)"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_metadata_filter": "-all"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

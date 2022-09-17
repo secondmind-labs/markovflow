@@ -1,0 +1,630 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.variational_cvi &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.variational_cvi</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for CVI.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.kalman_filter</span> <span class="kn">import</span> <span class="n">KalmanFilterWithSites</span><span class="p">,</span> <span class="n">UnivariateGaussianSitesNat</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span><span class="p">,</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.models</span> <span class="kn">import</span> <span class="n">MarkovFlowModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">ConditionalProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.ssm_gaussian_transformations</span> <span class="kn">import</span> <span class="n">naturals_to_ssm_params</span>
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+
+
+<div class="viewcode-block" id="GaussianProcessWithSitesBase"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase">[docs]</a><span class="k">class</span> <span class="nc">GaussianProcessWithSitesBase</span><span class="p">(</span><span class="n">MarkovFlowModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for site-based Gaussian Process approximation such as EP and CVI.</span>
+
+<span class="sd">    The following notation is used:</span>
+
+<span class="sd">        * :math:`x` - the time points of the training data</span>
+<span class="sd">        * :math:`y` - observations corresponding to time points :math:`x`</span>
+<span class="sd">        * :math:`s(.)` - the latent state of the Markov chain</span>
+<span class="sd">        * :math:`f(.)` - the noise free predictions of the model</span>
+<span class="sd">        * :math:`p(y | f)` - the likelihood</span>
+<span class="sd">        * :math:`t(f)` - a site (indices will refer to the associated data point)</span>
+<span class="sd">        * :math:`p(.)` - the prior distribution</span>
+<span class="sd">        * :math:`q(.)` - the variational distribution</span>
+
+<span class="sd">    We use the state space formulation of Markovian Gaussian Processes that specifies:</span>
+
+<span class="sd">    * The conditional density of neighbouring latent states :math:`p(sₖ₊₁| sₖ)`</span>
+<span class="sd">    * How to read out the latent process from these states :math:`fₖ = H sₖ`</span>
+
+<span class="sd">    The likelihood links data to the latent process and :math:`p(yₖ | fₖ)`.</span>
+<span class="sd">    We would like to approximate the posterior over the latent state space model of this model.</span>
+
+<span class="sd">    We parameterize the approximate posterior using sites :math:`tₖ(fₖ)`:</span>
+
+<span class="sd">    .. math:: q(s) = p(s) ∏ₖ tₖ(fₖ)</span>
+
+<span class="sd">    ...where :math:`tₖ(fₖ)` are univariate Gaussian sites parameterized in the natural form:</span>
+
+<span class="sd">    .. math:: t(f) = exp(𝜽ᵀφ(f) - A(𝜽))</span>
+
+<span class="sd">    ...and where :math:`𝜽=[θ₁,θ₂]` and :math:`𝛗(f)=[f,f²]`.</span>
+
+<span class="sd">    Here, :math:`𝛗(f)` are the sufficient statistics and :math:`𝜽` are the natural parameters.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param input_data: A tuple containing the observed data:</span>
+
+<span class="sd">            * Time points of observations with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * Observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :param kernel: A kernel that defines a prior over functions.</span>
+<span class="sd">        :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span> <span class="o">=</span> <span class="n">time_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span> <span class="o">=</span> <span class="n">observations</span>
+
+        <span class="c1"># initialize sites</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span> <span class="o">=</span> <span class="n">UnivariateGaussianSitesNat</span><span class="p">(</span>
+            <span class="n">nat1</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">observations</span><span class="p">)),</span>
+            <span class="n">nat2</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">observations</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1e-10</span><span class="p">),</span>
+            <span class="n">log_norm</span><span class="o">=</span><span class="n">Parameter</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">observations</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the :class:`~markovflow.state_space_model.StateSpaceModel` representation of</span>
+<span class="sd">        the posterior process indexed at the time points.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get prior precision</span>
+        <span class="n">prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="o">.</span><span class="n">precision</span>
+
+        <span class="c1"># [..., num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">prec_diag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_diagonal</span>
+        <span class="c1"># [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">prec_subdiag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">emission_matrix</span>
+        <span class="n">bp_nat1</span><span class="p">,</span> <span class="n">bp_nat2</span> <span class="o">=</span> <span class="n">back_project_nats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">H</span><span class="p">)</span>
+        <span class="c1"># conjugate update of the natural parameter: post_nat = prior_nat + lik_nat</span>
+        <span class="n">theta_diag</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">prec_diag</span> <span class="o">+</span> <span class="n">bp_nat2</span>
+        <span class="n">theta_subdiag</span> <span class="o">=</span> <span class="o">-</span><span class="n">prec_subdiag</span>
+
+        <span class="n">post_ssm_params</span> <span class="o">=</span> <span class="n">naturals_to_ssm_params</span><span class="p">(</span>
+            <span class="n">theta_linear</span><span class="o">=</span><span class="n">bp_nat1</span><span class="p">,</span> <span class="n">theta_diag</span><span class="o">=</span><span class="n">theta_diag</span><span class="p">,</span> <span class="n">theta_subdiag</span><span class="o">=</span><span class="n">theta_subdiag</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">state_transitions</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.posterior_kalman"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.posterior_kalman">[docs]</a>    <span class="k">def</span> <span class="nf">posterior_kalman</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KalmanFilterWithSites</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Build the Kalman filter object from the prior state space models and the sites.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">KalmanFilterWithSites</span><span class="p">(</span>
+            <span class="n">state_space_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="p">,</span>
+            <span class="n">emission_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">),</span>
+            <span class="n">sites</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Posterior object to predict outside of the training time points &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ConditionalProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="p">,</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conditioning_points</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.log_likelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.log_likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate :math:`log p(y)`.</span>
+
+<span class="sd">        :return: A scalar tensor representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior_kalman</span><span class="o">.</span><span class="n">log_likelihood</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.time_points"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.time_points">[docs]</a>    <span class="k">def</span> <span class="nf">time_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the time points of the observations.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.conditioning_points"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.conditioning_points">[docs]</a>    <span class="k">def</span> <span class="nf">conditioning_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the time points of the observations.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.observations"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.observations">[docs]</a>    <span class="k">def</span> <span class="nf">observations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the observations.</span>
+
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.kernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.kernel">[docs]</a>    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SDEKernel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the kernel.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.likelihood"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.likelihood">[docs]</a>    <span class="k">def</span> <span class="nf">likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Likelihood</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the likelihood.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.mean_function"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.mean_function">[docs]</a>    <span class="k">def</span> <span class="nf">mean_function</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeanFunction</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateSpaceModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the prior Gauss-Markov distribution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_space_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conditioning_points</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GaussianProcessWithSitesBase.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.GaussianProcessWithSitesBase.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the loss, which is the negative ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">log_likelihood</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="CVIGaussianProcess"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess">[docs]</a><span class="k">class</span> <span class="nc">CVIGaussianProcess</span><span class="p">(</span><span class="n">GaussianProcessWithSitesBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides an alternative parameterization to a</span>
+<span class="sd">    :class:`~markovflow.models.variational.VariationalGaussianProcess`.</span>
+
+<span class="sd">    This class approximates the posterior of a model with a GP prior and a general likelihood</span>
+<span class="sd">    using a Gaussian posterior parameterized with Gaussian sites.</span>
+
+<span class="sd">    The following notation is used:</span>
+
+<span class="sd">        * :math:`x` - the time points of the training data</span>
+<span class="sd">        * :math:`y` - observations corresponding to time points :math:`x`</span>
+<span class="sd">        * :math:`s(.)` - the latent state of the Markov chain</span>
+<span class="sd">        * :math:`f(.)` - the noise free predictions of the model</span>
+<span class="sd">        * :math:`p(y | f)` - the likelihood</span>
+<span class="sd">        * :math:`t(f)` - a site (indices will refer to the associated data point)</span>
+<span class="sd">        * :math:`p(.)` the prior distribution</span>
+<span class="sd">        * :math:`q(.)` the variational distribution</span>
+
+<span class="sd">    We use the state space formulation of Markovian Gaussian Processes that specifies:</span>
+
+<span class="sd">    * The conditional density of neighbouring latent states :math:`p(sₖ₊₁| sₖ)`</span>
+<span class="sd">    * How to read out the latent process from these states :math:`fₖ = H sₖ`</span>
+
+<span class="sd">    The likelihood links data to the latent process and :math:`p(yₖ | fₖ)`.</span>
+<span class="sd">    We would like to approximate the posterior over the latent state space model of this model.</span>
+
+<span class="sd">    To approximate the posterior, we maximise the evidence lower bound (ELBO) :math:`ℒ` with</span>
+<span class="sd">    respect to the parameters of the variational distribution, since:</span>
+
+<span class="sd">    .. math:: log p(y) = ℒ(q) + KL[q(s) ‖ p(s | y)]</span>
+
+<span class="sd">    ...where:</span>
+
+<span class="sd">    .. math:: ℒ(q) = ∫ log(p(s, y) / q(s)) q(s) ds</span>
+
+<span class="sd">    We parameterize the variational posterior through sites :math:`tₖ(fₖ)`:</span>
+
+<span class="sd">    .. math:: q(s) = p(s) ∏ₖ tₖ(fₖ)</span>
+
+<span class="sd">    ...where :math:`tₖ(fₖ)` are univariate Gaussian sites parameterized in the natural form:</span>
+
+<span class="sd">    .. math:: t(f) = exp(𝜽ᵀφ(f) - A(𝜽))</span>
+
+<span class="sd">    ...and where :math:`𝜽=[θ₁,θ₂]` and :math:`𝛗(f)=[f,f²]`.</span>
+
+<span class="sd">    Here, :math:`𝛗(f)` are the sufficient statistics and :math:`𝜽` are the natural parameters.</span>
+<span class="sd">    Note that the subscript :math:`k` has been omitted for simplicity.</span>
+
+<span class="sd">    The natural gradient update of the sites can be shown to be the gradient of the</span>
+<span class="sd">    variational expectations:</span>
+
+<span class="sd">    .. math:: 𝐠 = ∇[𝞰][∫ log(p(y=Y|f)) q(f) df]</span>
+
+<span class="sd">    ...with respect to the expectation parameters:</span>
+
+<span class="sd">    .. math:: 𝞰 = E[𝛗(f)] = [μ, σ² + μ²]</span>
+
+<span class="sd">    That is, :math:`𝜽 ← ρ𝜽 + (1-ρ)𝐠`, where :math:`ρ` is the learning rate.</span>
+
+<span class="sd">    The key reference is::</span>
+
+<span class="sd">      @inproceedings{khan2017conjugate,</span>
+<span class="sd">        title={Conjugate-Computation Variational Inference: Converting Variational Inference</span>
+<span class="sd">               in Non-Conjugate Models to Inferences in Conjugate Models},</span>
+<span class="sd">        author={Khan, Mohammad and Lin, Wu},</span>
+<span class="sd">        booktitle={Artificial Intelligence and Statistics},</span>
+<span class="sd">        pages={878--887},</span>
+<span class="sd">        year={2017}</span>
+<span class="sd">      }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param input_data: A tuple containing the observed data:</span>
+
+<span class="sd">            * Time points of observations with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * Observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+
+<span class="sd">        :param kernel: A kernel that defines a prior over functions.</span>
+<span class="sd">        :param likelihood: A likelihood with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param learning_rate: The learning rate of the algorithm.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">input_data</span><span class="o">=</span><span class="n">input_data</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">likelihood</span><span class="o">=</span><span class="n">likelihood</span><span class="p">,</span> <span class="n">mean_function</span><span class="o">=</span><span class="n">mean_function</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+
+<div class="viewcode-block" id="CVIGaussianProcess.local_objective"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.local_objective">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate local loss in CVI.</span>
+
+<span class="sd">        :param Fmu: Means with shape ``[..., latent_dim]``.</span>
+<span class="sd">        :param Fvar: Variances with shape ``[..., latent_dim]``.</span>
+<span class="sd">        :param Y: Observations with shape ``[..., observation_dim]``.</span>
+<span class="sd">        :return: A local objective with shape ``[...]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CVIGaussianProcess.local_objective_and_gradients"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.local_objective_and_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective_and_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the local objective and its gradients with regard to the expectation parameters.</span>
+
+<span class="sd">        :param Fmu: Means :math:`μ` with shape ``[..., latent_dim]``.</span>
+<span class="sd">        :param Fvar: Variances :math:`σ²` with shape ``[..., latent_dim]``.</span>
+<span class="sd">        :return: A local objective and gradient with regard to :math:`[μ, σ² + μ²]`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">GradientTape</span><span class="p">()</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+            <span class="n">g</span><span class="o">.</span><span class="n">watch</span><span class="p">([</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">])</span>
+            <span class="n">local_obj</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+                <span class="n">input_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">local_objective</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">local_obj</span><span class="p">,</span> <span class="p">[</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">])</span>
+        <span class="c1"># turn into gradient wrt μ, σ² + μ²</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="n">gradient_transformation_mean_var_to_expectation</span><span class="p">((</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">),</span> <span class="n">grads</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">local_obj</span><span class="p">,</span> <span class="n">grads</span></div>
+
+<div class="viewcode-block" id="CVIGaussianProcess.update_sites"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.update_sites">[docs]</a>    <span class="k">def</span> <span class="nf">update_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform one joint update of the Gaussian sites. That is:</span>
+
+<span class="sd">        .. math:: 𝜽 ← ρ𝜽 + (1-ρ)𝐠</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_points</span><span class="p">)</span>
+
+        <span class="c1"># get gradient of variational expectations wrt the expectation parameters μ, σ² + μ²</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_objective_and_gradients</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">)</span>
+
+        <span class="c1"># update</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span>
+        <span class="n">new_nat1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat1</span> <span class="o">+</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">grads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">new_nat2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat2</span> <span class="o">+</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">grads</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat2</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">new_nat2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sites</span><span class="o">.</span><span class="n">nat1</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">new_nat1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CVIGaussianProcess.elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.elbo">[docs]</a>    <span class="k">def</span> <span class="nf">elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the evidence lower bound (ELBO) :math:`log p(y)`.</span>
+
+<span class="sd">        This is done by computing the marginal of the model in which the likelihood terms were</span>
+<span class="sd">        replaced by the Gaussian sites.</span>
+
+<span class="sd">        :return: A scalar tensor representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_likelihood</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CVIGaussianProcess.classic_elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.classic_elbo">[docs]</a>    <span class="k">def</span> <span class="nf">classic_elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the ELBO the classic way. That is:</span>
+
+<span class="sd">        .. math:: ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]</span>
+
+<span class="sd">        .. note:: This is mostly for testing purposes and should not be used for optimization.</span>
+
+<span class="sd">        :return: A scalar tensor representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># s ~ q(s) = N(μ, P)</span>
+        <span class="c1"># Project to function space, fₓ = H*s ~ q(fₓ)</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="c1"># VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfₓ</span>
+        <span class="n">ve_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span>
+                <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># KL[q(sₓ) || p(sₓ)]</span>
+
+        <span class="n">kl_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="p">))</span>
+        <span class="c1"># Return ELBO(fₓ) = VE(fₓ) - KL[q(sₓ) || p(sₓ)]</span>
+        <span class="k">return</span> <span class="n">ve_fx</span> <span class="o">-</span> <span class="n">kl_fx</span></div>
+
+<div class="viewcode-block" id="CVIGaussianProcess.predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.CVIGaussianProcess.predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_log_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log density of the data at the new data points.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+<span class="sd">            a tensor of inputs with shape ``batch_shape + [num_data]``,</span>
+<span class="sd">            a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="back_project_nats"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.back_project_nats">[docs]</a><span class="k">def</span> <span class="nf">back_project_nats</span><span class="p">(</span><span class="n">nat1</span><span class="p">,</span> <span class="n">nat2</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms the natural parameters 𝜽f of a Gaussian with sufficient statistics 𝛗(f)=[f,f²]</span>
+<span class="sd">    into equivalent rank one natural parameters 𝜽g of a (thus degenerate) Gaussian</span>
+<span class="sd">    with sufficient statistics 𝛗(g)=[g,ggᵀ] where f = Cg.</span>
+
+<span class="sd">    In practice  [θg₁, θg₂] = [θf₁ C,θf₂ CᵀC]</span>
+
+<span class="sd">    :param nat1: natural parameters with size (num_time_points, 1)</span>
+<span class="sd">    :param nat2: natural parameters with size (num_time_points, 1)</span>
+<span class="sd">    :param C: projection with size (num_time_points, 1, project_dim)</span>
+<span class="sd">    :return: natural parameters with size</span>
+<span class="sd">            (num_time_points, project_dim)</span>
+<span class="sd">            (num_time_points, project_dim, project_dim)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shape_constraints</span> <span class="o">=</span> <span class="p">[(</span><span class="n">nat1</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">nat2</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">])]</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">debugging</span><span class="o">.</span><span class="n">assert_shapes</span><span class="p">(</span><span class="n">shape_constraints</span><span class="p">)</span>
+    <span class="c1"># [..., num_transitions, project_dim], performing CT @ nat1f</span>
+    <span class="n">bp_nat1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">C</span> <span class="o">*</span> <span class="n">nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="c1"># [..., num_transitions, project_dim, project_dim], performing CT @ nat2f @ C</span>
+    <span class="n">bp_nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">C</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">C</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">bp_nat1</span><span class="p">,</span> <span class="n">bp_nat2</span></div>
+
+
+<div class="viewcode-block" id="gradient_transformation_mean_var_to_expectation"><a class="viewcode-back" href="../../../autoapi/markovflow/models/variational_cvi/index.html#markovflow.models.gradient_transformation_mean_var_to_expectation">[docs]</a><span class="k">def</span> <span class="nf">gradient_transformation_mean_var_to_expectation</span><span class="p">(</span>
+    <span class="n">inputs</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">grads</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform gradients.</span>
+
+<span class="sd">    This is from :math:`𝐠` of a function with regard to :math:`[μ, σ²]` into its gradients</span>
+<span class="sd">    with regard to :math:`[μ, σ² + μ²]`.</span>
+
+<span class="sd">    :param inputs: Means and variances :math:`[μ, σ²]`.</span>
+<span class="sd">    :param grads: Gradients :math:`𝐠`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">grads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">grads</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grads</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

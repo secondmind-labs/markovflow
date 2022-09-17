@@ -1,0 +1,405 @@
+:py:mod:`markovflow.kernels.matern`
+===================================
+
+.. py:module:: markovflow.kernels.matern
+
+.. autoapi-nested-parse::
+
+   Module containing the Matern family of kernels.
+
+
+
+Module Contents
+---------------
+
+.. py:class:: Matern12(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern1/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² exp(-|x - x'| / ℓ)
+
+   ...where lengthscale :math:`ℓ` and signal variance :math:`σ²` are kernel parameters.
+
+   This defines an SDE where:
+
+   .. math::
+       &F = - 1/ℓ\\
+       &L = 1
+
+   ...so that :math:`Aₖ = exp(-Δtₖ/ℓ)`.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always one.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices kernel.
+
+      The state dimension is one, so the matrix exponential reduces to a standard one:
+
+      .. math:: Aₖ = exp(-Δtₖ/ℓ)
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that :math:`F = - 1 / ℓ`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. For this kernel,
+      this is the variance hyperparameter.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: OrnsteinUhlenbeck(decay: float, diffusion: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Ornstein–Uhlenbeck kernel.
+   This is an alternative parameterization of the Matern1/2 kernel.
+   This kernel has the formula:
+
+   .. math:: C(x, x') = q/2λ exp(-λ|x - x'|)
+
+   ...where decay :math:`λ` and diffusion coefficient :math:`q` are kernel parameters.
+
+   This defines an SDE where:
+
+   .. math::
+       &F = - λ\\
+       &L = q
+
+   ...so that :math:`Aₖ = exp(-λ Δtₖ)`.
+
+   :param decay: A value for the decay parameter.
+   :param diffusion: A value for the diffusion parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always one.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices kernel.
+
+      The state dimension is one, so the matrix exponential reduces to a standard one:
+
+      .. math:: Aₖ = exp(-λ Δtₖ)
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that :math:`F = -λ`.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. For this kernel,
+      this is q/2λ.
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: decay() -> gpflow.Parameter
+      :property:
+
+      Return the decay parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: diffusion() -> gpflow.Parameter
+      :property:
+
+      Return the diffusion parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: Matern32(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern3/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² (1 + λ|x - x'|) exp(λ|x - x'|)
+
+   ...where :math:`λ = √3 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`
+   are kernel parameters.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is:
+
+   .. math::
+       F = &[[0, 1]\\
+           &[[-λ², -2λ]]
+
+   Covariance for the initial state is:
+
+   .. math::
+       P∞ = [&[1, 0],\\
+             &[0, λ²]] * \verb|variance|
+
+   ...where `variance` is a kernel parameter.
+
+   Since the characteristic equation for the feedback matrix :math:`F` for this kernel
+   is :math:`(λI + F)² = 0`, the state transition matrix is:
+
+   .. math::
+       Aₖ &= expm(FΔtₖ)\\
+          &= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+          &= exp(-λΔtₖ) (I + (λI + F)Δtₖ)
+
+   ...where :math:`expm` is the matrix exponential operator. Note that all higher order terms of
+   :math:`expm((λI + F)Δtₖ)` disappear.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always two.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices for the kernel.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that:
+
+      .. math::
+          F = &[0    &1]\\
+              &[-λ²  &-2λ]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. This is given by:
+
+      .. math::
+          P∞ = σ² [&[1, 0],\\
+                   &[0, λ²]]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:class:: Matern52(lengthscale: float, variance: float, output_dim: int = 1, jitter: float = 0.0)
+
+   Bases: :py:obj:`markovflow.kernels.sde_kernel.StationaryKernel`
+
+   Represents the Matern5/2 kernel. This kernel has the formula:
+
+   .. math:: C(x, x') = σ² (1 + λ|x - x'| + λ²|x - x'|²/3) exp(λ|x - x'|)
+
+   ...where :math:`λ = √5 / ℓ`, and lengthscale :math:`ℓ` and signal variance :math:`σ²`
+   are kernel parameters.
+
+   The transition matrix :math:`F` in the SDE form for this kernel is::
+
+       F = [  0,    1,   0]
+           [  0,    0,   1]
+           [-λ³, -3λ², -3λ]
+
+   Covariance for the initial state is::
+
+       P∞ = σ² [    1,    0, -λ²/3]
+               [    0, λ²/3,     0]
+               [-λ²/3,    0,    λ⁴]
+
+   Since the characteristic equation for the feedback matrix :math:`F` for this kernel
+   is :math:`(λI + F)³ = 0`, the state transition matrix is:
+
+   .. math::
+       Aₖ &= expm(FΔtₖ)\\
+          &= exp(-λΔtₖ) expm((λI + F)Δtₖ)\\
+          &= exp(-λΔtₖ) (I + (λI + F)Δtₖ + (λI + F)²Δtₖ²/2)
+
+   ...where :math:`expm` is the matrix exponential operator. Note that all
+   higher order terms disappear.
+
+   :param lengthscale: A value for the lengthscale parameter.
+   :param variance: A value for the variance parameter.
+   :param output_dim: The output dimension of the kernel.
+   :param jitter: A small non-negative number to add into a matrix's diagonal to
+       maintain numerical stability during inversion.
+
+   .. py:method:: _lambda() -> tensorflow.Tensor
+      :property:
+
+      λ the scalar used elsewhere in the docstrings 
+
+
+   .. py:method:: state_dim() -> int
+      :property:
+
+      Return the state dimension of the kernel, which is always three.
+
+
+   .. py:method:: state_transitions(transition_times: tensorflow.Tensor, time_deltas: tensorflow.Tensor) -> tensorflow.Tensor
+
+      Return the state transition matrices for the kernel.
+
+      Because this is a stationary kernel, `transition_times` is ignored.
+
+      :param transition_times: A tensor of times at which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``. Ignored.
+      :param time_deltas: A tensor of time gaps for which to produce matrices, with shape
+          ``batch_shape + [num_transitions]``.
+      :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.
+
+
+   .. py:method:: feedback_matrix() -> tensorflow.Tensor
+      :property:
+
+      Return the feedback matrix :math:`F`. This is where:
+
+      .. math:: dx(t)/dt = F x(t) + L w(t)
+
+      For this kernel, note that::
+
+          F = [[  0,    1,   0]
+               [  0,    0,   1]
+               [-λ³, -3λ², -3λ]]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: steady_state_covariance() -> tensorflow.Tensor
+      :property:
+
+      Return the steady state covariance :math:`P∞`. This is given by::
+
+          P∞ = σ² [    1,    0, -λ²/3]
+                  [    0, λ²/3,     0]
+                  [-λ²/3,    0,    λ⁴]
+
+      :return: A tensor with shape ``[state_dim, state_dim]``.
+
+
+   .. py:method:: lengthscale() -> gpflow.Parameter
+      :property:
+
+      Return the lengthscale parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+   .. py:method:: variance() -> gpflow.Parameter
+      :property:
+
+      Return the variance parameter. This is a GPflow
+      `Parameter <https://gpflow.readthedocs.io/en/master/gpflow/index.html#gpflow-parameter>`_.
+
+
+
+.. py:function:: _check_lengthscale_and_variance(lengthscale: float, variance: float) -> None
+
+   Verify that the lengthscale and variance are positive
+
+

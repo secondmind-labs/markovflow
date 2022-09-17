@@ -1,0 +1,458 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.kernels.piecewise_stationary &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.kernels.piecewise_stationary</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a piecewise stationary kernel.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.base</span> <span class="kn">import</span> <span class="n">TensorType</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">APPROX_INF</span>
+<span class="kn">from</span> <span class="nn">markovflow.emission_model</span> <span class="kn">import</span> <span class="n">EmissionModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels.sde_kernel</span> <span class="kn">import</span> <span class="n">NonStationaryKernel</span><span class="p">,</span> <span class="n">StationaryKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.utils</span> <span class="kn">import</span> <span class="n">tf_scope_class_decorator</span>
+
+
+<div class="viewcode-block" id="PiecewiseKernel"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel">[docs]</a><span class="nd">@tf_scope_class_decorator</span>
+<span class="k">class</span> <span class="nc">PiecewiseKernel</span><span class="p">(</span><span class="n">NonStationaryKernel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct an SDE kernel whose state dynamic is governed by different SDEs. These are on the</span>
+<span class="sd">    :math:`K+1` intervals specified by the :math:`K` change points :math:`cₖ`.</span>
+
+<span class="sd">    On interval :math:`[cₖ, cₖ₊₁]`, the dynamics are governed by a SDE kernel :math:`kₖ`</span>
+<span class="sd">    where :math:`c₀ = -∞`:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        &amp;dx(t)/dt = Fₖ x(t) + Lₖ w(t),\\</span>
+<span class="sd">        &amp;f(t) = Hₖ x(t)</span>
+
+<span class="sd">    Note the following:</span>
+
+<span class="sd">        * This is currently restricted to cases where the kernels are the same.</span>
+<span class="sd">        * State space models constructed by marginalizing out the process to</span>
+<span class="sd">          time points :math:`t` are only valid if no transitions cross a change point.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kernels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">StationaryKernel</span><span class="p">],</span>
+        <span class="n">change_points</span><span class="p">:</span> <span class="n">TensorType</span><span class="p">,</span>
+        <span class="n">output_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">jitter</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernels: An iterable over the kernels forming this kernel.</span>
+<span class="sd">        :param change_points: Sorted change points.</span>
+<span class="sd">        :param output_dim: The output dimension of the kernel.</span>
+<span class="sd">        :param jitter: A small non-negative number to add into a matrix&#39;s diagonal to</span>
+<span class="sd">            maintain numerical stability during inversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span> <span class="o">=</span> <span class="n">kernels</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">,</span> <span class="s2">&quot;There must be at least one child kernel.&quot;</span>
+        <span class="n">kernels_output_dims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">output_dim</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernels_output_dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;All kernels must have the same output dimension&quot;</span>
+        <span class="n">kernels_state_dims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">state_dim</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kernels_state_dims</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;All kernels must have the same state dimension&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">StationaryKernel</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;can only combine Kernel instances&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">kernels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kernels</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;can only combine kernels from the same class&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">change_points</span> <span class="o">=</span> <span class="n">change_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_change_points</span> <span class="o">=</span> <span class="n">change_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output_dim</span> <span class="o">=</span> <span class="n">kernels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">output_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span> <span class="o">=</span> <span class="n">kernels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">jitter</span> <span class="o">=</span> <span class="n">jitter</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">output_dim</span><span class="o">=</span><span class="n">output_dim</span><span class="p">,</span> <span class="n">jitter</span><span class="o">=</span><span class="n">jitter</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="PiecewiseKernel.state_dim"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.state_dim">[docs]</a>    <span class="k">def</span> <span class="nf">state_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state dimension of the generated</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_dim</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.generate_emission_model"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.generate_emission_model">[docs]</a>    <span class="k">def</span> <span class="nf">generate_emission_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmissionModel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the :class:`~markovflow.emission_model.EmissionModel` associated with this kernel</span>
+<span class="sd">        that maps from the latent :class:`~markovflow.state_space_model.StateSpaceModel`</span>
+<span class="sd">        to the observations.</span>
+
+<span class="sd">        The emission matrix is the Kronecker product of all the children emission matrices.</span>
+
+<span class="sd">        :param time_points: The time points over which the emission model is defined, with shape</span>
+<span class="sd">            ``batch_shape + [num_data]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># hack assuming for now a shared emission model</span>
+        <span class="n">indicies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">split_time_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">indicies</span><span class="p">)</span>
+        <span class="c1"># apply different kernel method to each segments</span>
+        <span class="n">split_emissions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i_k</span><span class="p">,</span> <span class="n">time_points_k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">split_time_points</span><span class="p">):</span>
+            <span class="n">split_emissions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">[</span><span class="n">i_k</span><span class="p">]</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points_k</span><span class="p">)</span><span class="o">.</span><span class="n">emission_matrix</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">EmissionModel</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">split_emissions</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.initial_covariance"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.initial_covariance">[docs]</a>    <span class="k">def</span> <span class="nf">initial_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_time_point</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the initial covariance of the generated</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel`.</span>
+
+<span class="sd">        This is the covariance of the stationary distribution :math:`P∞` for the kernel active at</span>
+<span class="sd">        the time passed in.</span>
+
+<span class="sd">        :param initial_time_point: The time point associated with the first state, with shape</span>
+<span class="sd">            ``batch_shape + [1,]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steady_state_covariance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steady_state_covariances</span><span class="p">(</span><span class="n">initial_time_point</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">steady_state_covariance</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.split_time_indices"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.split_time_indices">[docs]</a>    <span class="k">def</span> <span class="nf">split_time_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gives each time point an index that refers to which interval it resides in.</span>
+
+<span class="sd">        The sub-kernel that governs the SDE is different on different sub intervals,</span>
+<span class="sd">        as specified by the change points.</span>
+
+<span class="sd">        If there are :math:`K` change points, then :math:`0` is the index before the first</span>
+<span class="sd">        change point and :math:`K + 1` is the index after the last change point.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :return: A tensor of indices in range 0 - `num_change_points`, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># which change point is closest to the time points</span>
+        <span class="n">inf</span> <span class="o">=</span> <span class="n">APPROX_INF</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">change_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">change_points_augmented</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_points</span><span class="p">,</span> <span class="n">inf</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">change_points_augmented</span><span class="p">,</span> <span class="n">time_points</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.split_input"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.split_input">[docs]</a>    <span class="k">def</span> <span class="nf">split_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensor</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">indices</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Partitions `input_tensor` into regions determined by the change points.</span>
+
+<span class="sd">        If there are :math:`K` change points, then :math:`0` is the index before the first</span>
+<span class="sd">        change point and :math:`K + 1` is the index after the last change point.</span>
+
+<span class="sd">        :param input_tensor: An arbitrary input tensor, with shape ``batch_shape + [N]``.</span>
+<span class="sd">        :param indices: The index for each input of the input tensor,</span>
+<span class="sd">            with shape ``batch_shape + [N]``.</span>
+<span class="sd">        :return: A list of tensors each with shape ``batch_shape + [Nₖ]``,</span>
+<span class="sd">            where :math:`(Σₖ Nₖ = N)`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_change_points</span> <span class="o">+</span> <span class="mi">1</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PiecewiseKernel.steady_state_covariances"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.steady_state_covariances">[docs]</a>    <span class="k">def</span> <span class="nf">steady_state_covariances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each time point, return the steady state covariance of the kernel active for that</span>
+<span class="sd">        time point.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :return: The steady state covariance at each time point, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># state covariances for each time interval</span>
+        <span class="n">steady_state_covariances</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">steady_state_covariance</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">]</span>
+        <span class="c1"># counting time points falling in each interval</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unique_with_counts</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="c1"># tiling the steady state covariance accordingly</span>
+        <span class="n">selected_steady_state_covariances</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">steady_state_covariances</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">selected_steady_state_covariances</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.state_transitions"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.state_transitions">[docs]</a>    <span class="k">def</span> <span class="nf">state_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state transition matrices of the generated</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel` :math:`Aₖ = exp(FΔtₖ)`.</span>
+
+<span class="sd">        .. note:: Transitions are only valid if they do not cross a change point.</span>
+
+<span class="sd">        :param transition_times: Time points at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :param time_deltas: Time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">transition_times</span><span class="p">)</span>
+        <span class="n">split_transition_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">transition_times</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">split_time_deltas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">split_state_transitions_args</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">split_transition_times</span><span class="p">,</span> <span class="n">split_time_deltas</span><span class="p">)</span>
+        <span class="c1"># apply different kernel method to each segment</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span><span class="o">*</span><span class="n">state_transitions_args</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">state_transitions_args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">split_state_transitions_args</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">3</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PiecewiseKernel.transition_statistics"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.transition_statistics">[docs]</a>    <span class="k">def</span> <span class="nf">transition_statistics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return :meth:`state_transitions` and :meth:`process_covariances` together to</span>
+<span class="sd">        save having to compute them twice.</span>
+
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tuple of two tensors, with respective shapes</span>
+<span class="sd">            ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">            ``batch_shape + [num_transitions, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">state_transitions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_transitions</span><span class="p">(</span><span class="n">transition_times</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">)</span>
+        <span class="c1"># steady state covariances for all transitions</span>
+        <span class="n">steady_state_covariances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steady_state_covariances</span><span class="p">(</span><span class="n">transition_times</span><span class="p">)</span>
+        <span class="c1"># process noise covariance for all transitions</span>
+        <span class="n">A_Pinf</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">state_transitions</span><span class="p">,</span> <span class="n">steady_state_covariances</span><span class="p">)</span>
+        <span class="n">A_Pinf_A_T</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">A_Pinf</span><span class="p">,</span> <span class="n">state_transitions</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">process_covariances</span> <span class="o">=</span> <span class="n">steady_state_covariances</span> <span class="o">-</span> <span class="n">A_Pinf_A_T</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">jitter_matrix</span>
+        <span class="k">return</span> <span class="n">state_transitions</span><span class="p">,</span> <span class="n">process_covariances</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.feedback_matrices"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.feedback_matrices">[docs]</a>    <span class="k">def</span> <span class="nf">feedback_matrices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each time point, return the non-stationary feedback matrix :math:`F(t)`</span>
+<span class="sd">        of the kernel active for that time point.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :return: The feedback matrix at each time point, with shape</span>
+<span class="sd">            ``batch_shape + [num_time_points, state_dim, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># feedback matrices for each time interval</span>
+        <span class="n">feedback_matrices</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">feedback_matrix</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">]</span>
+        <span class="c1"># counting time points falling in each interval</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unique_with_counts</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="c1"># tiling the steady state covariance accordingly</span>
+        <span class="n">selected_feedback_matrices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">feedback_matrices</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">selected_feedback_matrices</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PiecewiseKernel.state_offsets"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.state_offsets">[docs]</a>    <span class="k">def</span> <span class="nf">state_offsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transition_times</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">time_deltas</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the state offsets :math:`bₖ` of the generated</span>
+<span class="sd">        :class:`~markovflow.state_space_model.StateSpaceModel`.</span>
+
+<span class="sd">        This will usually be zero, but can be overridden if necessary.</span>
+<span class="sd">        :param transition_times: A tensor of times at which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :param time_deltas: A tensor of time gaps for which to produce matrices, with shape</span>
+<span class="sd">            ``batch_shape + [num_transitions]``.</span>
+<span class="sd">        :return: A tensor with shape ``batch_shape + [num_transitions, state_dim]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">transition_times</span><span class="p">)</span>
+        <span class="n">split_transition_times</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">transition_times</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">split_time_deltas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_input</span><span class="p">(</span><span class="n">time_deltas</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">split_state_transitions_args</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">split_transition_times</span><span class="p">,</span> <span class="n">split_time_deltas</span><span class="p">)</span>
+        <span class="c1"># apply different kernel method to each segment</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">state_offsets</span><span class="p">(</span><span class="o">*</span><span class="n">state_transitions_args</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">state_transitions_args</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">split_state_transitions_args</span><span class="p">)</span>
+            <span class="p">],</span>
+            <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PiecewiseKernel.state_means"><a class="viewcode-back" href="../../../autoapi/markovflow/kernels/piecewise_stationary/index.html#markovflow.kernels.PiecewiseKernel.state_means">[docs]</a>    <span class="k">def</span> <span class="nf">state_means</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For each time point, return the state mean of the kernel active for that</span>
+<span class="sd">        time point.</span>
+
+<span class="sd">        :param time_points: A tensor with shape ``batch_shape + [num_time_points]``.</span>
+<span class="sd">        :return: The state mean at each time point ``batch_shape + [num_time_points, state_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># state means for each time interval</span>
+        <span class="n">state_means</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">state_mean</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernels</span><span class="p">]</span>
+        <span class="c1"># counting time points falling in each interval</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_time_indices</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">unique_with_counts</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+        <span class="c1"># tiling the state means accordingly</span>
+        <span class="n">selected_state_means</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">state_means</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">selected_state_means</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

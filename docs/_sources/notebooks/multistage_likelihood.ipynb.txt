@@ -1,0 +1,468 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "85d49943",
+   "metadata": {},
+   "source": [
+    "# Demo of MultiStageLikelihood with plain SVGP model\n",
+    "\n",
+    "We demonstrate a MultiStageLikelihood driven by a multi-output SVGP model. We fit the model to samples from the\n",
+    "MultiStageLikelihood given toy functions from a Gaussian process draw.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "82f13480",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import gpflow\n",
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "import tensorflow_probability as tfp\n",
+    "from gpflow import set_trainable\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from matplotlib import pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9ef899ab",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import markovflow.kernels as mfk\n",
+    "from markovflow.models.sparse_variational import SparseVariationalGaussianProcess as SVGP\n",
+    "from markovflow.ssm_natgrad import SSMNaturalGradient\n",
+    "from markovflow.likelihoods.mutlistage_likelihood import MultiStageLikelihood"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0b9e6dd0",
+   "metadata": {},
+   "source": [
+    "## Generate artificial data\n",
+    "\n",
+    "We draw toy functions for the three likelihood parameters from a Gaussian process."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "490eb7f2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "N = 100  # number of training points\n",
+    "X_train = np.arange(N).astype(float)\n",
+    "L = 3  # number of latent functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8a7655f0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Define the kernel\n",
+    "k1a = gpflow.kernels.Periodic(\n",
+    "    gpflow.kernels.Matern52(variance=1.0, lengthscales=3.0), period=12.0\n",
+    ")\n",
+    "k1b = gpflow.kernels.Matern52(variance=1.0, lengthscales=30.0)\n",
+    "k2 = gpflow.kernels.Matern32(variance=0.1, lengthscales=5.0)\n",
+    "k = k1a * k1b + k2\n",
+    "\n",
+    "# Draw three independent functions from the same Gaussian process\n",
+    "X = X_train\n",
+    "num_latent = L\n",
+    "K = k(X[:, None])\n",
+    "np.random.seed(123)\n",
+    "v = np.random.randn(len(K), num_latent)\n",
+    "# We draw samples from a GP with kernel k(.) evaluated at X by reparameterizing:\n",
+    "# f ~ N(0, K) → f = chol(K) v, v ~ N(0, I), where chol(K) chol(K)ᵀ = K\n",
+    "f = np.linalg.cholesky(K + 1e-6 * np.eye(len(K))) @ v\n",
+    "\n",
+    "# We shift the third function to increase the mean of the Poisson component to 20 to make it easier to identify\n",
+    "f += np.array([0.0, 0.0, np.log(20)]).reshape(1, L)\n",
+    "\n",
+    "# Plot all three functions\n",
+    "plt.figure()\n",
+    "for i in range(num_latent):\n",
+    "    plt.plot(X, f[:, i])\n",
+    "_ = plt.xticks(np.arange(0, 100, 12))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ed91553c",
+   "metadata": {},
+   "source": [
+    "The above latent GPs represent how the three likelihood parameters will change over time."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "12ac4b25",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Define the likelihood\n",
+    "lik = MultiStageLikelihood()\n",
+    "# Draw observations from the likelihood given the functions `f` from the previous step\n",
+    "Y = lik.sample_y(tf.convert_to_tensor(f, dtype=gpflow.default_float()))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c9ff365e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Plot the observations\n",
+    "_ = plt.plot(X, Y, \".\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "282c09bb",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "Y_train = Y\n",
+    "data = (X_train, Y_train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c15f8397",
+   "metadata": {},
+   "source": [
+    "## Create the model\n",
+    "(Note: as we are replicating the modelling task, we pretend we don't know the underlying processes that created the artificial data.)\n",
+    "\n",
+    "We decide to create 3 GPs each with an independent Matern kernel, as we need three functions to drive the three parameters of the likelihood.\n",
+    "This will correspond to learning 6 hyperparameters (3 GPs with 2 hyper-parameters each)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d6b60413",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "# Create kernels\n",
+    "kern_list = [mfk.Matern32(variance=1.0, lengthscale=10.0, jitter=1e-6) for _ in range(L)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "16a529b3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create multi-output kernel from kernel list\n",
+    "ker = mfk.IndependentMultiOutput(kern_list)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f73df9fe",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create evenly spaced inducing points\n",
+    "num_inducing = N // 10\n",
+    "Z = np.linspace(X_train.min(), X_train.max(), num_inducing)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4bf6fd37",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "# create multi-output inducing variables from Z\n",
+    "inducing_variable = tf.constant(Z)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "19cf6d1d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "likelihood = MultiStageLikelihood()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e18cc972",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model = SVGP(\n",
+    "    kernel=ker, likelihood=likelihood, inducing_points=inducing_variable, mean_function=None,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "09ddf0cb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_grid = X"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "31743d5b",
+   "metadata": {},
+   "source": [
+    "## Optimise the model\n",
+    "\n",
+    "NatGrads and Adam for SVGP"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a4e39d8d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "adam_learning_rate = 0.001\n",
+    "natgrad_learning_rate = 0.05"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "75b9f79f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "adam_opt = tf.optimizers.Adam(learning_rate=adam_learning_rate)\n",
+    "natgrad_opt = SSMNaturalGradient(gamma=natgrad_learning_rate, momentum=False)\n",
+    "\n",
+    "# Stop Adam from optimizing the variational parameters\n",
+    "\n",
+    "set_trainable(model.dist_q, False)\n",
+    "adam_var_list = model.trainable_variables\n",
+    "set_trainable(model.dist_q, True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a626e9d4",
+   "metadata": {},
+   "source": [
+    "We separate the training process into hyper-parameters and variational parameters, which in practice, can result in better training.\n",
+    "\n",
+    "For the variational parameters we can use much larger step sizes using natural gradients (whereas the hyper-parameters\n",
+    "take smaller steps using Adam).\n",
+    "\n",
+    "This results in optimisation being more efficient (i.e. faster and better results)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f2fb83f6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Variables optimized by the Adam optimizer:\n",
+    "print(adam_var_list)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3ee71d45",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@tf.function\n",
+    "def model_loss():\n",
+    "    return -model.elbo(data)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9c06d5c1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(model_loss().numpy())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9a6c1b60",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@tf.function\n",
+    "def step():\n",
+    "\n",
+    "    # first take step with hyper-parameters with Adam\n",
+    "    adam_opt.minimize(model_loss, var_list=adam_var_list)\n",
+    "    # then variational parameters with NatGrad\n",
+    "    natgrad_opt.minimize(model_loss, model.dist_q)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f64d5bd2",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@tf.function\n",
+    "def sample_y(X, num_samples, correlated: bool = False):\n",
+    "    if correlated:\n",
+    "        # this path may give Cholesky errors\n",
+    "        f_samples = model.posterior.sample_f(X, num_samples)\n",
+    "    else:\n",
+    "        f_mean, f_var = model.posterior.predict_f(X)\n",
+    "        f_samples = tfp.distributions.Normal(f_mean, tf.sqrt(f_var)).sample(num_samples)\n",
+    "    return likelihood.sample_y(f_samples)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f2103e71",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# the arguments to a tf.function-wrapped function need to be Tensors, not numpy arrays:\n",
+    "X_grid_tensor = tf.convert_to_tensor(X_grid)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2193569f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "iterations = ci_niter(100)\n",
+    "\n",
+    "# run the optimization\n",
+    "for it in range(iterations):\n",
+    "    if it % 10 == 0:\n",
+    "\n",
+    "        plt.figure()\n",
+    "        y_samples = sample_y(X_grid_tensor, 1000)\n",
+    "        lower, upper = np.quantile(y_samples, q=[0.05, 0.95], axis=0).squeeze(-1)\n",
+    "        plt.plot(X_grid, lower, \"b-\")\n",
+    "        plt.plot(X_grid, upper, \"b-\")\n",
+    "        # f_samples = model.posterior.sample_f(X_grid, 10)\n",
+    "        # plt.plot(X_grid, f_samples[..., 0].numpy().T, 'b-')\n",
+    "        plt.plot(X_train, Y_train, \"k.\")\n",
+    "        # plt.savefig(\"test_%03d.png\" % it)\n",
+    "        # plt.close()\n",
+    "\n",
+    "    step()\n",
+    "    print(it, model_loss())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4d902807",
+   "metadata": {},
+   "source": [
+    "## Compare inferred functions with ground truth"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4761fac7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Fmean, Fvar = model.predict_f(X_grid)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "15355165",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for i in range(num_latent):\n",
+    "    plt.plot(X_grid, Fmean[:, i], f\"C{i}-\")\n",
+    "    plt.fill_between(\n",
+    "        X_grid,\n",
+    "        Fmean[:, i] - 2 * tf.sqrt(Fvar[:, i]),\n",
+    "        Fmean[:, i] + 2 * tf.sqrt(Fvar[:, i]),\n",
+    "        color=f\"C{i}\",\n",
+    "        alpha=0.3,\n",
+    "    )\n",
+    "\n",
+    "    plt.plot(X, f[:, i], f\"C{i}--\")\n",
+    "\n",
+    "# Custom legend:\n",
+    "from matplotlib.patches import Patch\n",
+    "from matplotlib.lines import Line2D\n",
+    "\n",
+    "plt.legend(\n",
+    "    loc=\"upper right\",\n",
+    "    handles=[\n",
+    "        Line2D([0], [0], color=\"k\", ls=\"--\", label=\"Ground truth\"),\n",
+    "        Line2D([0], [0], color=\"k\", label=\"Inferred mean\"),\n",
+    "        Patch(facecolor=\"k\", alpha=0.3, label=\"Inferred uncertainty\"),\n",
+    "    ],\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "53b31151",
+   "metadata": {},
+   "source": [
+    "The above plot shows that our linear combination of GPs with Matern kernels has done a reasonable job of representing the ground truth."
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

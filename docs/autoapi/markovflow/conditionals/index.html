@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.conditionals &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="markovflow.emission_model" href="../emission_model/index.html" />
+    <link rel="prev" title="markovflow.block_tri_diag" href="../block_tri_diag/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals.conditional_predict" class="nav-link">conditional_predict</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals.conditional_statistics" class="nav-link">conditional_statistics</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals._conditional_statistics_from_transitions" class="nav-link">_conditional_statistics_from_transitions</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals._conditional_statistics" class="nav-link">_conditional_statistics</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals.cyclic_reduction_conditional_statistics" class="nav-link">cyclic_reduction_conditional_statistics</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals.base_conditional_predict" class="nav-link">base_conditional_predict</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.conditionals.pairwise_marginals" class="nav-link">pairwise_marginals</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.conditionals">
+<span id="markovflow-conditionals"></span><h1><a class="reference internal" href="#module-markovflow.conditionals" title="markovflow.conditionals"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.conditionals</span></code></a><a class="headerlink" href="#module-markovflow.conditionals" title="Permalink to this headline">¶</a></h1>
+<p>Module for evaluating conditional distributions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="markovflow.conditionals.conditional_predict">
+<code class="sig-name descname"><span class="pre">conditional_predict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_pairwise_means</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_pairwise_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#conditional_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals.conditional_predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <span class="math notranslate nohighlight">\(∀ xₜ ∈\)</span> <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>, compute the means and
+covariances of the marginal densities:</p>
+<div class="math notranslate nohighlight">
+\[p(xₜ) = ∫ d[x₋, x₊] p(xₜ|x₋, x₊) q(x₋, x₊; mₜ, Sₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)\]</div>
+<p>Or, if <span class="math notranslate nohighlight">\(Sₜ\)</span> is not given, compute the conditional density:</p>
+<div class="math notranslate nohighlight">
+\[p(xₜ|[x₋, x₊] = mₜ) = 𝓝(Pₜ &#64; [x₋, x₊], Tₜ)\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code> and <code class="xref any docutils literal notranslate"><span class="pre">training_time_points</span></code> must be sorted.</p>
+</div>
+<p>Where:</p>
+<blockquote>
+<div><ul>
+<li><p><span class="math notranslate nohighlight">\(p\)</span> is the density over state trajectories specified by the kernel</p></li>
+<li><p><span class="math notranslate nohighlight">\(∀ xₜ ∈\)</span> <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}x₊ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x&gt;xₜ\}\\
+x₋ = arg minₓ \{|x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ\}\end{split}\]</div>
+</li>
+</ul>
+</div></blockquote>
+<p>Details of the computation of <span class="math notranslate nohighlight">\(Pₜ\)</span> and <span class="math notranslate nohighlight">\(Tₜ\)</span> are found
+in <a class="reference internal" href="#markovflow.conditionals.conditional_statistics" title="markovflow.conditionals.conditional_statistics"><code class="xref py py-func docutils literal notranslate"><span class="pre">conditional_statistics()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Sorted time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p></li>
+<li><p><strong>training_time_points</strong> – Sorted time points to condition on, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_training_time_points,]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – A kernel.</p></li>
+<li><p><strong>training_pairwise_means</strong> – Pairs of states to condition on, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_training_time_points,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>training_pairwise_covariances</strong> – Covariances of the pairs of states to condition on, with
+shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_training_time_points,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the new time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals.conditional_statistics">
+<code class="sig-name descname"><span class="pre">conditional_statistics</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#conditional_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals.conditional_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given <span class="math notranslate nohighlight">\(∀ xₜ ∈\)</span> <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>, compute the statistics <span class="math notranslate nohighlight">\(Pₜ\)</span> and <span class="math notranslate nohighlight">\(Tₜ\)</span>
+of the conditional densities:</p>
+<div class="math notranslate nohighlight">
+\[p(xₜ|x₋, x₊) = 𝓝(Pₜ &#64; [x₋, x₊], Tₜ)\]</div>
+<p>…where:</p>
+<blockquote>
+<div><ul>
+<li><p><span class="math notranslate nohighlight">\(p\)</span> is the density over state trajectories specified by the kernel</p></li>
+<li><p><span class="math notranslate nohighlight">\(∀ xₜ ∈\)</span> <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}x₊ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x&gt;xₜ \}\\
+x₋ = arg minₓ \{ |x-xₜ|, x ∈ \verb|training_time_point and |x⩽xₜ \}\end{split}\]</div>
+</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code> and <code class="xref any docutils literal notranslate"><span class="pre">training_time_points</span></code> must be sorted.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – Sorted time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code>.</p></li>
+<li><p><strong>training_time_points</strong> – Sorted time points to condition on, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_training_time_points,]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – A kernel.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Parameters for the conditional mean and covariance, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals._conditional_statistics_from_transitions">
+<code class="sig-name descname"><span class="pre">_conditional_statistics_from_transitions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_transitions_to_t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_covariances_to_t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_transitions_from_t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_covariances_from_t</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_precision</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#_conditional_statistics_from_transitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals._conditional_statistics_from_transitions" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Implementation details:</dt><dd><p>Given consecutive time differences Δ₁ = t - t₋ and Δ₂ = t₊ - t
+of ordered triplets t₋ &lt; t &lt; t₊, we denote their values as
+x₋, xₜ, x₊ and their conditional distributions as
+p(x₊ | xₜ) = 𝓝(x₊; Aₜ₊xₜ, Qₜ₊)    where     [Aₜ₊ == A_tp, Qₜ₊ == Q_tp]
+p(xₜ | x₋) = 𝓝(xₜ; A₋ₜx₋, Q₋ₜ)    where     [A₋ₜ == A_mt, Q₋ₜ == Q_mt]</p>
+<p>This computes Dₜ, Eₜ, Tₜ (or Tₜ⁻¹) such that
+p(xₜ | x₋, x₊) = 𝓝(xₜ; Dₜ &#64; x₋ + Eₜ &#64; x₊, Tₜ)</p>
+<p>p(x₊|xₜ, x₋) = p(x₊|xₜ) = 𝓝(Aₜ₊xₜ, Qₜₚ)
+p(xₜ|x₋) = 𝓝(A₋ₜx₋, Q₋ₜ)
+p(x₊| x₋) = 𝓝(A₋₊x₋, Q₋₊ = Qₜ₊ + Aₜ₊Q₋ₜAₜ₊ᵀ)</p>
+<dl class="simple">
+<dt>p([xₜ, x₊]| x₋) = p(x₊| xₜ)p(xₜ|x₋)</dt><dd><dl class="simple">
+<dt>= 𝓝([A₋ₜx₋, A₋₊x₋]ᵀ, [[ Q₋ₜ, Q₋ₜAₜ₊ᵀ],</dt><dd><p>[ Aₜ₊Q₋ₜ, Q₋₊ ]]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>Given this joint distribution we can obtain the mean and covariance of the
+conditional distribution of
+p(xₜ|[x₋, x₊]) = 𝓝(xₜ; A₋ₜx₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹(x₊ - A₋₊x₋), Q₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹Aₜ₊Q₋ₜ)</p>
+<blockquote>
+<div><dl class="simple">
+<dt>= 𝓝(xₜ; (A₋ₜ - Q₋ₜAₜ₊ᵀQ₋₊⁻¹A₋₊)x₋ + Q₋ₜAₜ₊ᵀQ₋₊⁻¹x₊,</dt><dd><p>(Q₋ₜ⁻¹ + Aₜ₊ᵀQₜ₊⁻¹Aₜ₊)⁻¹)</p>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state_transitions_to_t</strong> – the state transitions from t₋ to t - A₋ₜ
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p><strong>process_covariances_to_t</strong> – the process covariances from t₋ to t - Q₋ₜ
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p><strong>state_transitions_from_t</strong> – the state transitions from t to t₊ - A₋ₜ
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p><strong>process_covariances_from_t</strong> – the process covariances from t to t₊ - Qₜ₊
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code></p></li>
+<li><p><strong>return_precision</strong> – bool, defaults to False.
+if True (resp. False), conditional precision (resp. covariance) is returned</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters for the conditional mean and covariance
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals._conditional_statistics">
+<code class="sig-name descname"><span class="pre">_conditional_statistics</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#_conditional_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals._conditional_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>∀ xₜ ∈ new_time_points, computes the statistics Pₜ and Tₜ of the conditional densities:</dt><dd><p>p(xₜ|x₋, x₊) = 𝓝(Pₜ &#64; [x₋, x₊], Tₜ)</p>
+</dd>
+<dt>where</dt><dd><ul class="simple">
+<li><p>p is the density over state trajectories specified by the kernel</p></li>
+<li><dl class="simple">
+<dt>∀ xₜ ∈ new_time_points</dt><dd><p>x₊ = arg minₓ { <a href="#id1"><span class="problematic" id="id2">|x-xₜ|</span></a>, x ∈ training_time_point and x&gt;xₜ }
+x₋ = arg minₓ { <a href="#id3"><span class="problematic" id="id4">|x-xₜ|</span></a>, x ∈ training_time_point and x⩽xₜ }</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<p>Warning: <code class="xref any docutils literal notranslate"><span class="pre">new_time_points</span></code> and <code class="xref any docutils literal notranslate"><span class="pre">training_time_points</span></code> must be sorted</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_time_points</strong> – sorted time points to generate observations for
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code></p></li>
+<li><p><strong>training_time_points</strong> – sorted time points to condition on
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_training_time_points,]</span></code></p></li>
+<li><p><strong>kernel</strong> – a Markovian Kernel</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters for the conditional mean and covariance, and the insertion indices
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">2*state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_new_time_points,]</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals.cyclic_reduction_conditional_statistics">
+<code class="sig-name descname"><span class="pre">cyclic_reduction_conditional_statistics</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explained_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditioning_time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../kernels/index.html#markovflow.kernels.SDEKernel" title="markovflow.kernels.SDEKernel"><span class="pre">markovflow.kernels.SDEKernel</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#cyclic_reduction_conditional_statistics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals.cyclic_reduction_conditional_statistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute <span class="math notranslate nohighlight">\(Fₜ, Gₜ, Lₜ\)</span>. Such that:</p>
+<div class="math notranslate nohighlight">
+\[p(xᵉₜ | xᶜₜ₋₁,  xᶜₜ₊₁) = 𝓝(xᵉₜ; Fₜ &#64; xᶜₜ₋₁ + Gₜ &#64; xᶜₜ₊₁, Tₜ = (Lₜ Lₜᵀ)⁻¹ = Lₜ⁻ᵀLₜ⁻¹)\]</div>
+<p>…where superscripts <span class="math notranslate nohighlight">\(e\)</span> and <span class="math notranslate nohighlight">\(c\)</span> refer to explained and conditioning respectively.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><span class="math notranslate nohighlight">\(xᵉ\)</span> and <span class="math notranslate nohighlight">\(xᶜ\)</span> must be sorted, such that:</p>
+<div class="math notranslate nohighlight">
+\[xᵉ₀ &lt; xᶜ₀ &lt; xᵉ₁ &lt; ...  &lt; xᵉₜ &lt; xᶜₜ &lt; xᶜₜ₊₁ &lt; xᶜₜ₊₁ &lt; ...\]</div>
+<p>…where <span class="math notranslate nohighlight">\(len(xᵉ) = len(xᶜ)\)</span> or <span class="math notranslate nohighlight">\(len(xᵉ) = len(xᶜ) + 1\)</span>.</p>
+</div>
+<p>This computes the conditional statistics <span class="math notranslate nohighlight">\(Fₜ, Gₜ, Lₜ\)</span>, where
+<span class="math notranslate nohighlight">\(𝔼 xᵉ|xᶜ = - L⁻ᵀ Uᵀ xᶜ\)</span>, with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Uᵀ = | F₁ᵀ                 [      |]  and  L⁻ᵀ = |L₁⁻ᵀ               |
+     |  G₁ᵀ, F₂ᵀ           [      |]             |   L₂⁻ᵀ            |
+     |     , G₂ᵀ,⋱         [      |]             |      L₃⁻ᵀ         |
+     |           ⋱ ⋱       [      |]             |        ⋱          |
+     |             ⋱ Fₙ₋₁ᵀ [      |]             |          ⋱        |
+     |               Gₙ₋₁ᵀ [ Fₙᵀ  |]             |            Lₙ⁻ᵀ   |
+</pre></div>
+</div>
+<p><span class="math notranslate nohighlight">\(L\)</span> is the Cholesky factor of the conditional precision <span class="math notranslate nohighlight">\(xᵉ|xᶜ\)</span>.</p>
+<p>Statistics <span class="math notranslate nohighlight">\(F\)</span> and <span class="math notranslate nohighlight">\(G\)</span> are computed from the conditional mean projection
+parameters <span class="math notranslate nohighlight">\(D\)</span> and <span class="math notranslate nohighlight">\(E\)</span> defined by <span class="math notranslate nohighlight">\(𝔼 xᵉₙ|xᶜ = Dₙ &#64; xᶜₙ₋₁ + Eₙ &#64; xᶜₙ\)</span>.</p>
+<p>Solving the system <span class="math notranslate nohighlight">\(- (L⁻ᵀ Uᵀ xᶜ)ₙ = Dₙ &#64; xᶜₙ₋₁ + Eₙ &#64; xᶜₙ\)</span>,
+we get <span class="math notranslate nohighlight">\(Gₙ₋₁ᵀ = -Lₙᵀ Dₙ\)</span> and <span class="math notranslate nohighlight">\(Fₙᵀ = -Lₙᵀ Eₙ\)</span>.</p>
+<p>Details of the system:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>-| L₁⁻ᵀF₁ᵀ xᶜ₁                     | = | E₁ xᶜ₁
+ | L₂⁻ᵀG₁ᵀxᶜ₁  + L₂⁻ᵀ F₂ᵀ xᶜ₂      |   | D₂ xᶜ₁ +   E₂ xᶜ₂
+ | L₃⁻ᵀ G₂ᵀ xᶜ₂ , L₃⁻ᵀ F₃ᵀ xᶜ₃,    |   | D₃ xᶜ₂ +   E₃ xᶜ₃
+ | ⋮                               |   | ⋮
+ | Lₙ⁻ᵀ Gₙ₋₁ᵀxᶜₙ₋₁,   Lₙ⁻ᵀ [Fₙᵀ]xᶜₙ|   | Dₙ xᶜₙ₋₁ +   [Eₙ] xᶜₙ
+</pre></div>
+</div>
+<p>Remarks on size:</p>
+<ul>
+<li><p>When splitting <span class="math notranslate nohighlight">\(x\)</span> of size <span class="math notranslate nohighlight">\(n\)</span> into odd and even, you get
+<span class="math notranslate nohighlight">\(nᵉ = (n+1)//2\)</span> and <span class="math notranslate nohighlight">\(nᶜ = n//2\)</span></p></li>
+<li><p>At each level, cyclic reduction statistics have shape:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;- F : nᶜ\\
+&amp;- G : nᵉ - 1\\
+&amp;- L : nᵉ\\\end{split}\]</div>
+</li>
+</ul>
+<p>Note that:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(F₀\)</span> is not defined (there is no time point below <span class="math notranslate nohighlight">\(xᵉ₀\)</span>)</p></li>
+<li><p>The last element <span class="math notranslate nohighlight">\(G\)</span> may not be defined if <span class="math notranslate nohighlight">\(len(xᵉ) = len(xᶜ)\)</span></p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explained_time_points</strong> – Sorted time points to generate observations for, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points_1,]</span></code>.</p></li>
+<li><p><strong>conditioning_time_points</strong> – Sorted time points to condition on, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points_2,]</span></code>.</p></li>
+<li><p><strong>kernel</strong> – A kernel.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Parameters for the conditional, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_conditioning,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_explained</span> <span class="pre">-</span> <span class="pre">1,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_explained,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals.base_conditional_predict">
+<code class="sig-name descname"><span class="pre">base_conditional_predict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conditional_projections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjacent_states</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairwise_state_covariances</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#base_conditional_predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals.base_conditional_predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict state at new time points given conditional statistics.</p>
+<p>Given conditionals statistics <span class="math notranslate nohighlight">\(Pₜ, Tₜ\)</span> of <span class="math notranslate nohighlight">\(p(xₜ|x₋, x₊) = 𝓝(Pₜ &#64; [x₋, x₊], Tₜ)\)</span>
+and pairwise marginals <span class="math notranslate nohighlight">\(p(xₜ₋, xₜ₊) = 𝓝(mₜ, Sₜ)\)</span>,
+compute marginal mean and covariance of the marginal density:</p>
+<div class="math notranslate nohighlight">
+\[p(xₜ) = 𝓝(Pₜ mₜ, Tₜ + Pₜ Sₜ Pₜᵀ)\]</div>
+<p>If <span class="math notranslate nohighlight">\(Sₜ\)</span> is not provided, compute the conditional mean and covariance of the
+conditional density:</p>
+<div class="math notranslate nohighlight">
+\[p(xₜ|[xₜ₋, xₜ₊] = mₜ) = 𝓝(Pₜ mₜ, Tₜ)\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conditional_projections</strong> – <span class="math notranslate nohighlight">\(Pₜ\)</span> with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>conditional_covariances</strong> – <span class="math notranslate nohighlight">\(Tₜ\)</span> with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>adjacent_states</strong> – Pairs of states to condition on, with shape
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>pairwise_state_covariances</strong> – Covariances of the pairs of states to condition on,
+with shape <code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim,</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">state_dim]</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Predicted mean and covariance for the time points, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_time_points,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.conditionals.pairwise_marginals">
+<code class="sig-name descname"><span class="pre">pairwise_marginals</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dist</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="../gauss_markov/index.html#markovflow.gauss_markov.GaussMarkovDistribution" title="markovflow.gauss_markov.GaussMarkovDistribution"><span class="pre">markovflow.gauss_markov.GaussMarkovDistribution</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_mean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_covariance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="../../../_modules/markovflow/conditionals.html#pairwise_marginals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.conditionals.pairwise_marginals" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO(sam): figure out what the initial mean and covariance should be for non-stationary kernels</p>
+<p>For each pair of subsequent states <span class="math notranslate nohighlight">\(xₖ, xₖ₊₁\)</span>, return the mean and covariance of
+their joint distribution. This is assuming we start from, and revert to, the prior:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}&amp;p(xₖ) = 𝓝(μₖ, Pₖ)  \verb|(we can get this from the marginals method)|\\
+&amp;p(xₖ₊₁ | xₖ) = 𝓝(Aₖμₖ, Qₖ)\end{split}\]</div>
+<p>Then:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}p(xₖ₊₁, xₖ) = 𝓝([μₖ, μₖ₊₁], [Pₖ, Pₖ Aₖᵀ])\\
+                             [Aₖ Pₖ, Pₖ₊₁]\end{split}\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dist</strong> – The distribution.</p></li>
+<li><p><strong>initial_mean</strong> – The prior mean (used to extend the pairwise marginals
+of the distribution).</p></li>
+<li><p><strong>initial_covariance</strong> – The prior covariance (used to extend the pairwise marginal of
+the state space model).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Mean and covariance pairs for the marginals, with respective shapes
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">2,</span> <span class="pre">state_dim]</span></code>
+<code class="docutils literal notranslate"><span class="pre">batch_shape</span> <span class="pre">+</span> <span class="pre">[num_transitions</span> <span class="pre">+</span> <span class="pre">2,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.iwvi &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.iwvi</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for importance-weighted variational inference.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow.likelihoods</span> <span class="kn">import</span> <span class="n">Likelihood</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.sparse_variational</span> <span class="kn">import</span> <span class="n">SparseVariationalGaussianProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">ImportanceWeightedPosteriorProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+
+
+<div class="viewcode-block" id="ImportanceWeightedVI"><a class="viewcode-back" href="../../../autoapi/markovflow/models/iwvi/index.html#markovflow.models.ImportanceWeightedVI">[docs]</a><span class="k">class</span> <span class="nc">ImportanceWeightedVI</span><span class="p">(</span><span class="n">SparseVariationalGaussianProcess</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Performs importance-weighted variational inference (IWVI).</span>
+
+<span class="sd">    The `key reference &lt;https://papers.nips.cc/paper/7699-importance-weighting-and-</span>
+<span class="sd">    variational-inference.pdf&gt;`_ is::</span>
+
+<span class="sd">        @inproceedings{domke2018importance,</span>
+<span class="sd">          title={Importance weighting and variational inference},</span>
+<span class="sd">          author={Domke, Justin and Sheldon, Daniel R},</span>
+<span class="sd">          booktitle={Advances in neural information processing systems},</span>
+<span class="sd">          pages={4470--4479},</span>
+<span class="sd">          year={2018}</span>
+<span class="sd">        }</span>
+
+<span class="sd">    The idea is based on the observation that an estimator of the evidence lower bound (ELBO)</span>
+<span class="sd">    can be obtained from an importance weight :math:`w`:</span>
+
+<span class="sd">    .. math:: L₁ = log w(x₁),    x₁ ~ q(x)</span>
+
+<span class="sd">    ...where :math:`x` is the latent variable of the model (a GP, or set of GPs in our case)</span>
+<span class="sd">    and the function :math:`w` is:</span>
+
+<span class="sd">    .. math:: w(x) = p(y | x) p(x) / q(x)</span>
+
+<span class="sd">    It follows that:</span>
+
+<span class="sd">    .. math:: ELBO = 𝔼ₓ₁[ L₁ ]</span>
+
+<span class="sd">    ...and:</span>
+
+<span class="sd">    .. math:: log p(y) = log 𝔼ₓ₁[ w(x₁) ]</span>
+
+<span class="sd">    It turns out that there are a series of lower bounds given by taking multiple importance</span>
+<span class="sd">    samples:</span>
+
+<span class="sd">    .. math:: Lₙ = log (1/n) Σᵢⁿ w(xᵢ),     xᵢ ~ q(x)</span>
+
+<span class="sd">    And we have the relation:</span>
+
+<span class="sd">    .. math:: log p(y) &gt;= 𝔼[Lₙ] &gt;= 𝔼[Lₙ₋₁] &gt;= ... &gt;= 𝔼[L₁] = ELBO</span>
+
+<span class="sd">    This means that we can improve tightness of the ELBO to the log marginal likelihood by</span>
+<span class="sd">    increasing :math:`n`, which we refer to in this class as `num_importance_samples`.</span>
+<span class="sd">    The trade-offs are:</span>
+
+<span class="sd">        * The objective function is now always stochastic, even for cases where the ELBO</span>
+<span class="sd">          of the parent class is non-stochastic</span>
+<span class="sd">        * We have to do more computations (evaluate the weights :math:`n` times)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">inducing_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">Likelihood</span><span class="p">,</span>
+        <span class="n">num_importance_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">initial_distribution</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">StateSpaceModel</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernel: A kernel that defines a prior over functions.</span>
+<span class="sd">        :param inducing_points: The points in time on which inference should be performed,</span>
+<span class="sd">            with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param likelihood: A likelihood.</span>
+<span class="sd">        :param num_importance_samples: The number of samples for the importance-weighted estimator.</span>
+<span class="sd">        :param initial_distribution: An initial configuration for the variational distribution,</span>
+<span class="sd">            with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">likelihood</span><span class="p">,</span> <span class="n">inducing_points</span><span class="p">,</span> <span class="n">mean_function</span><span class="p">,</span> <span class="n">initial_distribution</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_posterior</span> <span class="o">=</span> <span class="n">ImportanceWeightedPosteriorProcess</span><span class="p">(</span>
+            <span class="n">num_importance_samples</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dist_q</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span>
+            <span class="n">inducing_points</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ImportanceWeightedVI.elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/iwvi/index.html#markovflow.models.ImportanceWeightedVI.elbo">[docs]</a>    <span class="k">def</span> <span class="nf">elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the importance-weighted ELBO using K samples. The procedure is::</span>
+
+<span class="sd">            for k=1...K:</span>
+<span class="sd">                uₖ ~ q(u)</span>
+<span class="sd">                sₖ ~ p(s | u)</span>
+<span class="sd">                wₖ = p(y | sₖ)p(uₖ) / q(uₖ)</span>
+
+<span class="sd">            ELBO = log (1/K) Σₖwₖ</span>
+
+<span class="sd">        Everything is computed in log-space for stability. Note that gradients</span>
+<span class="sd">        of this ELBO may have high variance with regard to the variational parameters;</span>
+<span class="sd">        see the DREGS gradient estimator method.</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :return: A scalar tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_importance_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">num_importance_samples</span>
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">log_num_samples</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">num_importance_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+
+        <span class="c1"># draw samples from the proposeal distribution q(s, u) = q(u) p(s | u)</span>
+        <span class="n">sample_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_importance_samples</span><span class="p">,)</span>
+        <span class="n">samples_s</span><span class="p">,</span> <span class="n">samples_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">sample_state_trajectories</span><span class="p">(</span>
+            <span class="n">time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="n">sample_shape</span>
+        <span class="p">)</span>
+        <span class="n">log_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">log_importance_weights</span><span class="p">(</span><span class="n">samples_s</span><span class="p">,</span> <span class="n">samples_u</span><span class="p">,</span> <span class="n">input_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_logsumexp</span><span class="p">(</span><span class="n">log_weights</span><span class="p">)</span> <span class="o">-</span> <span class="n">log_num_samples</span></div>
+
+<div class="viewcode-block" id="ImportanceWeightedVI.dregs_objective"><a class="viewcode-back" href="../../../autoapi/markovflow/models/iwvi/index.html#markovflow.models.ImportanceWeightedVI.dregs_objective">[docs]</a>    <span class="k">def</span> <span class="nf">dregs_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute a scalar tensor that, when differentiated using `tf.gradients`,</span>
+<span class="sd">        produces the DREGS variance controlled gradient.</span>
+
+<span class="sd">        See `&quot;Doubly Reparameterized Gradient Estimators For Monte Carlo Objectives&quot;</span>
+<span class="sd">        &lt;https://openreview.net/pdf?id=HkG3e205K7&gt;`_ for a derivation.</span>
+
+<span class="sd">        We recommend using these gradients for training variational</span>
+<span class="sd">        parameters and gradients of the importance-weighted ELBO for training hyperparameters.</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+
+<span class="sd">            * A tensor of inputs with shape ``batch_shape + [num_data]``</span>
+<span class="sd">            * A tensor of observations with shape ``batch_shape + [num_data, observation_dim]``</span>
+<span class="sd">        :return: A scalar tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_importance_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">num_importance_samples</span>
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">input_data</span>
+
+        <span class="c1"># draw samples from the proposal distribution q(s, u) = q(u) p(s | u)</span>
+        <span class="n">sample_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_importance_samples</span><span class="p">,)</span>
+        <span class="n">samples_s</span><span class="p">,</span> <span class="n">samples_u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">proposal_process</span><span class="o">.</span><span class="n">sample_state_trajectories</span><span class="p">(</span>
+            <span class="n">time_points</span><span class="p">,</span> <span class="n">sample_shape</span><span class="o">=</span><span class="n">sample_shape</span>
+        <span class="p">)</span>
+        <span class="n">log_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="o">.</span><span class="n">log_importance_weights</span><span class="p">(</span>
+            <span class="n">samples_s</span><span class="p">,</span> <span class="n">samples_u</span><span class="p">,</span> <span class="n">input_data</span><span class="p">,</span> <span class="n">stop_gradient</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">normalized_weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">log_weights</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">normalized_weights</span><span class="p">)</span> <span class="o">*</span> <span class="n">log_weights</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

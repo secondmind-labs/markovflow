@@ -1,0 +1,229 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "73a0bc4b",
+   "metadata": {
+    "cell_marker": "\"\"\""
+   },
+   "source": [
+    "# Basic classification using the PEP model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e268b434",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "This notebook explains how to perform GP inference using the Markovflow ExpectationPropagation model.\n",
+    "Here, we perform binary classification with time as the input.\n",
+    "\n",
+    "As with GPR, the observations do not have to be regularly spaced. However, they do need to be sequential. We denote the input/output tuples as $(x_i, y_i)_{1 \\leq i \\leq n}$, where $x_i$ is a scalar value and $y_i \\in \\{0, 1\\}$.\n",
+    "\n",
+    "Our probabilistic model for this data is:\n",
+    "$$\n",
+    "\\begin{align}\n",
+    "f \\sim \\mathcal{GP}(0, k(., .)) \\\\\n",
+    "y_i \\sim \\mathcal{B}(\\Phi(f(x_i)))\n",
+    "\\end{align}\n",
+    "$$\n",
+    "\n",
+    "where $\\Phi$ is a function that maps $f(x_i)$ to $[0, 1]$, the probability that $y_i=1$. In practice, we choose $\\Phi$ to be the standard normal cumulative distribution function (also known as the probit function) which maps to $[0, 1]$.\n",
+    "\n",
+    "**NOTE:** If you have difficulty running this notebook, consider clearing the output and then restarting the kernel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d1a689b6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Setup\n",
+    "\n",
+    "import warnings\n",
+    "\n",
+    "# Turn off warnings\n",
+    "warnings.simplefilter('ignore')\n",
+    "\n",
+    "\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "import tensorflow as tf\n",
+    "\n",
+    "from gpflow import default_float\n",
+    "from gpflow.ci_utils import ci_niter\n",
+    "from gpflow.likelihoods import Bernoulli\n",
+    "\n",
+    "from markovflow.likelihoods import PEPScalarLikelihood\n",
+    "from markovflow.models.pep import PowerExpectationPropagation\n",
+    "from markovflow.kernels import Matern52\n",
+    "\n",
+    "\n",
+    "np.random.seed(0)\n",
+    "FLOAT_TYPE = default_float()\n",
+    "\n",
+    "# uncomment in notebook\n",
+    "# try:\n",
+    "#     from IPython import get_ipython\n",
+    "#     get_ipython().run_line_magic('matplotlib', 'inline')\n",
+    "# except AttributeError:\n",
+    "#     print('Magic function can only be used in IPython environment')\n",
+    "#     matplotlib.use('Agg')\n",
+    "\n",
+    "plt.rcParams[\"figure.figsize\"] = [15, 8]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "851e3ac3",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "## Step 1: Generate training data\n",
+    "\n",
+    "First, let's generate some binary data $X = (x_1, \\dots, x_n)$ and $Y = (y_1, \\dots, y_n)^T$."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ee29d557",
+   "metadata": {
+    "lines_to_next_cell": 2
+   },
+   "outputs": [],
+   "source": [
+    "# Generate some observations\n",
+    "num_data = 300\n",
+    "time_points = np.linspace(0 , 1, num_data)\n",
+    "F = np.cos(time_points * 20).reshape(-1, 1)\n",
+    "observations = (F + np.random.randn(*F.shape) > 0).astype(float)\n",
+    "data = (time_points, observations)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a2476f72",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "## Step 2: Choose a kernel"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8fdf549e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "kernel = Matern52(lengthscale=.2, variance=5.0)\n",
+    "\n",
+    "# We see Matern12 has only two dimensions (therefore there is less risk of overparameterising)\n",
+    "print(kernel.state_dim)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "11a74f4c",
+   "metadata": {
+    "cell_marker": "\"\"\"",
+    "lines_to_next_cell": 0
+   },
+   "source": [
+    "## Step 3: Build and optimise a model\n",
+    "\n",
+    "This is a classification problem with outputs between `[0,1]`, so we create a variational GP model using a Bernoulli likelihood."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d6df75c0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "# Create a likelihood object\n",
+    "\n",
+    "likelihood = PEPScalarLikelihood(Bernoulli())\n",
+    "\n",
+    "alpha = .9\n",
+    "input_data = (tf.constant(time_points), tf.constant(observations))\n",
+    "pep = PowerExpectationPropagation(input_data=input_data, kernel=kernel,\n",
+    "                                  likelihood=likelihood, learning_rate=.5,\n",
+    "                                  alpha=alpha)\n",
+    "\n",
+    "\n",
+    "def plot_model(model):\n",
+    "\n",
+    "    f_mu, f_var = model.posterior.predict_f(time_points)\n",
+    "    f_mu = f_mu.numpy()\n",
+    "    f_std = np.sqrt(f_var)\n",
+    "\n",
+    "    plt.figure(figsize=(10, 6))\n",
+    "    plt.plot(time_points, observations, 'kx', ms=8, mew=2, label='data')\n",
+    "    plt.plot(time_points, F, 'b', ms=8, mew=2, label='underlying $f$')\n",
+    "    plt.plot(time_points, f_mu, 'C0', ms=8, mew=2, label='posterior prediction')\n",
+    "    plt.fill_between(\n",
+    "        time_points,\n",
+    "        y1 = (f_mu - 2 * f_std).reshape(-1,),\n",
+    "        y2 = (f_mu + 2 * f_std).reshape(-1,),\n",
+    "        alpha=.2, facecolor='C0'\n",
+    "    )\n",
+    "    plt.xlabel(\"Time\")\n",
+    "    plt.ylabel(\"Label\")\n",
+    "    plt.legend()\n",
+    "    plt.show()\n",
+    "\n",
+    "\n",
+    "plot_model(pep)\n",
+    "\n",
+    "\n",
+    "import tensorflow as tf\n",
+    "opt = tf.optimizers.Adam(learning_rate=0.05)\n",
+    "\n",
+    "def opt_step():\n",
+    "    opt.minimize(lambda :-pep.energy(), pep.kernel.trainable_variables)\n",
+    "\n",
+    "\n",
+    "batch_size = num_data // 5\n",
+    "max_iter = ci_niter(500)\n",
+    "for i in range(max_iter):\n",
+    "    indices = np.random.permutation(num_data)[:batch_size].reshape(-1,1)\n",
+    "\n",
+    "    print(i, pep.energy().numpy())\n",
+    "    pep.update_sites(indices)\n",
+    "    print(i, pep.energy().numpy())\n",
+    "    opt_step()\n",
+    "\n",
+    "    if i%20 ==0:\n",
+    "        plot_model(pep)"
+   ]
+  }
+ ],
+ "metadata": {
+  "jupytext": {
+   "cell_markers": "\"\"\"",
+   "encoding": "# -*- coding: utf-8 -*-",
+   "formats": "ipynb,py:percent"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

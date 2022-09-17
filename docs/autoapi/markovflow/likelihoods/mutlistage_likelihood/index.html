@@ -1,0 +1,374 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.likelihoods.mutlistage_likelihood &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="markovflow.models" href="../../models/index.html" />
+    <link rel="prev" title="markovflow.likelihoods.multivariate_gaussian" href="../multivariate_gaussian/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../../index.html">
+    
+      <img src="../../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood" class="nav-link">MultiStageLikelihood</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._split_f" class="nav-link">_split_f</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._log_prob" class="nav-link">_log_prob</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._variational_expectations" class="nav-link">_variational_expectations</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_log_density" class="nav-link">_predict_log_density</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_mean_and_var" class="nav-link">_predict_mean_and_var</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h4">
+            <a href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood.sample_y" class="nav-link">sample_y</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.likelihoods.mutlistage_likelihood">
+<span id="markovflow-likelihoods-mutlistage-likelihood"></span><h1><a class="reference internal" href="#module-markovflow.likelihoods.mutlistage_likelihood" title="markovflow.likelihoods.mutlistage_likelihood"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.likelihoods.mutlistage_likelihood</span></code></a><a class="headerlink" href="#module-markovflow.likelihoods.mutlistage_likelihood" title="Permalink to this headline">¶</a></h1>
+<p>Module containing the MultiStageLikelihood</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">MultiStageLikelihood</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">invlink_bernoulli</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inv_probit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invlink_poisson</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">tf.exp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">gpflow.likelihoods.MultiLatentLikelihood</span></code></p>
+<p>The Multistage Likelihood as described in</p>
+<dl class="simple">
+<dt>&#64;inproceedings{seeger2016bayesian,</dt><dd><p>title={Bayesian intermittent demand forecasting for large inventories},
+author={Seeger, Matthias W and Salinas, David and Flunkert, Valentin},
+booktitle={Advances in Neural Information Processing Systems},
+pages={4646–4654},
+year={2016}</p>
+</dd>
+</dl>
+<p>}</p>
+<p>This relates scalar data y to variables F = [F0, F1, F2]
+through the log-conditional density</p>
+<dl>
+<dt>log p(Y|F) = δ(Y=0) * log σ(F0)</dt><dd><ul class="simple">
+<li><p>δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))</p></li>
+<li><p>δ(Y&gt;1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))</p></li>
+</ul>
+</dd>
+<dt>This can be interpreted as a decision tree</dt><dd><blockquote>
+<div><p>σ(F0) -&gt; Y = 0</p>
+</div></blockquote>
+<p>/</p>
+</dd>
+<dt>root -&gt; 1-σ(F0) -&gt; 1-σ(F1) -&gt; Y ~ Poisson(λ(F2)) + 2</dt><dd><dl class="simple">
+<dt></dt><dd><p>σ(F1) -&gt; Y = 1</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>A base class for likelihoods, which specifies an observation model
+connecting the latent functions (‘F’) to the data (‘Y’).</p>
+<p>All of the members of this class are expected to obey some shape conventions, as specified
+by latent_dim and observation_dim.</p>
+<p>If we’re operating on an array of function values ‘F’, then the last dimension represents
+multiple functions (preceding dimensions could represent different data points, or
+different random samples, for example). Similarly, the last dimension of Y represents a
+single data point. We check that the dimensions are as this object expects.</p>
+<p>The return shapes of all functions in this class is the broadcasted shape of the arguments,
+excluding the last dimension of each argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latent_dim</strong> – the dimension of the vector F of latent functions for a single data point</p></li>
+<li><p><strong>observation_dim</strong> – the dimension of the observation vector Y for a single data point</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._split_f">
+<code class="sig-name descname"><span class="pre">_split_f</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood._split_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._split_f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the input tensor F into 3 tensors along the last dimension
+:param F: tensor of shape […, 3]
+:return: tuple of 3 tensors of shape […, 1]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._log_prob">
+<code class="sig-name descname"><span class="pre">_log_prob</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood._log_prob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._log_prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log-conditional density
+log p(Y|F) = δ(Y=0) * log σ(F0)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>δ(Y=1) * (log(1 - σ(F0)) + log σ(F1))</p></li>
+<li><p>δ(Y&gt;1) * (log(1 - σ(F0)) + log(1-σ(F1)) + log Poisson(Y-2|λ(F2)))</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F</strong> – tensor of shape […, 3]</p></li>
+<li><p><strong>Y</strong> – tensor of shape […, 1]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tensor of shape […]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._variational_expectations">
+<code class="sig-name descname"><span class="pre">_variational_expectations</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fvar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood._variational_expectations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._variational_expectations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns E_q(F) log p(Y|F) under the factored distribution
+q(F) = ∏ₖ q(Fₖ) = ∏ₖ 𝓝(Fmuₖ, Fvarₖ)</p>
+<dl class="simple">
+<dt>E_q(F) log p(Y|F) = δ(Y=0) * E_q(F0) log σ(F0)</dt><dd><ul class="simple">
+<li><p>δ(Y=1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log σ(F1))</p></li>
+<li><dl class="simple">
+<dt>δ(Y&gt;1) * (E_q(F0) log(1 - σ(F0)) + E_q(F1) log(1-σ(F1))</dt><dd><ul>
+<li><p>E_q(F2) log Poisson(Y-2|λ(F2)))</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Fmu</strong> – mean function evaluation Tensor, with shape […, latent_dim]</p></li>
+<li><p><strong>Fvar</strong> – variance of function evaluation Tensor, with shape […, latent_dim]</p></li>
+<li><p><strong>Y</strong> – observation Tensor, with shape […, observation_dim]:</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>variational expectations, with shape […]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_log_density">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">_predict_log_density</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fvar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood._predict_log_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_log_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Here, we implement a default Gauss-Hermite quadrature routine, but some
+likelihoods (Gaussian, Poisson) will implement specific cases.
+:param Fmu: mean function evaluation Tensor, with shape […, latent_dim]
+:param Fvar: variance of function evaluation Tensor, with shape […, latent_dim]
+:param Y: observation Tensor, with shape […, observation_dim]:
+:returns: log predictive density, with shape […]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_mean_and_var">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">_predict_mean_and_var</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Fmu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Fvar</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood._predict_mean_and_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood._predict_mean_and_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Here, we implement a default Gauss-Hermite quadrature routine, but some
+likelihoods (e.g. Gaussian) will implement specific cases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Fmu</strong> – mean function evaluation Tensor, with shape […, latent_dim]</p></li>
+<li><p><strong>Fvar</strong> – variance of function evaluation Tensor, with shape […, latent_dim]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>mean and variance of Y, both with shape […, observation_dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood.sample_y">
+<code class="sig-name descname"><span class="pre">sample_y</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F_samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/markovflow/likelihoods/mutlistage_likelihood.html#MultiStageLikelihood.sample_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.likelihoods.mutlistage_likelihood.MultiStageLikelihood.sample_y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given values of the latent processes F,
+samples observations from P(Y|F)
+:param F_samples: batch_shape + [3]
+:return: batch_shape + [1]</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

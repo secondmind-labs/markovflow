@@ -1,0 +1,369 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.utils &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="markovflow.state_space_model" href="../state_space_model/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item active">
+            <a class="nav-link" href="../index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+          
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+<div class="tocsection onthispage pt-5 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+        <li class="nav-item toc-entry toc-h2">
+            <a href="#module-contents" class="nav-link">Module Contents</a><ul class="nav section-nav flex-column">
+                
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.tf_scope_fn_decorator" class="nav-link">tf_scope_fn_decorator</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.tf_scope_class_decorator" class="nav-link">tf_scope_class_decorator</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.block_diag" class="nav-link">block_diag</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.to_delta_time" class="nav-link">to_delta_time</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.kronecker_product" class="nav-link">kronecker_product</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.augment_square_matrix" class="nav-link">augment_square_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.augment_matrix" class="nav-link">augment_matrix</a>
+        </li>
+    
+        <li class="nav-item toc-entry toc-h3">
+            <a href="#markovflow.utils.batch_base_conditional" class="nav-link">batch_base_conditional</a>
+        </li>
+    
+            </ul>
+        </li>
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <div class="section" id="module-markovflow.utils">
+<span id="markovflow-utils"></span><h1><a class="reference internal" href="#module-markovflow.utils" title="markovflow.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">markovflow.utils</span></code></a><a class="headerlink" href="#module-markovflow.utils" title="Permalink to this headline">¶</a></h1>
+<p>Module containing utility functions.</p>
+<div class="section" id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="markovflow.utils.tf_scope_fn_decorator">
+<code class="sig-name descname"><span class="pre">tf_scope_fn_decorator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/utils.html#tf_scope_fn_decorator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.tf_scope_fn_decorator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to wrap the function call in a name_scope
+of the form “.{name of function}”.</p>
+<p>The prefix <code class="xref any docutils literal notranslate"><span class="pre">.</span></code> is required because names_scopes cannot be prefixed with <code class="xref any docutils literal notranslate"><span class="pre">_</span></code>.</p>
+<p>Without this some function names (such as private functions) would raise an error.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.tf_scope_class_decorator">
+<code class="sig-name descname"><span class="pre">tf_scope_class_decorator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/utils.html#tf_scope_class_decorator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.tf_scope_class_decorator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator to wrap all the methods in a class in a name_scope
+of the form “{name of class}.{name of method}”.</p>
+<p>Do not decorate the top level; TensorBoard renders badly if there is only one block.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.block_diag">
+<code class="sig-name descname"><span class="pre">block_diag</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/utils.html#block_diag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.block_diag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct block diagonal matrices from a list of batched 2D tensors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>matrices</strong> – A list of tensors with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">Nᵢ,</span> <span class="pre">Mᵢ]</span></code>. That is, a list of
+matrices with the same batch dimension.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A matrix with the input matrices stacked along its main diagonal, with
+shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">∑ᵢ,Nᵢ,</span> <span class="pre">∑ᵢ,Mᵢ]</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.to_delta_time">
+<code class="sig-name descname"><span class="pre">to_delta_time</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_points</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/utils.html#to_delta_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.to_delta_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a tensor of time points to differences between the times. This function returns:</p>
+<div class="math notranslate nohighlight">
+\[Δtₖ = tₖ₊₁ -  tₖ\]</div>
+<p>Time points must be a strictly increasing vector, for example:</p>
+<div class="math notranslate nohighlight">
+\[tₖ₊₁ &gt;  tₖ, so Δtₖ &gt; 0\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time_points</strong> – A tensor <span class="math notranslate nohighlight">\(tₖ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">a]</span></code>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor <span class="math notranslate nohighlight">\(Δtₖ\)</span> with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">a</span> <span class="pre">-</span> <span class="pre">1]</span></code>.</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>InvalidArgumentError</strong> – Raises if <span class="math notranslate nohighlight">\(Δtₖ ≤ 0\)</span>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.kronecker_product">
+<code class="sig-name descname"><span class="pre">kronecker_product</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrices</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/utils.html#kronecker_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.kronecker_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the tensor representing the Kronecker product of the argument matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>matrices</strong> – The list of matrices to compute the Kronecker product from.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Kronecker product tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.augment_square_matrix">
+<code class="sig-name descname"><span class="pre">augment_square_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_zeros</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/utils.html#augment_square_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.augment_square_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Augment a square matrix to match <code class="xref any docutils literal notranslate"><span class="pre">state_dim</span> <span class="pre">+</span> <span class="pre">extra_dim</span></code>, where
+<a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel.state_dim" title="markovflow.emission_model.EmissionModel.state_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">state_dim</span></code></a> is the dimensionality of the inner square matrix of matrix.</p>
+<p>Effectively it creates a block diagonal by padding (if necessary) with an identity or zeros:</p>
+<div class="math notranslate nohighlight">
+\[matrix -&gt; [[matrix, 0s], [0s, (I or 0s)]]\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">state_dim,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>extra_dim</strong> – The extra dimension we want to augment it with. If <code class="xref any docutils literal notranslate"><span class="pre">extra_dim</span></code> is <span class="math notranslate nohighlight">\(0\)</span>,
+the matrix remains unaltered.</p></li>
+<li><p><strong>fill_zeros</strong> – Whether to fill with zeros or identity.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">max_dim,</span> <span class="pre">max_dim]</span></code>,
+where <code class="xref any docutils literal notranslate"><span class="pre">max_dim</span> <span class="pre">=</span> <span class="pre">state_dim</span> <span class="pre">+</span> <span class="pre">extra_dim</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.augment_matrix">
+<code class="sig-name descname"><span class="pre">augment_matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><a class="reference internal" href="../../../_modules/markovflow/utils.html#augment_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.augment_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Augment a non-square matrix so that the last dimension becomes
+<code class="xref any docutils literal notranslate"><span class="pre">state_dim</span> <span class="pre">+</span> <span class="pre">extra_dim</span></code>, where <a class="reference internal" href="../emission_model/index.html#markovflow.emission_model.EmissionModel.state_dim" title="markovflow.emission_model.EmissionModel.state_dim"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">state_dim</span></code></a> is the size of the last dimension of the matrix.</p>
+<p>Effectively it expands the matrix (if necessary) with zeros in the last dimension
+to match <code class="xref any docutils literal notranslate"><span class="pre">max_dim</span> <span class="pre">=</span> <span class="pre">state_dim</span> <span class="pre">+</span> <span class="pre">extra_dim</span></code>. In other words:</p>
+<div class="math notranslate nohighlight">
+\[matrix -&gt; [matrix, 0s]\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matrix</strong> – A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">state_dim]</span></code>.</p></li>
+<li><p><strong>extra_dim</strong> – The extra dimension we want to augment it with. If <code class="xref any docutils literal notranslate"><span class="pre">extra_dim</span></code> is <span class="math notranslate nohighlight">\(0\)</span>
+the matrix remains unaltered.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tensor with shape <code class="docutils literal notranslate"><span class="pre">[...,</span> <span class="pre">max_dim]</span></code>, where <code class="xref any docutils literal notranslate"><span class="pre">max_dim</span> <span class="pre">=</span> <span class="pre">state_dim</span> <span class="pre">+</span> <span class="pre">extra_dim</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="markovflow.utils.batch_base_conditional">
+<code class="sig-name descname"><span class="pre">batch_base_conditional</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Kmn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Kmm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">Knn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_sqrt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/Tensor" title="(in TensorFlow v2.4)"><span class="pre">tf.Tensor</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">white</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/markovflow/utils.html#batch_base_conditional"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#markovflow.utils.batch_base_conditional" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Given a g1_n and g2_n, and distributions ps and qs such that</dt><dd><p>p_n(g2_n) = N(g2_n; 0, Kmm)  (independent of n)
+p_n(g1_n) = N(g1; 0, knn)
+p_n(g1_n | g2_n) = N(g1_n; knm (Kmm⁻¹) g2_n, knn - knm (Kmm⁻¹) kmn)</p>
+</dd>
+<dt>And</dt><dd><p>q_n(g2_n) = N(g2_n; f_n, q_sqrt_n q_sqrt_nᵀ)</p>
+</dd>
+<dt>This method computes the means and (co)variances of</dt><dd><p>q_n(g1_n) = ∫ q_n(g2_n) p_n(g1_n| g2_n)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Kmn</strong> – [M, …, N]</p></li>
+<li><p><strong>Kmm</strong> – [M, M]</p></li>
+<li><p><strong>Knn</strong> – […, N, N]  or  N</p></li>
+<li><p><strong>f</strong> – [M, N]</p></li>
+<li><p><strong>q_sqrt</strong> – If this is a Tensor, it must have shape [N, M, M] (lower
+triangular) or [M, N] (diagonal)</p></li>
+<li><p><strong>white</strong> – bool</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[N,], [N,]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

@@ -1,0 +1,729 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>markovflow.models.sparse_pep &#8212; markovflow 0.1.0 documentation</title>
+    
+  <link rel="stylesheet" href="../../../_static/css/index.f658d18f9b420779cfdf24aa0a7e2d77.css">
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+  <link rel="stylesheet"
+    href="../../../_static/vendor/open-sans_all/1.44.1/index.css">
+  <link rel="stylesheet"
+    href="../../../_static/vendor/lato_latin-ext/1.44.1/index.css">
+
+    
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/basic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pydata-custom.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.d3f166471bb80abb5163.js">
+
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main">
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/logo.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../index.html">Markovflow</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../tutorials.html">Tutorials</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../autoapi/markovflow/index.html">API Reference</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/secondmind-labs/markovflow" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square"></i></span>
+            </a>
+          </li>
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+          <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+<nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+
+    <div class="bd-toc-item active">
+    
+  
+    <ul class="nav bd-sidenav">
+        
+        
+        
+        
+        
+        
+        
+      </ul>
+  
+  </nav>
+          </div>
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+              
+
+<nav id="bd-toc-nav">
+    <ul class="nav section-nav flex-column">
+    
+    </ul>
+</nav>
+
+
+              
+          </div>
+          
+
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for markovflow.models.sparse_pep</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># Copyright (c) 2021 The Markovflow Contributors.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Module containing a model for CVI&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">gpflow</span> <span class="kn">import</span> <span class="n">Parameter</span><span class="p">,</span> <span class="n">default_float</span>
+
+<span class="kn">from</span> <span class="nn">markovflow.base</span> <span class="kn">import</span> <span class="n">ordered</span>
+<span class="kn">from</span> <span class="nn">markovflow.conditionals</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_conditional_statistics</span><span class="p">,</span>
+    <span class="n">base_conditional_predict</span><span class="p">,</span>
+    <span class="n">conditional_statistics</span><span class="p">,</span>
+    <span class="n">pairwise_marginals</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">markovflow.gauss_markov</span> <span class="kn">import</span> <span class="n">GaussMarkovDistribution</span>
+<span class="kn">from</span> <span class="nn">markovflow.kernels</span> <span class="kn">import</span> <span class="n">SDEKernel</span>
+<span class="kn">from</span> <span class="nn">markovflow.likelihoods</span> <span class="kn">import</span> <span class="n">PEPGaussian</span><span class="p">,</span> <span class="n">PEPScalarLikelihood</span>
+<span class="kn">from</span> <span class="nn">markovflow.mean_function</span> <span class="kn">import</span> <span class="n">MeanFunction</span><span class="p">,</span> <span class="n">ZeroMeanFunction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.models</span> <span class="kn">import</span> <span class="n">MarkovFlowSparseModel</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.pep</span> <span class="kn">import</span> <span class="n">gradient_correction</span>
+<span class="kn">from</span> <span class="nn">markovflow.models.variational_cvi</span> <span class="kn">import</span> <span class="n">back_project_nats</span>
+<span class="kn">from</span> <span class="nn">markovflow.posterior</span> <span class="kn">import</span> <span class="n">ConditionalProcess</span><span class="p">,</span> <span class="n">PosteriorProcess</span>
+<span class="kn">from</span> <span class="nn">markovflow.ssm_gaussian_transformations</span> <span class="kn">import</span> <span class="n">naturals_to_ssm_params</span>
+<span class="kn">from</span> <span class="nn">markovflow.state_space_model</span> <span class="kn">import</span> <span class="n">StateSpaceModel</span>
+
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation">[docs]</a><span class="k">class</span> <span class="nc">SparsePowerExpectationPropagation</span><span class="p">(</span><span class="n">MarkovFlowSparseModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the  Sparse Power Expectation Propagation Algorithm</span>
+
+<span class="sd">    Approximates a the posterior of a model with GP prior and a general likelihood</span>
+<span class="sd">    using a Gaussian posterior parameterized with Gaussian sites on</span>
+<span class="sd">    inducing states u at inducing points z.</span>
+
+<span class="sd">    The following notation is used:</span>
+
+<span class="sd">        * x - the time points of the training data.</span>
+<span class="sd">        * z - the time points of the inducing/pseudo points.</span>
+<span class="sd">        * y - observations corresponding to time points x.</span>
+<span class="sd">        * s(.) - the continuous time latent state process</span>
+<span class="sd">        * u = s(z) - the discrete inducing latent state space model</span>
+<span class="sd">        * f(.) - the noise free predictions of the model</span>
+<span class="sd">        * p(y | f) - the likelihood</span>
+<span class="sd">        * t(u) - a site (indices will refer to the associated data point)</span>
+<span class="sd">        * p(.) the prior distribution</span>
+<span class="sd">        * q(.) the variational distribution</span>
+
+<span class="sd">    We use the state space formulation of Markovian Gaussian Processes that specifies:</span>
+<span class="sd">    the conditional density of neighbouring latent states: p(sₖ₊₁| sₖ)</span>
+<span class="sd">    how to read out the latent process from these states: fₖ = H sₖ</span>
+
+<span class="sd">    The likelihood links data to the latent process and p(yₖ | fₖ).</span>
+<span class="sd">    We would like to approximate the posterior over the latent state space model of this model.</span>
+
+<span class="sd">    To approximate the posterior, we maximise the evidence lower bound (ELBO) (ℒ) with</span>
+<span class="sd">    respect to the parameters of the variational distribution, since::</span>
+
+<span class="sd">        log p(y) = ℒ(q) + KL[q(s) ‖ p(s | y)]</span>
+
+<span class="sd">    ...where::</span>
+
+<span class="sd">        ℒ(q) = ∫ log(p(s, y) / q(s)) q(s) ds</span>
+
+<span class="sd">    We parameterize the variational posterior through M sites tₘ(vₘ)</span>
+
+<span class="sd">        q(s) = p(s) ∏ₘ  tₘ(vₘ)</span>
+
+<span class="sd">    where tₘ(vₘ) are multivariate Gaussian sites on vₘ = [uₘ, uₘ₊₁],</span>
+<span class="sd">    i.e. consecutive inducing states.</span>
+
+<span class="sd">    The sites are parameterized in the natural form</span>
+
+<span class="sd">        t(v) = exp(𝜽ᵀφ(v) - A(𝜽)), where 𝜽=[θ₁, θ₂] and 𝛗(u)=[v, vᵀv]</span>
+
+<span class="sd">    with 𝛗(v) are the sufficient statistics and 𝜽 the natural parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">SDEKernel</span><span class="p">,</span>
+        <span class="n">inducing_points</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">likelihood</span><span class="p">:</span> <span class="n">PEPScalarLikelihood</span><span class="p">,</span>
+        <span class="n">mean_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MeanFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param kernel: A kernel that defines a prior over functions.</span>
+<span class="sd">        :param inducing_points: The points in time on which inference should be performed,</span>
+<span class="sd">            with shape ``batch_shape + [num_inducing]``.</span>
+<span class="sd">        :param likelihood: A likelihood.</span>
+<span class="sd">        :param mean_function: The mean function for the GP. Defaults to no mean function.</span>
+<span class="sd">        :param learning_rate: the learning rate</span>
+<span class="sd">        :param alpha: power as in Power Expectation Propagation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="n">kernel</span>
+        <span class="k">if</span> <span class="n">mean_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mean_function</span> <span class="o">=</span> <span class="n">ZeroMeanFunction</span><span class="p">(</span><span class="n">obs_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mean_function</span> <span class="o">=</span> <span class="n">mean_function</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span> <span class="o">=</span> <span class="n">likelihood</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">inducing_points</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ordered</span><span class="p">(),</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># initialize sites</span>
+        <span class="n">num_inducing</span> <span class="o">=</span> <span class="n">inducing_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">state_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">state_dim</span>
+        <span class="n">eye</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="n">zeros1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_inducing</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">state_dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+        <span class="n">eye2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">eye</span><span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="p">(</span><span class="n">num_inducing</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="o">-</span><span class="mf">1e-10</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_norm</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_inducing</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">zeros1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">eye2</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.posterior"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.posterior">[docs]</a>    <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Posterior Process &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ConditionalProcess</span><span class="p">(</span>
+            <span class="n">posterior_dist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="p">,</span>
+            <span class="n">kernel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">,</span>
+            <span class="n">conditioning_time_points</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.mask_indices"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.mask_indices">[docs]</a>    <span class="k">def</span> <span class="nf">mask_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude_indices</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Binary mask to exclude data indices</span>
+<span class="sd">        :param exclude_indices:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">exclude_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_points</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">updates</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">exclude_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observations</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span><span class="n">exclude_indices</span><span class="p">,</span> <span class="n">updates</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.back_project_nats"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.back_project_nats">[docs]</a>    <span class="k">def</span> <span class="nf">back_project_nats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nat1</span><span class="p">,</span> <span class="n">nat2</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        back project natural gradient associated to time points to their associated</span>
+<span class="sd">        inducing sites.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="o">=</span><span class="n">time_points</span><span class="p">)</span><span class="o">.</span><span class="n">emission_matrix</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">conditional_statistics</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="p">)</span>
+        <span class="n">HP</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">back_project_nats</span><span class="p">(</span><span class="n">nat1</span><span class="p">,</span> <span class="n">nat2</span><span class="p">,</span> <span class="n">HP</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.local_objective"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.local_objective">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Local objective of the PEP algorithm : log E_q(f) p(y|f)ᵃ &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">Fmu</span><span class="p">,</span> <span class="n">Fvar</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.local_objective_gradients"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.local_objective_gradients">[docs]</a>    <span class="k">def</span> <span class="nf">local_objective_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Gradients of the local objective of the PEP algorithm wrt to the predictive mean &quot;&quot;&quot;</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">grad_log_expected_density</span><span class="p">(</span>
+            <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span>
+        <span class="p">)</span>
+        <span class="n">grads_expectation_param</span> <span class="o">=</span> <span class="n">gradient_correction</span><span class="p">([</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">],</span> <span class="n">grads</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">grads_expectation_param</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.fraction_sites"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.fraction_sites">[docs]</a>    <span class="k">def</span> <span class="nf">fraction_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for all segment indexed m of consecutive inducing points [z_m, z_m+1[,</span>
+<span class="sd">        this counts the time points t falling in that segment:</span>
+<span class="sd">        c(m) = #{t, z_m &lt;= t &lt; z_m+1} and returns 1/c(m) or 0 when c(m)=0</span>
+
+<span class="sd">        :param time_points: tensor of shape batch_shape + [num_data]</span>
+<span class="sd">        :return: tensor of shape batch_shape + [num_data]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">num_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">fraction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reciprocal_no_nan</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">default_float</span><span class="p">()))</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">fraction</span><span class="p">,</span> <span class="n">default_float</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_posterior_ssm"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_posterior_ssm">[docs]</a>    <span class="k">def</span> <span class="nf">compute_posterior_ssm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nat1</span><span class="p">,</span> <span class="n">nat2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the variational posterior distribution on the vector of inducing states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get prior precision</span>
+        <span class="n">prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="o">.</span><span class="n">precision</span>
+
+        <span class="c1"># [..., num_transitions + 1, state_dim, state_dim]</span>
+        <span class="n">prec_diag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_diagonal</span>
+        <span class="c1"># [..., num_transitions, state_dim, state_dim]</span>
+        <span class="n">prec_subdiag</span> <span class="o">=</span> <span class="n">prec</span><span class="o">.</span><span class="n">block_sub_diagonal</span>
+
+        <span class="n">sd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">state_dim</span>
+
+        <span class="n">summed_lik_nat1_diag</span> <span class="o">=</span> <span class="n">nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span> <span class="o">+</span> <span class="n">nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:]</span>
+
+        <span class="n">summed_lik_nat2_diag</span> <span class="o">=</span> <span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span> <span class="o">+</span> <span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:,</span> <span class="n">sd</span><span class="p">:]</span>
+        <span class="n">summed_lik_nat2_subdiag</span> <span class="o">=</span> <span class="n">nat2</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">sd</span><span class="p">:,</span> <span class="p">:</span><span class="n">sd</span><span class="p">]</span>
+
+        <span class="c1"># conjugate update of the natural parameter: post_nat = prior_nat + lik_nat</span>
+        <span class="n">theta_diag</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">prec_diag</span> <span class="o">+</span> <span class="n">summed_lik_nat2_diag</span>
+        <span class="n">theta_subdiag</span> <span class="o">=</span> <span class="o">-</span><span class="n">prec_subdiag</span> <span class="o">+</span> <span class="n">summed_lik_nat2_subdiag</span> <span class="o">*</span> <span class="mf">2.0</span>
+
+        <span class="n">post_ssm_params</span> <span class="o">=</span> <span class="n">naturals_to_ssm_params</span><span class="p">(</span>
+            <span class="n">theta_linear</span><span class="o">=</span><span class="n">summed_lik_nat1_diag</span><span class="p">,</span> <span class="n">theta_diag</span><span class="o">=</span><span class="n">theta_diag</span><span class="p">,</span> <span class="n">theta_subdiag</span><span class="o">=</span><span class="n">theta_subdiag</span>
+        <span class="p">)</span>
+
+        <span class="n">post_ssm</span> <span class="o">=</span> <span class="n">StateSpaceModel</span><span class="p">(</span>
+            <span class="n">state_transitions</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">state_offsets</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">chol_initial_covariance</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">chol_process_covariances</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="n">post_ssm_params</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">post_ssm</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.dist_q"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.dist_q">[docs]</a>    <span class="k">def</span> <span class="nf">dist_q</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the variational posterior distribution on the vector of inducing states</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_posterior_ssm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_marginals"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_marginals">[docs]</a>    <span class="k">def</span> <span class="nf">compute_marginals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute pairwise marginals</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch_shape</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="k">return</span> <span class="n">pairwise_marginals</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="p">,</span>
+            <span class="n">initial_mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">initial_mean</span><span class="p">(</span><span class="n">batch_shape</span><span class="p">),</span>
+            <span class="n">initial_covariance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">initial_covariance</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">([</span><span class="mf">0.0</span><span class="p">])),</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.remove_cavity_from_marginals"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.remove_cavity_from_marginals">[docs]</a>    <span class="k">def</span> <span class="nf">remove_cavity_from_marginals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">,</span> <span class="n">marginals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove cavity from marginals</span>
+<span class="sd">        :param time_points:</span>
+<span class="sd">        :param marginals: pairwise mean and covariance tensors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pw_means</span><span class="p">,</span> <span class="n">pw_covs</span> <span class="o">=</span> <span class="n">marginals</span>
+        <span class="n">pw_chol_covs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="n">pw_covs</span><span class="p">)</span>
+
+        <span class="n">I</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">state_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">default_float</span><span class="p">())</span>
+
+        <span class="n">pw_nat2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">pw_chol_covs</span><span class="p">,</span> <span class="n">I</span><span class="p">)</span>
+        <span class="n">pw_nat1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">pw_chol_covs</span><span class="p">,</span> <span class="n">pw_means</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">pairwise_nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">pw_nat2</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+        <span class="n">pairwise_nat1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">pw_nat1</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+        <span class="c1"># site fraction</span>
+        <span class="n">fraction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_sites</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">fractions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">fraction</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+        <span class="n">frac_nat1</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">fractions</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">frac_nat2</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span> <span class="o">*</span> <span class="n">fractions</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">cav_nat2</span> <span class="o">=</span> <span class="n">pairwise_nat2</span> <span class="o">-</span> <span class="n">frac_nat2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="n">cav_nat1</span> <span class="o">=</span> <span class="n">pairwise_nat1</span> <span class="o">-</span> <span class="n">frac_nat1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+
+        <span class="c1"># TODO chol before tiling?</span>
+        <span class="n">cav_chol_nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky</span><span class="p">(</span><span class="o">-</span><span class="n">cav_nat2</span><span class="p">)</span>
+        <span class="n">cav_means</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">cav_chol_nat2</span><span class="p">,</span> <span class="n">cav_nat1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">cav_covs</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">cholesky_solve</span><span class="p">(</span><span class="n">cav_chol_nat2</span><span class="p">,</span> <span class="n">I</span><span class="p">)</span>
+
+        <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">_conditional_statistics</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span>
+        <span class="c1"># projection and marginalization (if Sₜ given)</span>
+        <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span> <span class="o">=</span> <span class="n">base_conditional_predict</span><span class="p">(</span>
+            <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">cav_means</span><span class="p">,</span> <span class="n">pairwise_state_covariances</span><span class="o">=</span><span class="n">cav_covs</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_cavity_state"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_cavity_state">[docs]</a>    <span class="k">def</span> <span class="nf">compute_cavity_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The cavity distributions for data points at input time_points.</span>
+<span class="sd">        This corresponds to the marginal distribution qᐠⁿ(fₙ) of qᐠⁿ(s) = q(s)/tₘ(vₘ)ᵝᵃ,</span>
+<span class="sd">        where β = a * (1 / #time points `touching` site tₘ)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">marginals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_marginals</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_cavity_from_marginals</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="n">marginals</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_cavity"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_cavity">[docs]</a>    <span class="k">def</span> <span class="nf">compute_cavity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cavity on f</span>
+<span class="sd">        :param time_points: time points</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_cavity_state</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_marginals_to_f</span><span class="p">(</span>
+            <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_new_sites"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_new_sites">[docs]</a>    <span class="k">def</span> <span class="nf">compute_new_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the site updates and perform one update step.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data from which</span>
+<span class="sd">            to calculate the the updates:</span>
+<span class="sd">            a tensor of inputs with shape ``batch_shape + [num_data]``,</span>
+<span class="sd">            a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+
+        <span class="c1"># build the 2d x 2d covariance on inducing</span>
+        <span class="n">s_marg_mus</span><span class="p">,</span> <span class="n">s_marg_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_marginals</span><span class="p">()</span>
+        <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_cavity_from_marginals</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="p">(</span><span class="n">s_marg_mus</span><span class="p">,</span> <span class="n">s_marg_covs</span><span class="p">))</span>
+
+        <span class="c1">#        sx_mus, sx_covs = self.compute_cavity_state(time_points)</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_marginals_to_f</span><span class="p">(</span>
+            <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get gradient of variational expectations wrt mu, sigma</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_objective_gradients</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span>
+
+        <span class="n">theta_linear</span><span class="p">,</span> <span class="n">lik_nat2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">back_project_nats</span><span class="p">(</span><span class="n">grads</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">grads</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">time_points</span><span class="p">)</span>
+
+        <span class="c1"># sum sites together</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">num_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">fraction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_sites</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">fractions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">fraction</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+        <span class="n">summed_theta_linear</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+                    <span class="n">theta_linear</span> <span class="o">+</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">fractions</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">summed_lik_nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+                    <span class="n">lik_nat2</span> <span class="o">+</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">fractions</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># update</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span>
+
+        <span class="n">unchanged_nat1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span>
+        <span class="n">unchanged_nat2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span>
+
+        <span class="n">pep_nat1</span> <span class="o">=</span> <span class="n">unchanged_nat1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">summed_theta_linear</span> <span class="o">*</span> <span class="n">a</span>
+        <span class="n">pep_nat2</span> <span class="o">=</span> <span class="n">unchanged_nat2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">summed_lik_nat2</span> <span class="o">*</span> <span class="n">a</span>
+
+        <span class="n">changed_nat1</span> <span class="o">=</span> <span class="n">unchanged_nat1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">+</span> <span class="n">pep_nat1</span> <span class="o">*</span> <span class="n">lr</span>
+        <span class="n">changed_nat2</span> <span class="o">=</span> <span class="n">unchanged_nat2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">+</span> <span class="n">pep_nat2</span> <span class="o">*</span> <span class="n">lr</span>
+
+        <span class="k">return</span> <span class="n">changed_nat1</span><span class="p">,</span> <span class="n">changed_nat2</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_log_norm"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_log_norm">[docs]</a>    <span class="k">def</span> <span class="nf">compute_log_norm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the site updates and perform one update step.</span>
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data from which</span>
+<span class="sd">            to calculate the the updates:</span>
+<span class="sd">            a tensor of inputs with shape ``batch_shape + [num_data]``,</span>
+<span class="sd">            a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">emission_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">generate_emission_model</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+
+        <span class="c1"># build the 2d x 2d covariance on inducing</span>
+        <span class="n">s_marg_mus</span><span class="p">,</span> <span class="n">s_marg_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_marginals</span><span class="p">()</span>
+        <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_cavity_from_marginals</span><span class="p">(</span><span class="n">time_points</span><span class="p">,</span> <span class="p">(</span><span class="n">s_marg_mus</span><span class="p">,</span> <span class="n">s_marg_covs</span><span class="p">))</span>
+
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="n">emission_model</span><span class="o">.</span><span class="n">project_state_marginals_to_f</span><span class="p">(</span>
+            <span class="n">sx_mus</span><span class="p">,</span> <span class="n">sx_covs</span><span class="p">,</span> <span class="n">full_output_cov</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># get gradient of variational expectations wrt mu, sigma</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_objective_gradients</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+
+        <span class="c1"># sum sites together</span>
+        <span class="n">num_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># compute the site normalizer:</span>
+        <span class="c1"># z = obj * G(cav) - G(cav + new)</span>
+
+        <span class="c1"># normalizer of the distribution with all sites included</span>
+        <span class="n">log_norm_marg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">normalizer</span><span class="p">()</span>
+        <span class="c1"># compute total neighbours</span>
+        <span class="n">neighbours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_num_data_per_interval</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="c1"># compute sites for all intervals with 1 neighbour out</span>
+        <span class="n">fraction_one_neighbour</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reciprocal_no_nan</span><span class="p">(</span><span class="n">neighbours</span><span class="p">)</span>
+        <span class="c1"># compute nats with one out for all</span>
+        <span class="n">nat1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="p">[</span><span class="n">num_partition</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">nat2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="p">[</span><span class="n">num_partition</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">diag</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">fraction_one_neighbour</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">nat1</span> <span class="o">=</span> <span class="n">nat1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">diag</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="n">nat2</span> <span class="o">=</span> <span class="n">nat2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">diag</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="c1"># compute marginals with one out</span>
+        <span class="n">log_norm_cav</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">compute_posterior_ssm</span><span class="p">(</span><span class="n">nat1</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">nat2</span><span class="p">[</span><span class="n">m</span><span class="p">])</span><span class="o">.</span><span class="n">normalizer</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_partition</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="c1"># dispatch to each data point</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">log_norm_cav</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">log_norm_cav</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+
+        <span class="c1"># normalizer</span>
+        <span class="n">log_norm</span> <span class="o">=</span> <span class="n">obj</span> <span class="o">+</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">log_norm_cav</span><span class="p">)</span> <span class="o">-</span> <span class="n">log_norm_marg</span><span class="p">)</span>
+
+        <span class="c1"># sum back to inducing point</span>
+        <span class="n">summed_log_z</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">log_norm</span><span class="p">)[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">summed_log_z</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_num_data_per_interval"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_num_data_per_interval">[docs]</a>    <span class="k">def</span> <span class="nf">compute_num_data_per_interval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; compute fraction of site per data point &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">num_partition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">neighbours</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">default_float</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">dynamic_partition</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span> <span class="n">indices</span><span class="p">,</span> <span class="n">num_partitions</span><span class="o">=</span><span class="n">num_partition</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">neighbours</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.compute_fraction"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.compute_fraction">[docs]</a>    <span class="k">def</span> <span class="nf">compute_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; compute fraction of site per data point &quot;&quot;&quot;</span>
+        <span class="c1"># sum sites together</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">,</span> <span class="n">time_points</span><span class="p">)</span>
+        <span class="n">batch_dims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">time_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">fraction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_sites</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="n">fractions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">fraction</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">batch_dims</span><span class="o">=</span><span class="n">batch_dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fractions</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.update_sites"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.update_sites">[docs]</a>    <span class="k">def</span> <span class="nf">update_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; apply updates &quot;&quot;&quot;</span>
+
+        <span class="n">changed_nat1</span><span class="p">,</span> <span class="n">changed_nat2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_new_sites</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat1</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">changed_nat1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat2</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">changed_nat2</span><span class="p">)</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span>
+        <span class="n">log_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_log_norm</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="n">pep_log_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_norm</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">log_norm</span> <span class="o">*</span> <span class="n">a</span>
+        <span class="n">changed_log_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_norm</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lr</span><span class="p">)</span> <span class="o">+</span> <span class="n">pep_log_norm</span> <span class="o">*</span> <span class="n">lr</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_norm</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">changed_log_norm</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.energy"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The PEP energy : ∫ ds p(s) 𝚷_m t_m(v_m)</span>
+<span class="sd">        :param input_data: input data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_log_norm</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">normalizer</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="o">.</span><span class="n">normalizer</span><span class="p">()</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">log_norm</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.loss"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.loss">[docs]</a>    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the loss, which is the negative evidence lower bound (ELBO).</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">elbo</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.dist_p"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.dist_p">[docs]</a>    <span class="k">def</span> <span class="nf">dist_p</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GaussMarkovDistribution</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the prior `GaussMarkovDistribution`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span><span class="o">.</span><span class="n">build_finite_distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inducing_inputs</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.kernel"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.kernel">[docs]</a>    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SDEKernel</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the kernel of the GP.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.classic_elbo"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.classic_elbo">[docs]</a>    <span class="k">def</span> <span class="nf">classic_elbo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes the ELBO the classic way:</span>
+<span class="sd">            ℒ(q) = Σᵢ ∫ log(p(yᵢ | f)) q(f) df - KL[q(f) ‖ p(f)]</span>
+
+<span class="sd">        Note: this is mostly for testing purposes and not to be used for optimization</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations</span>
+<span class="sd">        :return: A scalar tensor representing the ELBO.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">time_points</span><span class="p">,</span> <span class="n">observations</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="c1"># s ~ q(s) = N(μ, P)</span>
+        <span class="c1"># Project to function space, fₓ = H*s ~ q(fₓ)</span>
+        <span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">()</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">time_points</span><span class="p">)</span>
+        <span class="c1"># VE(fₓ) = Σᵢ ∫ log(p(yᵢ | fₓ)) q(fₓ) dfₓ</span>
+        <span class="n">ve_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+            <span class="n">input_tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variational_expectations</span><span class="p">(</span><span class="n">fx_mus</span><span class="p">,</span> <span class="n">fx_covs</span><span class="p">,</span> <span class="n">observations</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># KL[q(sₓ) || p(sₓ)]</span>
+
+        <span class="n">kl_fx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_q</span><span class="o">.</span><span class="n">kl_divergence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dist_p</span><span class="p">))</span>
+        <span class="c1"># Return ELBO(fₓ) = VE(fₓ) - KL[q(sₓ) || p(sₓ)]</span>
+        <span class="k">return</span> <span class="n">ve_fx</span> <span class="o">-</span> <span class="n">kl_fx</span></div>
+
+<div class="viewcode-block" id="SparsePowerExpectationPropagation.predict_log_density"><a class="viewcode-back" href="../../../autoapi/markovflow/models/sparse_pep/index.html#markovflow.models.SparsePowerExpectationPropagation.predict_log_density">[docs]</a>    <span class="k">def</span> <span class="nf">predict_log_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_data</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">full_output_cov</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the log density of the data at the new data points.</span>
+
+<span class="sd">        :param input_data: A tuple of time points and observations containing the data at which</span>
+<span class="sd">            to calculate the loss for training the model:</span>
+<span class="sd">            a tensor of inputs with shape ``batch_shape + [num_data]``,</span>
+<span class="sd">            a tensor of observations with shape ``batch_shape + [num_data, observation_dim]``.</span>
+<span class="sd">        :param full_output_cov: Either full output covariance (`True`) or marginal</span>
+<span class="sd">            variances (`False`).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">input_data</span>
+        <span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">()</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">predict_log_density</span><span class="p">(</span><span class="n">f_mean</span><span class="p">,</span> <span class="n">f_var</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span></div></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+
+    
+  <script src="../../../_static/js/index.d3f166471bb80abb5163.js"></script>
+
+
+    <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    <p>
+          &copy; Copyright Copyright 2021 The markovflow Contributors
+
+Licensed under the Apache License, Version 2.0
+.<br/>
+        Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.5.4.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
