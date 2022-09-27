@@ -30,6 +30,7 @@ from markovflow.kernels import IndependentMultiOutput
 from markovflow.kernels import SDEKernel
 from markovflow.mean_function import MeanFunction
 from markovflow.mean_function import ZeroMeanFunction
+from markovflow.mean_function import SpatioTemporalMeanFunction, SeparableMeanFunction
 from markovflow.models.models import MarkovFlowSparseModel
 from markovflow.models.variational_cvi import (
     back_project_nats,
@@ -120,7 +121,7 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[SpatioTemporalMeanFunction] = None,
     ):
         """
         :param inducing_space: inducing space points [Ms, D]
@@ -132,7 +133,9 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         super().__init__(self.__class__.__name__)
 
         if mean_function is None:
-            mean_function = ZeroMeanFunction(obs_dim=1)
+            mean_function = SeparableMeanFunction(obs_dim=1)
+        elif not isinstance(mean_function, SeparableMeanFunction):
+            raise TypeError("Only mean functions of type SeparableMeanFunction are currently supported")
         self._mean_function = mean_function
 
         self._kernel_space = kernel_space
@@ -176,6 +179,7 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         mean_f, var_f = batch_base_conditional(
             Kmn, Kmm, Knn, tf.linalg.matrix_transpose(mean_u), q_sqrt=chol_cov_u
         )
+        mean_f += self._mean_function.mean_function_space(x)
         return mean_f[..., None], var_f[..., None]
 
     def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
@@ -335,7 +339,7 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
             posterior_dist=self.dist_q,
             kernel=self.kernel,
             conditioning_time_points=self.inducing_time,
-            mean_function=self._mean_function,
+            mean_function=self._mean_function.mean_function_time,
         )
 
     @property
@@ -435,7 +439,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
             posterior_dist=self.dist_q,
             kernel=self.kernel,
             conditioning_time_points=self.inducing_time,
-            mean_function=self._mean_function,
+            mean_function=self._mean_function.mean_function_time,
         )
 
     @property
