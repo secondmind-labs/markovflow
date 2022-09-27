@@ -335,6 +335,7 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
             posterior_dist=self.dist_q,
             kernel=self.kernel,
             conditioning_time_points=self.inducing_time,
+            mean_function=self._mean_function,
         )
 
     @property
@@ -434,6 +435,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
             posterior_dist=self.dist_q,
             kernel=self.kernel,
             conditioning_time_points=self.inducing_time,
+            mean_function=self._mean_function,
         )
 
     @property
