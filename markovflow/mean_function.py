@@ -420,8 +420,6 @@ class SpatioTemporalMeanFunction(MeanFunction):
     The function takes as input a tensor whose first columns are the spatial inputs
     and whose final column is the temporal input.
     """
-    def __init__(self):
-        super().__init__(self.__class__.__name__)
 
 @tf_scope_class_decorator
 class SeparableMeanFunction(SpatioTemporalMeanFunction):
