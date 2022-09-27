@@ -421,6 +421,17 @@ class SpatioTemporalMeanFunction(MeanFunction):
     and whose final column is the temporal input.
     """
 
+    def __call__(self, inputs: tf.Tensor) -> tf.Tensor:
+        """
+        Compute mean function values at `inputs`
+
+        :param inputs: input values to compute mean function at, with shape
+            ``[num_data, space_dim + 1]``.
+
+        :return: Mean function values for the inputs, with shape
+            ``[num_data, output_dim]``
+        """
+
 @tf_scope_class_decorator
 class SeparableMeanFunction(SpatioTemporalMeanFunction):
     """
@@ -460,12 +471,11 @@ class SeparableMeanFunction(SpatioTemporalMeanFunction):
         """
         Compute mean function values at `inputs`
 
-        :param inputs: Time point and associated spatial dimension to generate observations for,
-         with shape
-            ``batch_shape + [space_dim + 1, time_points]``.
+        :param inputs: input values to compute mean function at, with shape
+            ``[num_data, space_dim + 1]``.
 
-        :return: Mean function values for the inputs, with respective shapes
-            ``batch_shape + [num_new_time_points, output_dim]``
+        :return: Mean function values for the inputs, with shape
+            ``[num_data, output_dim]``
         """
         space_points = inputs[..., :-1]
         time_points = inputs[..., -1]
