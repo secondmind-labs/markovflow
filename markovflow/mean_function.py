@@ -18,6 +18,8 @@ import abc
 
 import tensorflow as tf
 
+import gpflow.mean_functions
+
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal
 from markovflow.kernels import SDEKernel
 from markovflow.utils import tf_scope_class_decorator, to_delta_time
@@ -409,3 +411,64 @@ class StepMeanFunction(MeanFunction):
             a_k + tf.matmul(self._kernel.state_transitions(time_points, delta_times), b_k)[..., 0]
         )
         return self._kernel.generate_emission_model(time_points).project_state_to_f(state_mean)
+
+@tf_scope_class_decorator
+class SpatioTemporalMeanFunction(MeanFunction):
+    """
+    Represents a mean function that takes spatiotemporal inputs.
+
+    The function takes as input a tensor whose first columns are the spatial inputs
+    and whose final column is the temporal input.
+    """
+    def __init__(self):
+        super().__init__(self.__class__.__name__)
+
+@tf_scope_class_decorator
+class SeparableMeanFunction(SpatioTemporalMeanFunction):
+    """
+    Represents the sum of a spatial mean function and a temporal mean function.
+    """
+    def __init__(
+        self,
+        mean_function_space: gpflow.mean_functions.MeanFunction = None,
+        mean_function_time: MeanFunction = None,
+        obs_dim: int = 1,
+    ):
+        """
+        :param mean_function_space: The part of the mean function that takes spatial inputs
+        :param mean_function_time: The part of the mean function that takes temporal inputs
+        :param obs_dim: The dimension of the output. Only used if one of the mean functions is not provided.
+        """
+        super().__init__(self.__class__.__name__)
+        self.obs_dim = obs_dim
+
+        if mean_function_space is None:
+            mean_function_space = gpflow.mean_functions.Zero(output_dim=obs_dim)
+        self._mean_function_space = mean_function_space
+
+        if mean_function_time is None:
+            mean_function_time = ZeroMeanFunction(obs_dim=obs_dim)
+        self._mean_function_time = mean_function_time
+
+    @property
+    def mean_function_space(self) -> gpflow.mean_functions.MeanFunction:
+        return self._mean_function_space
+    
+    @property
+    def mean_function_time(self) -> MeanFunction:
+        return self._mean_function_time
+
+    def __call__(self, inputs: tf.Tensor) -> tf.Tensor:
+        """
+        Compute mean function values at `inputs`
+
+        :param inputs: Time point and associated spatial dimension to generate observations for,
+         with shape
+            ``batch_shape + [space_dim + 1, time_points]``.
+
+        :return: Mean function values for the inputs, with respective shapes
+            ``batch_shape + [num_new_time_points, output_dim]``
+        """
+        space_points = inputs[..., :-1]
+        time_points = inputs[..., -1]
+        return self.mean_function_space(space_points) + self.mean_function_time(time_points)
