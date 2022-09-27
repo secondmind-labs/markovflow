@@ -179,8 +179,8 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         mean_f, var_f = batch_base_conditional(
             Kmn, Kmm, Knn, tf.linalg.matrix_transpose(mean_u), q_sqrt=chol_cov_u
         )
-        mean_f += self._mean_function.mean_function_space(x)
-        return mean_f[..., None], var_f[..., None]
+        mean_f = mean_f[..., None] + self._mean_function.mean_function_space(x)
+        return mean_f, var_f[..., None]
 
     def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
         """
