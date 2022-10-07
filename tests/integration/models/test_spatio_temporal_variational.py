@@ -1,0 +1,123 @@
+#
+# Copyright (c) 2021 The Markovflow Contributors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""Module containing the integration tests for children of the `SpatioTemporalBase` class."""
+from copy import deepcopy
+import pytest
+import numpy as np
+import tensorflow as tf
+from gpflow.likelihoods import Gaussian
+import gpflow.kernels
+from gpflow.models import GPR
+
+from markovflow.kernels import Matern12
+from markovflow.models import (
+    SpatioTemporalSparseVariational,
+    SpatioTemporalSparseCVI,
+)
+from markovflow.models.spatio_temporal_variational import SpatioTemporalBase
+
+
+@pytest.fixture(name="st_data_rng")
+def _setup_data_rng_fixture():
+    rng = np.random.default_rng(42)
+    return rng
+
+
+@pytest.fixture(name="st_data")
+def _setup_spatiotemporal_data_fixture(st_data_rng):
+    x = np.array([0.0, 1.0])
+    t = np.array([2.0, 3.0])
+    X = np.array(np.meshgrid(x, t)).T.reshape(-1, 2)
+    X = X[np.argsort(X[:, 1]), :]
+    Y = st_data_rng.normal(size=(X.shape[0], 1))
+    return (X, Y)
+
+
+@pytest.fixture(name="st_model_params")
+def _setup_spatiotemporal_params_fixture(st_data):
+    X, _ = st_data
+    params = dict(
+        inducing_space=np.unique(X[:, 0]).reshape(-1, 1),
+        inducing_time=np.unique(X[:, 1]),
+        kernel_space=gpflow.kernels.Matern32(lengthscales=1, variance=1, active_dims=[0]),
+        kernel_time=Matern12(lengthscale=1, variance=1),
+        likelihood=Gaussian(),
+    )
+    for t in (
+        params["kernel_space"].trainable_variables
+        + params["kernel_time"].trainable_variables
+        + params["likelihood"].trainable_variables
+    ):
+        t._trainable = False
+    return params
+
+
+@pytest.fixture(name="gpr_model")
+def _setup_gpr_model_fixture(st_data):
+    kernel = gpflow.kernels.Product(
+        [
+            gpflow.kernels.Matern32(lengthscales=1, variance=1, active_dims=[0]),
+            gpflow.kernels.Matern12(lengthscales=1, variance=1, active_dims=[1]),
+        ]
+    )
+    model = GPR(data=st_data, kernel=kernel)
+    for t in model.trainable_variables:
+        t._trainable = False
+    return model
+
+
+def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
+    st_model = SpatioTemporalSparseVariational(**st_model_params)
+    assert isinstance(st_model, SpatioTemporalBase)
+
+    opt = tf.optimizers.Adam(learning_rate=1e-2)
+
+    @tf.function
+    def opt_step(data):
+        opt.minimize(lambda: st_model.loss(data), st_model.trainable_variables)
+
+    ntries = 100
+    nsteps = 100
+    atol = 1e-4
+    rtol = 1e-4
+    for _ in range(ntries):  # number of tries
+        for _ in range(nsteps):
+            opt_step(st_data)
+            gpr_pred_mean, _ = gpr_model.predict_f(st_data[0])
+            st_pred_mean, _ = st_model.space_time_predict_f(st_data[0])
+            if np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol):
+                break
+
+    gpr_pred_mean, gpr_pred_var = gpr_model.predict_f(st_data[0])
+    st_pred_mean, st_pred_var = st_model.space_time_predict_f(st_data[0])
+    assert np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol)
+    assert np.allclose(st_pred_var, gpr_pred_var, atol=atol, rtol=rtol)
+
+
+def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
+    st_model = SpatioTemporalSparseCVI(**st_model_params, learning_rate=1.0)
+    assert isinstance(st_model, SpatioTemporalBase)
+
+    nsteps = 10
+    for _ in range(nsteps):
+        st_model.update_sites(st_data)
+
+    atol = 1e-6
+    rtol = 1e-6
+    gpr_pred_mean, gpr_pred_var = gpr_model.predict_f(st_data[0])
+    st_pred_mean, st_pred_var = st_model.space_time_predict_f(st_data[0])
+    assert np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol)
+    assert np.allclose(st_pred_var, gpr_pred_var, atol=atol, rtol=rtol)
