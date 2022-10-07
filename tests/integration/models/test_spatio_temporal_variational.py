@@ -82,6 +82,7 @@ def _setup_gpr_model_fixture(st_data):
 def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
     st_model = SpatioTemporalSparseVariational(**st_model_params)
     assert isinstance(st_model, SpatioTemporalBase)
+    true_likelihood = gpr_model.log_marginal_likelihood()
 
     opt = tf.optimizers.Adam(learning_rate=1e-2)
 
@@ -96,20 +97,20 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
     for _ in range(ntries):  # number of tries
         for _ in range(nsteps):
             opt_step(st_data)
-            gpr_pred_mean, _ = gpr_model.predict_f(st_data[0])
-            st_pred_mean, _ = st_model.space_time_predict_f(st_data[0])
-            if np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol):
+            trained_likelihood = st_model.elbo(st_data)
+            if np.allclose(trained_likelihood, true_likelihood, atol=atol, rtol=rtol):
                 break
 
-    gpr_pred_mean, gpr_pred_var = gpr_model.predict_f(st_data[0])
-    st_pred_mean, st_pred_var = st_model.space_time_predict_f(st_data[0])
-    assert np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol)
-    assert np.allclose(st_pred_var, gpr_pred_var, atol=atol, rtol=rtol)
+    assert np.allclose(trained_likelihood, true_likelihood, atol=atol, rtol=rtol)
+    gpr_mean, _ = gpr_model.predict_f(st_data[0])
+    st_mean, _ = st_model.space_time_predict_f(st_data[0])
+    assert np.allclose(gpr_mean, st_mean, atol=atol, rtol=rtol)
 
 
 def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
     st_model = SpatioTemporalSparseCVI(**st_model_params, learning_rate=1.0)
     assert isinstance(st_model, SpatioTemporalBase)
+    true_likelihood = gpr_model.log_marginal_likelihood()
 
     nsteps = 10
     for _ in range(nsteps):
@@ -117,7 +118,8 @@ def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
 
     atol = 1e-6
     rtol = 1e-6
-    gpr_pred_mean, gpr_pred_var = gpr_model.predict_f(st_data[0])
-    st_pred_mean, st_pred_var = st_model.space_time_predict_f(st_data[0])
-    assert np.allclose(st_pred_mean, gpr_pred_mean, atol=atol, rtol=rtol)
-    assert np.allclose(st_pred_var, gpr_pred_var, atol=atol, rtol=rtol)
+    trained_likelihood = st_model.elbo(st_data)
+    assert np.allclose(trained_likelihood, true_likelihood, atol=atol, rtol=rtol)
+    gpr_mean, _ = gpr_model.predict_f(st_data[0])
+    st_mean, _ = st_model.space_time_predict_f(st_data[0])
+    assert np.allclose(gpr_mean, st_mean, atol=atol, rtol=rtol)
