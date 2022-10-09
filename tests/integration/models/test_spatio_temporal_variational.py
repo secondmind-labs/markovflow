@@ -83,7 +83,7 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
 
     true_likelihood = gpr_model.log_marginal_likelihood()
 
-    opt = tf.optimizers.Adam(learning_rate=1e-2)
+    opt = tf.optimizers.Adam(learning_rate=1e-1)
 
     @tf.function
     def opt_step(data):
