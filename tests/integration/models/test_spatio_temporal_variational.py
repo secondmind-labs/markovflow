@@ -56,12 +56,6 @@ def _setup_spatiotemporal_params_fixture(st_data):
         kernel_time=Matern12(lengthscale=1, variance=1),
         likelihood=Gaussian(),
     )
-    for t in (
-        params["kernel_space"].trainable_variables
-        + params["kernel_time"].trainable_variables
-        + params["likelihood"].trainable_variables
-    ):
-        t._trainable = False
     return params
 
 
@@ -74,14 +68,19 @@ def _setup_gpr_model_fixture(st_data):
         ]
     )
     model = GPR(data=st_data, kernel=kernel)
-    for t in model.trainable_variables:
-        t._trainable = False
     return model
 
 
 def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
     st_model = SpatioTemporalSparseVariational(**st_model_params)
     assert isinstance(st_model, SpatioTemporalBase)
+    for t in (
+        st_model.kernel.kernel_space.trainable_variables
+        + st_model.kernel.kernel_time.trainable_variables
+        + st_model._likelihood.trainable_variables
+    ):
+        t._trainable = False
+
     true_likelihood = gpr_model.log_marginal_likelihood()
 
     opt = tf.optimizers.Adam(learning_rate=1e-2)
