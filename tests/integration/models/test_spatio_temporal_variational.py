@@ -72,6 +72,10 @@ def _setup_gpr_model_fixture(st_data):
 
 
 def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
+    """
+    Test that `SpatioTemporalSparseVariational` trained on data at the inducing points
+    evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.
+    """
     st_model = SpatioTemporalSparseVariational(**st_model_params)
     assert isinstance(st_model, SpatioTemporalBase)
     for t in (
@@ -107,6 +111,10 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
 
 
 def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
+    """
+    Test that `SpatioTemporalSparseCVI` trained on data at the inducing points
+    evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.
+    """
     st_model = SpatioTemporalSparseCVI(**st_model_params, learning_rate=1.0)
     assert isinstance(st_model, SpatioTemporalBase)
     true_likelihood = gpr_model.log_marginal_likelihood()
