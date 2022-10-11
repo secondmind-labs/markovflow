@@ -18,8 +18,6 @@ import abc
 
 import tensorflow as tf
 
-import gpflow.mean_functions
-
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal
 from markovflow.kernels import SDEKernel
 from markovflow.utils import tf_scope_class_decorator, to_delta_time
