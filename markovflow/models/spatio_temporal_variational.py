@@ -431,16 +431,14 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat1 = Parameter(zeros1)
         self.nat2 = Parameter(zeros2)
 
-        self._posterior = ConditionalProcess(
+    @property
+    def posterior(self) -> PosteriorProcess:
+        """ Posterior object to predict outside of the training time points """
+        return ConditionalProcess(
             posterior_dist=self.dist_q,
             kernel=self.kernel,
             conditioning_time_points=self.inducing_time,
         )
-
-    @property
-    def posterior(self) -> PosteriorProcess:
-        """ Posterior object to predict outside of the training time points """
-        return self._posterior
 
     @property
     def dist_q(self) -> StateSpaceModel:
