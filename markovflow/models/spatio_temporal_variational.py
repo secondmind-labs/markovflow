@@ -15,20 +15,21 @@
 #
 """Module containing a model for sparse spatio temporal variational inference"""
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import gpflow
 import gpflow.kernels as gpfk
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.base import Parameter
+import gpflow.mean_functions
 
 import markovflow.kernels as mfk
 from markovflow.conditionals import conditional_statistics
 from markovflow.emission_model import EmissionModel
 from markovflow.kernels import IndependentMultiOutput
 from markovflow.kernels import SDEKernel
-from markovflow.mean_function import MeanFunction
+import markovflow.mean_function
 from markovflow.models.models import MarkovFlowSparseModel
 from markovflow.models.variational_cvi import (
     back_project_nats,
@@ -119,7 +120,7 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
     ):
         """
         :param inducing_space: inducing space points [Ms, D]
@@ -311,7 +312,7 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
         num_data=None,
     ):
         """
@@ -400,7 +401,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
         num_data=None,
         learning_rate=0.1,
     ) -> None:
