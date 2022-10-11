@@ -119,7 +119,7 @@ def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, g
     assert np.allclose(trained_likelihood, true_likelihood, atol=atol, rtol=rtol)
     gpr_mean, _ = gpr_model.predict_f(st_data[0])
     st_mean, _ = st_model.space_time_predict_f(st_data[0])
-    assert np.allclose(gpr_mean, st_mean, atol=atol, rtol=rtol)
+    assert np.allclose(gpr_mean, st_mean, atol=1e-2, rtol=1e-2)
 
 
 def test_spatiotemporalsparsecvi(with_tf_random_seed, st_model_params, gpr_model, st_data):
