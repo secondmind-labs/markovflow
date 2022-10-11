@@ -81,7 +81,7 @@ def _setup_gpr_model_fixture(st_data, st_mean_function):
     return model
 
 
-def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
+def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, gpr_model, st_data):
     """
     Test that `SpatioTemporalSparseVariational` trained on data at the inducing points
     evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.
@@ -121,7 +121,7 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
     assert np.allclose(gpr_mean, st_mean, atol=atol, rtol=rtol)
 
 
-def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
+def test_spatiotemporalsparsecvi(with_tf_random_seed, st_model_params, gpr_model, st_data):
     """
     Test that `SpatioTemporalSparseCVI` trained on data at the inducing points
     evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.
