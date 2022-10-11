@@ -120,7 +120,9 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
     ):
         """
         :param inducing_space: inducing space points [Ms, D]
@@ -312,7 +314,9 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
         num_data=None,
     ):
         """
@@ -401,7 +405,9 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
         num_data=None,
         learning_rate=0.1,
     ) -> None:
