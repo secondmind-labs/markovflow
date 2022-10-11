@@ -521,7 +521,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         fx_mus, fx_covs = self.space_time_predict_f(inputs)
 
         # get gradient of variational expectations wrt mu, sigma
-        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs, observations)
+        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs, inputs, observations)
 
         P = self.projection_inducing_states_to_observations(input_data)
         theta_linear, lik_nat2 = back_project_nats(grads[0], grads[1], P)
@@ -552,12 +552,13 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat1.assign(new_nat1)
 
     def local_objective_and_gradients(
-        self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor
+        self, Fmu: tf.Tensor, Fvar: tf.Tensor, X: tf.Tensor, Y: tf.Tensor
     ) -> tf.Tensor:
         """
         Returs the local_objective and its gradients wrt to the expectation parameters
         :param Fmu: means μ [..., latent_dim]
         :param Fvar: variances σ² [..., latent_dim]
+        :param X: inputs X [..., space_dim + 1]
         :param Y: observations Y [..., observation_dim]
         :return: local objective and gradient wrt [μ, σ² + μ²]
         """
@@ -568,6 +569,8 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         grads = g.gradient(local_obj, [Fmu, Fvar])
 
         # turn into gradient wrt μ, σ² + μ²
+        if self._mean_function is not None:
+            Fmu -= self._mean_function(X)
         grads = gradient_transformation_mean_var_to_expectation([Fmu, Fvar], grads)
 
         return local_obj, grads
