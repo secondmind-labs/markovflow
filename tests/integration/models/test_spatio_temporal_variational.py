@@ -88,7 +88,6 @@ def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, g
     """
     st_model = SpatioTemporalSparseVariational(**st_model_params)
     assert isinstance(st_model, SpatioTemporalBase)
-    assert st_model._mean_function is not None
     for t in (
         st_model.kernel.kernel_space.trainable_variables
         + st_model.kernel.kernel_time.trainable_variables
@@ -129,7 +128,6 @@ def test_spatiotemporalsparsecvi(with_tf_random_seed, st_model_params, gpr_model
     """
     st_model = SpatioTemporalSparseCVI(**st_model_params, learning_rate=1.0)
     assert isinstance(st_model, SpatioTemporalBase)
-    assert st_model._mean_function is not None
     true_likelihood = gpr_model.log_marginal_likelihood()
 
     nsteps = 10
