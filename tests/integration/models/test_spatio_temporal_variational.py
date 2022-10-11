@@ -93,6 +93,7 @@ def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, g
         st_model.kernel.kernel_space.trainable_variables
         + st_model.kernel.kernel_time.trainable_variables
         + st_model._likelihood.trainable_variables
+        + st_model._mean_function.trainable_variables
     ):
         t._trainable = False
 
