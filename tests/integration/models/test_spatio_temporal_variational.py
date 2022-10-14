@@ -21,6 +21,7 @@ import tensorflow as tf
 from gpflow.likelihoods import Gaussian
 import gpflow.kernels
 from gpflow.models import GPR
+import gpflow.mean_functions
 
 from markovflow.kernels import Matern12
 from markovflow.models import (
@@ -46,8 +47,16 @@ def _setup_spatiotemporal_data_fixture(st_data_rng):
     return (X, Y)
 
 
+@pytest.fixture(name="st_mean_function")
+def _setup_spatiotemporal_mean_function_fixture(st_data_rng):
+    A = np.array([[1.0, 2.0]]).T
+    b = np.array([3.0])
+    mean_function = gpflow.mean_functions.Linear(A=A, b=b)
+    return mean_function
+
+
 @pytest.fixture(name="st_model_params")
-def _setup_spatiotemporal_params_fixture(st_data):
+def _setup_spatiotemporal_params_fixture(st_data, st_mean_function):
     X, _ = st_data
     params = dict(
         inducing_space=np.unique(X[:, 0]).reshape(-1, 1),
@@ -55,23 +64,24 @@ def _setup_spatiotemporal_params_fixture(st_data):
         kernel_space=gpflow.kernels.Matern32(lengthscales=1, variance=1, active_dims=[0]),
         kernel_time=Matern12(lengthscale=1, variance=1),
         likelihood=Gaussian(),
+        mean_function=st_mean_function,
     )
     return params
 
 
 @pytest.fixture(name="gpr_model")
-def _setup_gpr_model_fixture(st_data):
+def _setup_gpr_model_fixture(st_data, st_mean_function):
     kernel = gpflow.kernels.Product(
         [
             gpflow.kernels.Matern32(lengthscales=1, variance=1, active_dims=[0]),
             gpflow.kernels.Matern12(lengthscales=1, variance=1, active_dims=[1]),
         ]
     )
-    model = GPR(data=st_data, kernel=kernel)
+    model = GPR(data=st_data, kernel=kernel, mean_function=st_mean_function)
     return model
 
 
-def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
+def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, gpr_model, st_data):
     """
     Test that `SpatioTemporalSparseVariational` trained on data at the inducing points
     evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.
@@ -82,6 +92,7 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
         st_model.kernel.kernel_space.trainable_variables
         + st_model.kernel.kernel_time.trainable_variables
         + st_model._likelihood.trainable_variables
+        + st_model._mean_function.trainable_variables
     ):
         t._trainable = False
 
@@ -107,10 +118,10 @@ def test_spatiotemporalsparsevariational(st_model_params, gpr_model, st_data):
     assert np.allclose(trained_likelihood, true_likelihood, atol=atol, rtol=rtol)
     gpr_mean, _ = gpr_model.predict_f(st_data[0])
     st_mean, _ = st_model.space_time_predict_f(st_data[0])
-    assert np.allclose(gpr_mean, st_mean, atol=atol, rtol=rtol)
+    assert np.allclose(gpr_mean, st_mean, atol=1e-2, rtol=1e-2)
 
 
-def test_spatiotemporalsparsecvi(st_model_params, gpr_model, st_data):
+def test_spatiotemporalsparsecvi(with_tf_random_seed, st_model_params, gpr_model, st_data):
     """
     Test that `SpatioTemporalSparseCVI` trained on data at the inducing points
     evaluated at the inducing points gives the same ELBO and predicted mean as `GPR`.

@@ -15,21 +15,21 @@
 #
 """Module containing a model for sparse spatio temporal variational inference"""
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import gpflow
 import gpflow.kernels as gpfk
 import tensorflow as tf
 from gpflow import default_float
 from gpflow.base import Parameter
+import gpflow.mean_functions
 
 import markovflow.kernels as mfk
 from markovflow.conditionals import conditional_statistics
 from markovflow.emission_model import EmissionModel
 from markovflow.kernels import IndependentMultiOutput
 from markovflow.kernels import SDEKernel
-from markovflow.mean_function import MeanFunction
-from markovflow.mean_function import ZeroMeanFunction
+import markovflow.mean_function
 from markovflow.models.models import MarkovFlowSparseModel
 from markovflow.models.variational_cvi import (
     back_project_nats,
@@ -120,7 +120,9 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
     ):
         """
         :param inducing_space: inducing space points [Ms, D]
@@ -131,8 +133,6 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         """
         super().__init__(self.__class__.__name__)
 
-        if mean_function is None:
-            mean_function = ZeroMeanFunction(obs_dim=1)
         self._mean_function = mean_function
 
         self._kernel_space = kernel_space
@@ -176,7 +176,11 @@ class SpatioTemporalBase(MarkovFlowSparseModel, ABC):
         mean_f, var_f = batch_base_conditional(
             Kmn, Kmm, Knn, tf.linalg.matrix_transpose(mean_u), q_sqrt=chol_cov_u
         )
-        return mean_f[..., None], var_f[..., None]
+        mean_f, var_f = mean_f[..., None], var_f[..., None]
+        if self._mean_function is not None:
+            mean_f += self._mean_function(inputs)
+
+        return mean_f, var_f
 
     def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
         """
@@ -310,7 +314,9 @@ class SpatioTemporalSparseVariational(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
         num_data=None,
     ):
         """
@@ -399,7 +405,9 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         kernel_space: gpfk.Kernel,
         kernel_time: mfk.SDEKernel,
         likelihood: gpflow.likelihoods.Likelihood,
-        mean_function: Optional[MeanFunction] = None,
+        mean_function: Optional[
+            Union[markovflow.mean_function.MeanFunction, gpflow.mean_functions.MeanFunction]
+        ] = None,
         num_data=None,
         learning_rate=0.1,
     ) -> None:
@@ -513,7 +521,7 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         fx_mus, fx_covs = self.space_time_predict_f(inputs)
 
         # get gradient of variational expectations wrt mu, sigma
-        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs, observations)
+        _, grads = self.local_objective_and_gradients(fx_mus, fx_covs, inputs, observations)
 
         P = self.projection_inducing_states_to_observations(input_data)
         theta_linear, lik_nat2 = back_project_nats(grads[0], grads[1], P)
@@ -544,12 +552,13 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         self.nat1.assign(new_nat1)
 
     def local_objective_and_gradients(
-        self, Fmu: tf.Tensor, Fvar: tf.Tensor, Y: tf.Tensor
+        self, Fmu: tf.Tensor, Fvar: tf.Tensor, X: tf.Tensor, Y: tf.Tensor
     ) -> tf.Tensor:
         """
         Returs the local_objective and its gradients wrt to the expectation parameters
         :param Fmu: means μ [..., latent_dim]
         :param Fvar: variances σ² [..., latent_dim]
+        :param X: inputs X [..., space_dim + 1]
         :param Y: observations Y [..., observation_dim]
         :return: local objective and gradient wrt [μ, σ² + μ²]
         """
@@ -560,6 +569,8 @@ class SpatioTemporalSparseCVI(SpatioTemporalBase):
         grads = g.gradient(local_obj, [Fmu, Fvar])
 
         # turn into gradient wrt μ, σ² + μ²
+        if self._mean_function is not None:
+            Fmu -= self._mean_function(X)
         grads = gradient_transformation_mean_var_to_expectation([Fmu, Fvar], grads)
 
         return local_obj, grads
