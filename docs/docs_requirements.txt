@@ -1,3 +1,4 @@
+Jinja2<3
 sphinx
 ipython
 pandoc

@@ -10,7 +10,6 @@ PANDOC_DEB = https://github.com/jgm/pandoc/releases/download/2.10.1/pandoc-2.10.
 docs:  ## Build the documentation
 	@echo "\n=== pip install doc requirements =============="
 	pip install -r docs/docs_requirements.txt
-	pip install --upgrade "Jinja2<3"
 	@echo "\n=== install pandoc =============="
 ifeq ("$(UNAME_S)", "Linux")
 	$(eval TEMP_DEB=$(shell mktemp))
