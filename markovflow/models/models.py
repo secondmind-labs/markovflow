@@ -54,6 +54,15 @@ class MarkovFlowModel(gpflow.Module, ABC):
        method and :attr:`posterior` attribute.
     """
 
+    def log_prior_density(self) -> tf.Tensor:
+        """
+        Sum of the log prior probability densities of all (constrained) variables in this model.
+        """
+        if self.trainable_parameters:
+            return tf.add_n([p.log_prior_density() for p in self.trainable_parameters])
+        else:
+            return tf.convert_to_tensor(0.0, gpflow.default_float())
+
     @abstractmethod
     def loss(self) -> tf.Tensor:
         """
@@ -129,6 +138,15 @@ class MarkovFlowSparseModel(gpflow.Module, ABC):
     .. note:: Markovflow models that extend this class must implement the :meth:`loss`
        method and :attr:`posterior` attribute.
     """
+
+    def log_prior_density(self) -> tf.Tensor:
+        """
+        Sum of the log prior probability densities of all (constrained) variables in this model.
+        """
+        if self.trainable_parameters:
+            return tf.add_n([p.log_prior_density() for p in self.trainable_parameters])
+        else:
+            return tf.convert_to_tensor(0.0, gpflow.default_float())
 
     @abstractmethod
     def loss(self, input_data: Tuple[tf.Tensor, tf.Tensor]) -> tf.Tensor:
