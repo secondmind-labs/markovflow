@@ -71,7 +71,7 @@ class GaussianProcessRegression(MarkovFlowModel):
         # ensure that time_points have the shape: batch_shape + [num_data]
         tf.ensure_shape(time_points, observations.shape[:-1])
 
-        # To collect kernel and mean function tf.Module trainable_variables
+        # To collect kernel and mean function gpflow.Module trainable_variables
         self._kernel = kernel
         if mean_function is None:
             mean_function = ZeroMeanFunction(obs_dim=1)

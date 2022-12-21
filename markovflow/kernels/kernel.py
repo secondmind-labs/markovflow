@@ -18,12 +18,13 @@ import abc
 from abc import abstractmethod
 
 import tensorflow as tf
+import gpflow
 
 from markovflow.emission_model import EmissionModel
 from markovflow.gauss_markov import GaussMarkovDistribution
 
 
-class Kernel(tf.Module, abc.ABC):
+class Kernel(gpflow.Module, abc.ABC):
     r"""
     Abstract class generating a :class:`~markovflow.state_space_model.StateSpaceModel` for a
     given set of time points.

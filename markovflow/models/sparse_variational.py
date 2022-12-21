@@ -118,7 +118,7 @@ class SparseVariationalGaussianProcess(MarkovFlowSparseModel):
         super().__init__(self.__class__.__name__)
 
         self._num_data = num_data
-        self._kernel = kernel  # To collect tf.Module trainable_variables
+        self._kernel = kernel  # To collect gpflow.Module trainable_variables
         self._likelihood = likelihood
 
         if mean_function is None:
@@ -133,7 +133,7 @@ class SparseVariationalGaussianProcess(MarkovFlowSparseModel):
 
         # q will approximate the posterior after optimisation.
         # This needs to be an instance attribute to provide trainable variables
-        # when calling tf.Module trainable_variables. This is fine though, since
+        # when calling gpflow.Module trainable_variables. This is fine though, since
         # `GaussMarkovDistribution` doesn't do any computation in its initialiser.
         self._dist_q = initial_distribution.create_trainable_copy()
 

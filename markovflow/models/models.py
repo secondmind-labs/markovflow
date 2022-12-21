@@ -26,18 +26,20 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import tensorflow as tf
+import gpflow
 
 from markovflow.posterior import PosteriorProcess
 from markovflow.utils import tf_scope_class_decorator
 
 
-class MarkovFlowModel(tf.Module, ABC):
+class MarkovFlowModel(gpflow.Module, ABC):
     """
     Abstract class representing Markovflow models that depend on input data.
 
-    All Markovflow models are :class:`TensorFlow Modules <tf.Module>`, so it is possible to obtain
-    trainable variables via the :attr:`trainable_variables` attribute. You can combine this with
-    the :meth:`loss` method to train the model. For example::
+    All Markovflow models are :class:`GPflow Modules <gpflow.Module>`, so it is possible to obtain
+    trainable variables via the :attr:`trainable_variables` attribute and trainable parameters via
+    the :attr:`trainable_parameters` attribute. You can combine this with the :meth:`loss` method
+    to train the model. For example::
 
         optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=0.01)
         for i in range(iterations):
@@ -104,7 +106,7 @@ class MarkovFlowModel(tf.Module, ABC):
 
 
 @tf_scope_class_decorator
-class MarkovFlowSparseModel(tf.Module, ABC):
+class MarkovFlowSparseModel(gpflow.Module, ABC):
     """
     Abstract class representing Markovflow models that do not need to store the training
     data (:math:`X, Y`) in the model to approximate the

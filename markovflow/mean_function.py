@@ -17,6 +17,7 @@
 import abc
 
 import tensorflow as tf
+import gpflow
 
 from markovflow.block_tri_diag import LowerTriangularBlockTriDiagonal
 from markovflow.kernels import SDEKernel
@@ -24,7 +25,7 @@ from markovflow.utils import tf_scope_class_decorator, to_delta_time
 
 
 @tf_scope_class_decorator
-class MeanFunction(tf.Module, abc.ABC):
+class MeanFunction(gpflow.Module, abc.ABC):
     """
     Abstract class for mean functions.
 
