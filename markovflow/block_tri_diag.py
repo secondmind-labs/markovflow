@@ -217,7 +217,7 @@ class BlockTriDiagonal(abc.ABC):
             )
         else:
             shape = tf.concat([self.batch_shape, [1, self.inner_dim, self.inner_dim]], axis=0)
-            padding_zeros = tf.zeros(shape, dtype=tf.float64)
+            padding_zeros = tf.zeros(shape, dtype=self._sub_diag.dtype)
             # [... outer_dim, inner_dim, state_dim]
             padded_sub_diag = tf.concat([self._sub_diag, padding_zeros], axis=-3)
             transposed = list(map(tf.linalg.matrix_transpose, [(self._diag), padded_sub_diag]))
