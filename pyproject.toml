@@ -8,7 +8,7 @@ packages = [{include = "markovflow"}]
 # Note: Poetry will exclude files declared in .gitignore when creating the python package file.
 
 [tool.poetry.dependencies]
-python = ">3.7,<3.8"
+python = ">=3.7,<3.8"
 importlib_metadata = "^1.6" # poetry requires this for python < 3.8
 gpflow = "^2.1"
 numpy = "^1.18.0"
