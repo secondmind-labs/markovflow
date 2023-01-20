@@ -19,6 +19,8 @@ from typing import Callable, List, Tuple
 import numpy as np
 import pytest
 import tensorflow as tf
+import tensorflow_probability as tfp
+import gpflow
 from gpflow.likelihoods import Bernoulli, Gaussian
 
 from markovflow.kernels import Matern12
@@ -65,7 +67,7 @@ def _svgp_gpr_optim_setup(batch_shape, output_dim):
 def _svgp_gpr_setup(batch_shape, output_dim, mean_function):
     time_points, observations, kernel, variance = _setup(batch_shape, output_dim)
 
-    chol_obs_covariance = tf.eye(output_dim, dtype=tf.float64) * tf.sqrt(variance)
+    chol_obs_covariance = tf.eye(output_dim, dtype=gpflow.default_float()) * tf.sqrt(variance)
     input_data = (tf.constant(time_points), tf.constant(observations))
     gpr = GaussianProcessRegression(
         input_data=input_data,
@@ -112,13 +114,13 @@ def _setup(batch_shape: Tuple, output_dim: int):
     time_points, observations = generate_random_time_observations(
         obs_dim=output_dim, num_data=NUM_DATA, batch_shape=batch_shape
     )
-    time_points = tf.constant(time_points)
-    observations = tf.constant(observations)
+    time_points = tf.constant(time_points, dtype=gpflow.default_float())
+    observations = tf.constant(observations, dtype=gpflow.default_float())
 
     kernel = Matern12(lengthscale=LENGTH_SCALE, variance=VARIANCE, output_dim=output_dim)
 
     observation_noise = 1.0
-    variance = tf.constant(observation_noise, dtype=tf.float64)
+    variance = tf.constant(observation_noise, dtype=gpflow.default_float())
 
     return time_points, observations, kernel, variance
 
@@ -276,3 +278,36 @@ def test_svgp_minibatching(with_tf_random_seed, batch_shape):
     )
     elbo_N = svgp.elbo(next(train_iter))
     np.testing.assert_allclose(elbo_full, elbo_N)
+
+
+def test_svgp_log_prior_density(with_tf_random_seed, output_dim):
+    """Test that trainable parameters are correctly identified and log_prior_density computed."""
+    # gpflow's priors seem to require dtype=float32
+    old_default_float = gpflow.default_float()
+    gpflow.config.set_default_float(np.float32)
+    mf_coef = gpflow.Parameter(1.5)
+    svgp, _ = _svgp_gpr_setup(tuple(), output_dim, LinearMeanFunction(mf_coef))
+    gpflow.config.set_default_float(old_default_float)
+    # get all parameters
+    loglike_var = svgp.likelihood.variance
+    kernel_var = svgp.kernel.variance
+    kernel_ls = svgp.kernel.lengthscale
+    # set parameters to not trainable
+    for t in svgp.trainable_variables:
+        t._trainable = False
+    assert svgp.trainable_parameters == ()
+    assert svgp.log_prior_density() == 0
+    # set these 4 parameters to trainable
+    for t in [mf_coef, loglike_var, kernel_var, kernel_ls]:
+        gpflow.set_trainable(t, True)
+    assert set(svgp.trainable_parameters) == set([mf_coef, loglike_var, kernel_var, kernel_ls])
+    # since they have no priors, the density should be 0
+    assert svgp.log_prior_density() == 0
+    # add priors and check the prior density is the correct sum
+    mf_coef.prior = tfp.distributions.Normal(loc=1.0, scale=10.0)
+    kernel_var.prior = tfp.distributions.Gamma(concentration=2.0, rate=3.0)
+    kernel_ls.prior = tfp.distributions.Gamma(concentration=0.5, rate=2.0)
+    loglike_var.prior = tfp.distributions.Normal(loc=0.0, scale=10.0)
+    assert svgp.log_prior_density() == tf.add_n(
+        [x.log_prior_density() for x in [kernel_var, kernel_ls, loglike_var, mf_coef]]
+    )
