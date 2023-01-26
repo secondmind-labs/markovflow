@@ -17,6 +17,7 @@
 import numpy as np
 import pytest
 import tensorflow as tf
+import gpflow
 from gpflow.likelihoods import Gaussian
 
 from markovflow.likelihoods import MultivariateGaussian
@@ -38,6 +39,16 @@ def _setup_data(with_tf_random_seed, batch_shape):
     shape = tuple(list(batch_shape) + [num_data])
     f_covariances = generate_random_pos_def_matrix(obs_dim, shape)
     return f, f_covariances, observations
+
+
+def test_multivariate_gaussian_trainable_parameters():
+    """Check that MultivariateGaussian tracks its trainable_parameters."""
+    chol_covariance = np.eye(2)
+    mvngauss = MultivariateGaussian(chol_covariance=chol_covariance)
+    assert isinstance(mvngauss, gpflow.Module)
+    assert mvngauss.trainable_parameters == (mvngauss.chol_covariance,)
+    gpflow.set_trainable(mvngauss.chol_covariance, False)
+    assert mvngauss.trainable_parameters == ()
 
 
 def test_multivariate_gaussian_variational_expectations(data):

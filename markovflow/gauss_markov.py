@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import tensorflow as tf
+import gpflow
 
 from markovflow.base import SampleShape
 from markovflow.block_tri_diag import SymmetricBlockTriDiagonal
@@ -25,7 +26,7 @@ from markovflow.utils import tf_scope_class_decorator
 
 
 @tf_scope_class_decorator
-class GaussMarkovDistribution(tf.Module, ABC):
+class GaussMarkovDistribution(gpflow.Module, ABC):
     """
     Abstract class for representing a Gauss-Markov chain. Classes that extend this one (such as
     :class:`~markovflow.state_space_model.StateSpaceModel`) represent a different parameterisation

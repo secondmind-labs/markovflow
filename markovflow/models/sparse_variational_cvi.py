@@ -125,7 +125,7 @@ class SparseCVIGaussianProcess(MarkovFlowSparseModel):
 
         # q will approximate the posterior after optimisation.
         # This needs to be an instance attribute to provide trainable variables
-        # when calling tf.Module trainable_variables. This is fine though, since
+        # when calling gpflow.Module trainable_variables. This is fine though, since
         # StateSpaceModel doesn't do any computation in its initialiser.
 
         # initialize sites

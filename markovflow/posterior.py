@@ -19,6 +19,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
+import gpflow
 from gpflow.likelihoods import Likelihood as GPF_Likelihood
 
 from markovflow.base import SampleShape
@@ -33,7 +34,7 @@ Likelihood = Union[MF_Likelihood, GPF_Likelihood]
 
 
 @tf_scope_class_decorator
-class PosteriorProcess(tf.Module, ABC):
+class PosteriorProcess(gpflow.Module, ABC):
     """
     Abstract class for forming a posterior process.
 

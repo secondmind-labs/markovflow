@@ -98,7 +98,7 @@ class VariationalGaussianProcess(MarkovFlowModel):
         super().__init__(self.__class__.__name__)
         time_points, observations = input_data
 
-        # To collect kernel and mean function tf.Module trainable_variables
+        # To collect kernel and mean function gpflow.Module trainable_variables
         self._kernel = kernel
         if mean_function is None:
             mean_function = ZeroMeanFunction(obs_dim=1)
@@ -114,7 +114,7 @@ class VariationalGaussianProcess(MarkovFlowModel):
 
         # q will approximate the posterior after optimisation.
         # This needs to be an instance attribute to provide trainable variables
-        # when calling tf.Module trainable_variables. This is fine though, since
+        # when calling gpflow.Module trainable_variables. This is fine though, since
         # StateSpaceModel doesn't do any computation in its initialiser.
         self._dist_q = initial_distribution.create_trainable_copy()
 

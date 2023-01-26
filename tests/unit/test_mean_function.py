@@ -19,6 +19,7 @@ from typing import Tuple
 import numpy as np
 import pytest
 import tensorflow as tf
+import gpflow
 from gpflow import default_float
 
 from markovflow.kernels import Matern32
@@ -237,12 +238,15 @@ def test_linear_function(with_tf_random_seed, batch_shape):
     """Test the linear function scales timepoints correctly."""
     num_time_points = 7
     obs_dim = 3
-    coefficient = 3.1
+    coefficient = gpflow.Parameter(3.1)
 
     time_points = generate_random_time_points(
         expected_range=EXPECTED_RANGE, shape=batch_shape + (num_time_points,)
     )
     linear_mean_function = LinearMeanFunction(coefficient=coefficient, obs_dim=obs_dim)
+    assert linear_mean_function.trainable_parameters == (coefficient,)
+    gpflow.set_trainable(coefficient, False)
+    assert linear_mean_function.trainable_parameters == ()
 
     actual = linear_mean_function(tf.constant(time_points))
     np.testing.assert_allclose(

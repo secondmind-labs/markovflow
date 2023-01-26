@@ -19,6 +19,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import tensorflow as tf
+import gpflow
 from gpflow import default_float
 from gpflow.base import TensorType
 
@@ -28,7 +29,7 @@ from markovflow.state_space_model import StateSpaceModel
 from markovflow.utils import tf_scope_class_decorator
 
 
-class BaseKalmanFilter(tf.Module, ABC):
+class BaseKalmanFilter(gpflow.Module, ABC):
     r"""
     Performs a Kalman filter on a :class:`~markovflow.state_space_model.StateSpaceModel` and
     :class:`~markovflow.emission_model.EmissionModel`, with given observations.
@@ -334,7 +335,7 @@ class KalmanFilter(BaseKalmanFilter):
         )
         tf.debugging.assert_equal(tf.shape(observations), shape, message=message)
 
-        self._chol_obs_covariance = chol_obs_covariance  # To collect tf.Module trainables
+        self._chol_obs_covariance = chol_obs_covariance  # To collect gpflow.Module trainables
         self._observations = observations  # batch_shape + [num_transitions + 1, output_dim]
 
     @property
@@ -352,7 +353,7 @@ class KalmanFilter(BaseKalmanFilter):
         return self._observations
 
 
-class GaussianSites(tf.Module, ABC):
+class GaussianSites(gpflow.Module, ABC):
     """
     This class is a wrapper around the parameters specifying multiple independent
     Gaussian distributions.

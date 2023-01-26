@@ -18,12 +18,15 @@ import gpflow.kernels as kernels_gpf
 import numpy as np
 import pytest
 import tensorflow as tf
+import tensorflow_probability as tfp
+import gpflow
 from gpflow import default_float
 from gpflow.models.gpr import GPR
 
 from markovflow.base import auto_namescope_enabled
 from markovflow.kernels import Matern32
 from markovflow.models import GaussianProcessRegression
+from markovflow.mean_function import MeanFunction, ZeroMeanFunction, LinearMeanFunction
 from tests.tools.generate_random_objects import generate_random_time_observations
 
 LENGTH_SCALE = 0.9
@@ -34,7 +37,7 @@ VARIABLE_NAME = "test_name"
 
 
 def create_markovflow_gpr(
-    time_points: np.ndarray, observations: np.ndarray
+    time_points: np.ndarray, observations: np.ndarray, mean_function: MeanFunction = None,
 ) -> GaussianProcessRegression:
     """Create a MarkovFlow Gaussian Process Regression"""
     # create the MarkovFlow model
@@ -42,6 +45,8 @@ def create_markovflow_gpr(
         [[np.sqrt(OBSERVATION_NOISE_VARIANCE)]], dtype=default_float(), name=VARIABLE_NAME
     )
     input_data = (tf.constant(time_points), tf.constant(observations))
+    if mean_function is None:
+        mean_function = ZeroMeanFunction(obs_dim=observations.shape[-1])
     return GaussianProcessRegression(
         input_data=input_data,
         kernel=Matern32(
@@ -49,6 +54,7 @@ def create_markovflow_gpr(
             variance=AMPLITUDE * AMPLITUDE,
             output_dim=observations.shape[-1],
         ),
+        mean_function=mean_function,
         chol_obs_covariance=chol_obs_covariance,
     )
 
@@ -146,3 +152,35 @@ def test_gpr_predict_f_methods(with_tf_random_seed, gpflow_gpr_setup):
     preds_p = gpr.posterior.predict_f(time_points)
 
     np.testing.assert_allclose(preds, preds_p)
+
+
+def test_gpr_log_prior_density(with_tf_random_seed):
+    """Test that trainable parameters are correctly identified and log_prior_density computed."""
+    # gpflow's priors seem to require dtype=float32
+    old_default_float = default_float()
+    gpflow.config.set_default_float(np.float32)
+    mf_coef = gpflow.Parameter(1.5)
+    gpr = create_markovflow_gpr(
+        *generate_random_time_observations(1, NUM_DATA, tuple()), LinearMeanFunction(mf_coef)
+    )
+    gpflow.config.set_default_float(old_default_float)
+    # get all parameters
+    kernel_var = gpr.kernel.variance
+    kernel_ls = gpr.kernel.lengthscale
+    # set parameters to not trainable
+    for t in gpr.trainable_variables:
+        t._trainable = False
+    assert gpr.trainable_parameters == ()
+    assert gpr.log_prior_density() == 0
+    # set these 3 parameters to trainable
+    for t in [mf_coef, kernel_var, kernel_ls]:
+        gpflow.set_trainable(t, True)
+    # since they have no priors, the density should be 0
+    assert gpr.log_prior_density() == 0
+    # add priors and check the prior density is the correct sum
+    mf_coef.prior = tfp.distributions.Normal(loc=1.0, scale=10.0)
+    kernel_var.prior = tfp.distributions.Gamma(concentration=2.0, rate=3.0)
+    kernel_ls.prior = tfp.distributions.Gamma(concentration=0.5, rate=2.0)
+    assert gpr.log_prior_density() == tf.add_n(
+        [x.log_prior_density() for x in [kernel_var, kernel_ls, mf_coef]]
+    )

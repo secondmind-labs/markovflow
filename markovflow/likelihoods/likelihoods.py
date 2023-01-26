@@ -25,7 +25,7 @@ import tensorflow as tf
 from markovflow.utils import tf_scope_fn_decorator
 
 
-class Likelihood(tf.Module, abc.ABC):
+class Likelihood(gpflow.Module, abc.ABC):
     """
     Abstract class for likelihoods.
 
