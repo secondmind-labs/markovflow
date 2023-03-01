@@ -6,11 +6,16 @@ from gpflow.config import default_float
 from markovflow.kernels.matern import Matern12
 from markovflow.mean_function import LinearMeanFunction
 from markovflow.models.gaussian_process_regression import GaussianProcessRegression
-from markovflow.kalman_filter import KalmanFilterWithSparseSites, UnivariateGaussianSitesNat, KalmanFilterWithSites
+from markovflow.kalman_filter import (
+    KalmanFilterWithSparseSites,
+    UnivariateGaussianSitesNat,
+    KalmanFilterWithSites,
+)
 
 
 @pytest.fixture(
-    name="time_step_homogeneous", params=[(0.01, True), (0.01, False), (0.001, True), (0.001, False)],
+    name="time_step_homogeneous",
+    params=[(0.01, True), (0.01, False), (0.001, True), (0.001, False)],
 )
 def _time_step_homogeneous_fixture(request):
     return request.param
@@ -43,11 +48,11 @@ def _setup(batch_shape, time_step_homogeneous):
     kernel = Matern12(lengthscale=1.0, variance=1.0, output_dim=observations.shape[-1])
     kernel.set_state_mean(tf.random.normal((1,), dtype=default_float()))
     gpr_model = GaussianProcessRegression(
-            input_data=input_data,
-            kernel=kernel,
-            mean_function=LinearMeanFunction(1.1),
-            chol_obs_covariance=tf.constant([[np.sqrt(observation_covariance)]], dtype=default_float()),
-        )
+        input_data=input_data,
+        kernel=kernel,
+        mean_function=LinearMeanFunction(1.1),
+        chol_obs_covariance=tf.constant([[np.sqrt(observation_covariance)]], dtype=default_float()),
+    )
 
     prior_ssm = kernel.state_space_model(time_grid)
     emission_model = kernel.generate_emission_model(time_grid)
@@ -60,8 +65,9 @@ def _setup(batch_shape, time_step_homogeneous):
     lognorm = tf.zeros_like(nat1)
     sites = UnivariateGaussianSitesNat(nat1=nat1, nat2=nat2, log_norm=lognorm)
 
-    kf_sparse_sites = KalmanFilterWithSparseSites(prior_ssm, emission_model, sites, time_grid.shape[0],
-                                                  observations_index, observations)
+    kf_sparse_sites = KalmanFilterWithSparseSites(
+        prior_ssm, emission_model, sites, time_grid.shape[0], observations_index, observations
+    )
 
     return gpr_model, kf_sparse_sites
 
@@ -81,11 +87,18 @@ def _get_kf_sites(kf_sparse_sites: KalmanFilterWithSparseSites):
         :class:`~markovflow.kalman_filter.KalmanFilterWithSparseSites`
     """
     nat1 = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.nat1, kf_sparse_sites.grid_shape)
-    nat2 = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.nat2, kf_sparse_sites.grid_shape + (1,)) + 1e-20
-    log_norm = kf_sparse_sites.sparse_to_dense(kf_sparse_sites.sites.log_norm, kf_sparse_sites.grid_shape)
+    nat2 = (
+        kf_sparse_sites.sparse_to_dense(
+            kf_sparse_sites.sites.nat2, kf_sparse_sites.grid_shape + (1,)
+        )
+        + 1e-20
+    )
+    log_norm = kf_sparse_sites.sparse_to_dense(
+        kf_sparse_sites.sites.log_norm, kf_sparse_sites.grid_shape
+    )
     sites = UnivariateGaussianSitesNat(nat1, nat2, log_norm)
 
-    return KalmanFilterWithSites(kf_sparse_sites.prior_ssm,  kf_sparse_sites.emission, sites)
+    return KalmanFilterWithSites(kf_sparse_sites.prior_ssm, kf_sparse_sites.emission, sites)
 
 
 def test_kalman_posterior(with_tf_random_seed, kalman_gpr_setup):
