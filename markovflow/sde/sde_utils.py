@@ -19,7 +19,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 from gpflow.base import TensorType
-from gpflow.quadrature import NDiagGHQuadrature, mvnquad
+from gpflow.quadrature import NDiagGHQuadrature
 from gpflow.probability_distributions import Gaussian
 
 from markovflow.ssm_gaussian_transformations import ssm_to_expectations, expectations_to_ssm_params
@@ -245,29 +245,37 @@ def SSM_KL_along_Gaussian_path(
     ssm_p_process_covar: tf.Tensor,
     ssm_q_marginals_mean: tf.Tensor,
     ssm_q_marginals_covar_diag: tf.Tensor,
-    ssm_q_marginals_covar_subdiag: tf.Tensor,
     quadrature_pnts: int = 20,
 ) -> tf.Tensor:
     """
     The function calculates the KL divergence between two SSMs, KL[SSM-q || SSM-p].
+
     SSM-p: x_{t+1} = f^p(x_t, t) + e^p_t ; e^p_t ~ N(0, Q_t^p)
            f^p(x_t, t) =  A^p_t x_t + b^p_t
+
     SSM-q: x_{t+1} = f^q(x_t, t) + e^q_t ; e^q_t ~ N(0, Q_t^q)
            f^q(x_t, t) = A^q_t x_t + b^q_t
+
     KL[SSM-q || SSM-p] = KL[q(x0) || p(x0)] + 0.5 * ( log(|Q_t^p|/Q_t^q) + \sum_{t=0}^{N-1} E_{q(x_{t+1}, x_t)} [||x_{t+1} - f^p(x_t, t)||^{2}_{Q_t^{p}^{-1}} - ||x_{t+1} - f^q(x_t, t)||^{2}_{Q_t^{q}^{-1}}])
+
+    Rather than doing the 2D quadrature on the join distribution of q(x_{t+1}, x_t) the term is further simplified to
+    reduce to 1D quadrature.
+
     We use Gaussian quadrature method to approximate the expectation.
+
     :param func_q: f^q(x_t, t) = A^q_t x_t + b^q_t, with signature of the function as f(x_t).
     :param func_p: f^p(x_t, t) = A^p_t x_t + b^p_t,  with signature of the function as f(x_t).
     :param ssm_q_process_covar: Process covariance of SSM-q, Q_t^q with shape ``[num_transitions, 1, 1]``.
     :param ssm_p_process_covar: Process covariance of SSM-p, Q_t^p with shape ``[num_transitions, 1, 1]``.
     :param ssm_q_marginals_mean: The marginal means of SSM-q with shape ``[num_transitions+1, 1]``.
     :param ssm_q_marginals_covar_diag: The diagonal of the marginal covariance of SSM-q with shape ``[num_transitions+1, 1]``.
-    :param ssm_q_marginals_covar_subdiag: The sub-diagonal of the marginal covariance of SSM-q with shape ``[num_transitions, 1]``.
     :param quadrature_pnts: Number of quadrature points to use, integer.
+
     Note:
         1. This function currently doesn't support batching.
         2. func_q and func_p should support batching as quadrature points are passed to it.
         3. The function only supports state-dim=1 currently.
+
     """
 
     n_transitions = ssm_p_process_covar.shape[0]
@@ -283,18 +291,7 @@ def SSM_KL_along_Gaussian_path(
     tf.debugging.assert_equal(
         ssm_q_marginals_covar_diag.get_shape(), tf.TensorShape([n_transitions + 1, 1])
     )
-    tf.debugging.assert_equal(
-        ssm_q_marginals_covar_subdiag.get_shape(), tf.TensorShape([n_transitions, 1])
-    )
 
-    ssm_q_process_covar_inv = tf.linalg.cholesky_solve(
-        tf.linalg.cholesky(ssm_q_process_covar),
-        tf.eye(
-            ssm_q_process_covar.shape[-1],
-            dtype=ssm_q_process_covar.dtype,
-            batch_shape=[ssm_q_process_covar.shape[0]],
-        ),
-    )
     ssm_p_process_covar_inv = tf.linalg.cholesky_solve(
         tf.linalg.cholesky(ssm_p_process_covar),
         tf.eye(
@@ -304,53 +301,41 @@ def SSM_KL_along_Gaussian_path(
         ),
     )
 
+    C_log_det = tf.linalg.logdet(ssm_q_process_covar) - tf.linalg.logdet(ssm_p_process_covar)
+    C_term_trace = tf.linalg.trace(ssm_p_process_covar_inv * ssm_q_process_covar)
+    C_term_D = ssm_q_marginals_mean.shape[-1]
+
+    C = - C_log_det - C_term_D + C_term_trace
+
     def func(x):
-        x = tf.reshape(
-            x, (-1, ssm_q_marginals_mean.shape[0] - 1, 2)
-        )  # [n_pnts, num_transitions, 2]
-
-        x_nxt = x[:, :, 1:2]  # [n_pnts, num_transitions, 1]
-        x_prev = x[:, :, :1]  # [n_pnts, num_transitions, 1]
-
-        func_q_val = func_q(x=x_prev)  # [n_pnts, num_transitions, 1]
-        func_p_val = func_p(x=x_prev)  # [n_pnts, num_transitions, 1]
+        func_q_val = func_q(x=x)  # [n_pnts, num_transitions, 1]
+        func_p_val = func_p(x=x)  # [n_pnts, num_transitions, 1]
 
         tf.debugging.assert_shapes(
             [
                 (func_q_val, ("B", "N", "D")),
                 (func_p_val, ("B", "N", "D")),
-                (ssm_q_process_covar_inv[:, :, 0], ("N", "D")),
                 (ssm_p_process_covar_inv[:, :, 0], ("N", "D")),
             ]
         )
 
-        term1 = (x_nxt - func_q_val) * (x_nxt - func_q_val) * ssm_q_process_covar_inv[:, :, 0]
-        term2 = (x_nxt - func_p_val) * (x_nxt - func_p_val) * ssm_p_process_covar_inv[:, :, 0]
-
-        val = term2 - term1
-        val = tf.reshape(val, (-1, 1))  # [n_pnts * num_transitions, 1]
+        val = (func_p_val - func_q_val) * (func_p_val - func_q_val) * ssm_p_process_covar_inv[:, :, 0]
 
         return val
 
-    m = tf.concat(
-        [ssm_q_marginals_mean[:-1, :], ssm_q_marginals_mean[1:, :]], axis=1
-    )  # [num_transitions, 2]
-    S = tf.eye(2, dtype=m.dtype, batch_shape=[m.shape[0]])  # [num_transitions, 2, 2]
+    m = ssm_q_marginals_mean[:-1]
+    S = ssm_q_marginals_covar_diag[:-1]
 
-    ssm_q_marginals_covar_diag_pairs = tf.concat(
-        [ssm_q_marginals_covar_diag[:-1], ssm_q_marginals_covar_diag[1:]], axis=1
+    fn_difference = NDiagGHQuadrature(ssm_q_marginals_mean.shape[-1], quadrature_pnts)(func, mean=m, var=S)
+
+    vals = fn_difference + C[..., None]
+
+    tf.debugging.assert_shapes(
+        [
+            (m, ("N", "D")),
+            (vals, ("N", "D")),
+        ]
     )
-    S = tf.linalg.set_diag(S, ssm_q_marginals_covar_diag_pairs)
-    S = tf.linalg.set_diag(S, ssm_q_marginals_covar_subdiag, k=1)
-    S = tf.linalg.set_diag(S, ssm_q_marginals_covar_subdiag, k=-1)
-
-    tf.debugging.assert_equal(m.get_shape(), tf.TensorShape([n_transitions, 2]))
-    tf.debugging.assert_equal(S.get_shape(), tf.TensorShape([n_transitions, 2, 2]))
-
-    fn_difference = mvnquad(func, means=m, covs=S, H=quadrature_pnts)
-
-    term_det = tf.linalg.logdet(ssm_p_process_covar) - tf.linalg.logdet(ssm_q_process_covar)
-    vals = fn_difference + term_det[..., None]
 
     vals = 0.5 * tf.reduce_sum(vals)
     return vals
@@ -416,11 +401,9 @@ def SSM_KL_with_grads_wrt_exp_params(
         process_covariance_q = tf.square(chol_process_covariances)
         process_covariance_p = tf.square(ssm_p.cholesky_process_covariances)
 
-        # create a covariance with diagonals and sub-diagonals using expectation params
+        # create a diagonal covariance using expectation params
         diag_cov = exp_diag - (exp1 * exp1)[..., None]
-        sub_diag_cov = exp_sub_diag - (exp1[1:] * exp1[:-1])[..., None]
         diag_cov = tf.squeeze(diag_cov, axis=-1)
-        sub_diag_cov = tf.squeeze(sub_diag_cov, axis=-1)
 
         kl_q_p = SSM_KL_along_Gaussian_path(
             func_q=dist_q_forward,
@@ -429,7 +412,6 @@ def SSM_KL_with_grads_wrt_exp_params(
             ssm_p_process_covar=process_covariance_p,
             ssm_q_marginals_mean=exp1,
             ssm_q_marginals_covar_diag=diag_cov,
-            ssm_q_marginals_covar_subdiag=sub_diag_cov,
         )
 
         kl_q_0 = tfp.distributions.Normal(loc=initial_mean, scale=chol_initial_covariance)
