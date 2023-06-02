@@ -20,7 +20,7 @@ import tensorflow as tf
 from gpflow.quadrature import mvnquad
 
 
-class SDE(ABC):
+class SDE(tf.Module, ABC):
     """
     Abstract class representing Stochastic Differential Equation.
 
@@ -33,6 +33,7 @@ class SDE(ABC):
         """
         :param state_dim: The output dimension of the kernel.
         """
+        super().__init__()
         self._state_dim = state_dim
 
     @property
@@ -136,18 +137,18 @@ class OrnsteinUhlenbeckSDE(SDE):
     ..math:: dx(t) = -λ x(t) dt + dB(t), the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, decay: tf.Tensor, q: tf.Tensor = tf.ones((1, 1))):
+    def __init__(self, decay: float = 1.0, q: tf.Tensor = tf.ones((1, 1)), trainable: bool = False):
         """
         Initialize the Ornstein-Uhlenbeck SDE.
 
-        :param decay: λ, a tensor with shape ``(1, 1)``.
+        :param decay: λ, a float value.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
         """
         super(OrnsteinUhlenbeckSDE, self).__init__(state_dim=q.shape[0])
-        self.decay = decay
         self.q = q
+        self.decay = tf.Variable(initial_value=decay, trainable=trainable, dtype=self.q.dtype)
 
-    def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+    def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the Ornstein-Uhlenbeck process
         ..math:: f(x(t), t) = -λ x(t)
@@ -160,7 +161,7 @@ class OrnsteinUhlenbeckSDE(SDE):
         assert x.shape[-1] == self.state_dim
         return -self.decay * x
 
-    def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Diffusion of the Ornstein-Uhlenbeck process
         ..math:: l(x(t), t) = sqrt(q)
@@ -180,10 +181,11 @@ class DoubleWellSDE(SDE):
 
     ..math:: dx(t) = f(x(t)) dt + dB(t),
 
-    where f(x(t)) = 4 x(t) (1 - x(t)^2) and the spectral density of the Brownian motion is specified by q.
+    where f(x(t)) = scale * x(t) (c - x(t)^2) and the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, q: tf.Tensor = tf.ones((1, 1))):
+    def __init__(self, q: tf.Tensor = tf.ones((1, 1)), scale_trainable: bool = False, c_trainable: bool = False,
+                 scale: float = 4., c: float = 1.):
         """
         Initialize the Double-Well SDE.
 
@@ -191,11 +193,13 @@ class DoubleWellSDE(SDE):
         """
         super(DoubleWellSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
+        self.scale = tf.Variable(initial_value=scale, trainable=scale_trainable, dtype=self.q.dtype)
+        self.c = tf.Variable(initial_value=c, trainable=c_trainable, dtype=self.q.dtype)
 
-    def drift(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+    def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the double-well process
-        ..math:: f(x(t), t) = 4 x(t) (1 - x(t)^2)
+        ..math:: f(x(t), t) = scale * x(t) (c - x(t)^2)
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
         :param t: time `t` with shape ``(n_batch, 1)``.
@@ -203,11 +207,137 @@ class DoubleWellSDE(SDE):
         :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        return 4.0 * x * (1.0 - tf.square(x))
+        return self.scale * x * (self.c - tf.square(x))
 
-    def diffusion(self, x: tf.Tensor, t: tf.Tensor) -> tf.Tensor:
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Diffusion of the double-well process
+        ..math:: l(x(t), t) = sqrt(q)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.ones_like(x[..., None]) * tf.linalg.cholesky(self.q)
+
+
+class BenesSDE(SDE):
+    """
+    Benes SDE
+    ..math:: dx(t) = \theta tanh(x(t)) dt + dB(t),
+    where the spectral density of the Brownian motion is specified by q.
+    """
+
+    def __init__(self, theta: float = 1., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+        """
+        Initialize the Benes SDE.
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(BenesSDE, self).__init__(state_dim=q.shape[0])
+        self.q = q
+        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Drift of the double-well process
+        ..math:: f(x(t), t) =tanh(x(t))
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return self.theta * tf.math.tanh(x)
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Diffusion of the double-well process
+        ..math:: l(x(t), t) = sqrt(q)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.ones_like(x[..., None]) * tf.linalg.cholesky(self.q)
+
+
+class SineDiffusionSDE(SDE):
+    """
+    Sine diffusion SDE represented by
+    ..math:: dx(t) = sin(x(t) - \theta) dt + dB(t), the spectral density of the Brownian motion is specified by q.
+    """
+
+    def __init__(self, theta: float = 0., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+        """
+        Initialize the SDE.
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(SineDiffusionSDE, self).__init__(state_dim=q.shape[0])
+        self.q = q
+        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Drift of the process
+        ..math:: f(x(t), t) = sin(x(t))
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.math.sin(x - self.theta)
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Diffusion of the Ornstein-Uhlenbeck process
+        ..math:: l(x(t), t) = sqrt(q)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Diffusion value i.e. `l(x(t), t)` with shape ``(n_batch, state_dim, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.ones_like(x[..., None]) * tf.linalg.cholesky(self.q)
+
+
+class SqrtDiffusionSDE(SDE):
+    """
+    Sqrt diffusion SDE represented by
+    ..math:: dx(t) = sqrt(theta |x(t)|) dt + dB(t), the spectral density of the Brownian motion is specified by q.
+    """
+
+    def __init__(self, theta: float = 1., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+        """
+        Initialize the SDE.
+        :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        """
+        super(SqrtDiffusionSDE, self).__init__(state_dim=q.shape[0])
+        self.q = q
+        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+
+    def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Drift of the process
+        ..math:: f(x(t), t) = sqrt(|x(t)|)
+
+        :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
+        :param t: time `t` with shape ``(n_batch, 1)``.
+
+        :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
+        """
+        assert x.shape[-1] == self.state_dim
+        return tf.math.sqrt(self.theta * tf.math.abs(x))
+
+    def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
+        """
+        Diffusion of the process
         ..math:: l(x(t), t) = sqrt(q)
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
