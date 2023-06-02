@@ -21,6 +21,9 @@ import numpy as np
 import gpflow
 from gpflow.probability_distributions import Gaussian
 
+from tests.tools.state_space_model import StateSpaceModelBuilder
+from markovflow.sde.sde_utils import SSM_KL_with_grads_wrt_exp_params
+from markovflow.ssm_gaussian_transformations import ssm_to_naturals
 from markovflow.state_space_model import state_space_model_from_covariances
 from markovflow.sde.sde_utils import euler_maruyama, linearize_sde
 from markovflow.sde import OrnsteinUhlenbeckSDE
@@ -33,7 +36,8 @@ DTYPE = gpflow.config.default_float()
 
 
 @pytest.fixture(
-    name="sde_batch_shape", params=[tf.TensorShape([3, ]), tf.TensorShape([2, 1]), tf.TensorShape([1, ])],
+    name="sde_batch_shape",
+    params=[tf.TensorShape([3, ]), tf.TensorShape([2, 1]), tf.TensorShape([1, ])],
 )
 def _sde_batch_shape_fixture(request):
     return request.param
@@ -56,7 +60,7 @@ def _setup(sde_batch_shape):
     x0 = tf.random.normal(x0_shape, dtype=DTYPE)
 
     # construct OU sde
-    decay = tf.random.normal((1, 1), dtype=DTYPE)
+    decay = tf.random.normal((1, 1), dtype=DTYPE).numpy().item()
     q = tf.eye(state_dim, dtype=DTYPE)
     ou_sde = OrnsteinUhlenbeckSDE(decay, q)
 
@@ -89,14 +93,14 @@ def test_linearize_sde_ou_statedim_1(setup):
     q = Gaussian(mu=q_mean, cov=q_covar)
     initial_state = Gaussian(mu=x0, cov=x0_covar)
     # linearize the sde around the path distribution provided by the marginal statistics
-    linearized_ssm = linearize_sde(
-        ou_sde, time_grid, q, initial_state
-    )
+    linearized_ssm = linearize_sde(ou_sde, time_grid, q, initial_state)
 
     # ground true linearization for OU
     expected_A = tf.zeros_like(q_covar)  # [num_batch, num_transitions, state_dim, state_dim]
     expected_b = tf.zeros_like(q_mean) * dt  # [num_batch, num_transitions, state_dim]
-    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b) * dt + tf.eye(ou_sde.state_dim, dtype=DTYPE)
+    expected_A = tf.linalg.set_diag(expected_A, -decay + expected_b) * dt + tf.eye(
+        ou_sde.state_dim, dtype=DTYPE
+    )
     expected_chol_Q = ou_sde.diffusion(q_mean, t=None) * tf.sqrt(dt)
 
     np.testing.assert_allclose(linearized_ssm.state_transitions, expected_A, atol=1e-3)
@@ -151,7 +155,7 @@ def test_KL_sde(setup):
     Test the KL_sde function which calculates the KL divergence between two SDEs with same diffusion using
     Girsanov theorem.
 
-    We assert with decimal place 2 as KL_SDE is an approximation. 
+    We assert with decimal place 2 as KL_SDE is an approximation.
     With finer grid the tolerance can be made much tighter but it results in high running time.
     """
     ou_sde, x0, time_grid = setup
@@ -170,10 +174,13 @@ def test_KL_sde(setup):
     # convert OU-SDE to SSM
     A_p = -1 * ou_sde.decay * tf.ones_like(m)[..., None] * dt + tf.eye(1, dtype=DTYPE)
     b_p = tf.zeros_like(m) * dt
-    p_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
-                                               state_transitions=A_p,
-                                               state_offsets=b_p,
-                                               process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
+    p_ssm = state_space_model_from_covariances(
+        initial_mean=x0,
+        initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
+        state_transitions=A_p,
+        state_offsets=b_p,
+        process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt,
+    )
 
     # generate a q SSM and q SDE
     A_q_drift = -1 * np.random.random((1, 1)) * tf.ones_like(A_p)
@@ -182,9 +189,13 @@ def test_KL_sde(setup):
     b_q = tf.zeros_like(b_p)
     b_q_drift = b_q / dt
 
-    q_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
-                                               state_transitions=A_q, state_offsets=b_q,
-                                               process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
+    q_ssm = state_space_model_from_covariances(
+        initial_mean=x0,
+        initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
+        state_transitions=A_q,
+        state_offsets=b_q,
+        process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt,
+    )
 
     kl_expected_val = q_ssm.kl_divergence(p_ssm)
     m, S = q_ssm.marginals
@@ -192,12 +203,17 @@ def test_KL_sde(setup):
 
     linear_drift = LinearDrift(A=A_q_drift, b=b_q_drift)
 
-    kl_val = squared_drift_difference_along_Gaussian_path(sde_p=ou_sde, linear_drift=linear_drift, q=q, dt=dt)
+    kl_val = squared_drift_difference_along_Gaussian_path(
+        sde_p=ou_sde, linear_drift=linear_drift, q=q, dt=dt
+    )
 
     np.testing.assert_array_almost_equal(kl_expected_val, kl_val, decimal=2)
 
 
 def test_ssm_to_linear_drift(setup):
+    """
+    Test the function that converts a SSM to linear drift.
+    """
     ou_sde, x0, time_grid = setup
 
     # Removing batch
@@ -213,10 +229,13 @@ def test_ssm_to_linear_drift(setup):
     A_p = -1 * ou_sde.decay * tf.ones_like(m)[..., None] * dt + tf.eye(1, dtype=DTYPE)
     b_p = tf.zeros_like(m) * dt
 
-    p_ssm = state_space_model_from_covariances(initial_mean=x0, initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
-                                               state_transitions=A_p,
-                                               state_offsets=b_p,
-                                               process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt)
+    p_ssm = state_space_model_from_covariances(
+        initial_mean=x0,
+        initial_covariance=1e-1 * tf.ones_like(x0[..., None]),
+        state_transitions=A_p,
+        state_offsets=b_p,
+        process_covariances=tf.square(ou_sde.diffusion(m, t=None)) * dt,
+    )
     linear_drift = LinearDrift()
     linear_drift.set_from_ssm(p_ssm, dt=dt)
 
@@ -224,3 +243,33 @@ def test_ssm_to_linear_drift(setup):
     true_b = tf.zeros_like(m)
     np.testing.assert_allclose(true_A, linear_drift.A)
     np.testing.assert_allclose(true_b, linear_drift.b)
+
+
+def test_SSM_KL_with_grads_wrt_exp_params(with_tf_random_seed, num_transitions):
+    """
+    Test the SSM_KL_with_grads_wrt_exp_params function which calculates the KL divergence between two SSMs and the
+    gradients of it wrt the expectation params of the first SSM.
+    """
+    dist_p, _ = StateSpaceModelBuilder(
+        batch_shape=(), state_dim=1, transitions=num_transitions
+    ).build()
+    dist_q, _ = StateSpaceModelBuilder(
+        batch_shape=(), state_dim=1, transitions=num_transitions
+    ).build()
+
+    expected_kl = dist_q.kl_divergence(dist_p)
+
+    kl_val_fn, grads_fn = SSM_KL_with_grads_wrt_exp_params(dist_q, dist_p)
+
+    np.testing.assert_array_almost_equal(kl_val_fn, expected_kl)
+
+    # Difference between natural parameters of dist_q and dist_p
+    natq_1, natq2_diag, natq2_subdiag = ssm_to_naturals(dist_q)
+    natp_1, natp2_diag, natp2_subdiag = ssm_to_naturals(dist_p)
+    expected_grads1 = natq_1 - natp_1
+    expected_grads2_diag = natq2_diag - natp2_diag
+    expected_grads2_sub_diag = natq2_subdiag - natp2_subdiag
+
+    np.testing.assert_array_almost_equal(grads_fn[0], expected_grads1, decimal=3)
+    np.testing.assert_array_almost_equal(grads_fn[1], expected_grads2_diag, decimal=3)
+    np.testing.assert_array_almost_equal(grads_fn[2], expected_grads2_sub_diag, decimal=3)

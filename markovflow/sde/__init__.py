@@ -23,4 +23,3 @@ from .sde import DoubleWellSDE as DoubleWellSDE
 from .sde import SqrtDiffusionSDE as SqrtDiffusionSDE
 from .sde import SineDiffusionSDE as SineDiffusionSDE
 from .sde import BenesSDE as BenesSDE
-from .sde import MLPDrift as MLPDrift
