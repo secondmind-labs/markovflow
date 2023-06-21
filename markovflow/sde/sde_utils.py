@@ -246,7 +246,8 @@ def squared_drift_difference_along_Gaussian_path(
 
 def gaussian_log_predictive_density(mean: tf.Tensor, chol_covariance: tf.Tensor, x: tf.Tensor) -> tf.Tensor:
     """
-        Compute the log probability density for a Gaussian.
+        Compute the log probability density of observations x under a Gaussian distribution
+        parameterized by its mean and covariance.
     """
     mvn = MultivariateGaussian(chol_covariance=chol_covariance)
     log_pd = mvn.log_probability_density(mean, x)
