@@ -242,7 +242,7 @@ class BenesSDE(SDE):
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the double-well process
-        ..math:: f(x(t), t) =tanh(x(t))
+        ..math:: f(x(t), t) = tanh(x(t))
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
         :param t: time `t` with shape ``(n_batch, 1)``.
