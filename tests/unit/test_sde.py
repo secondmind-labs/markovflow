@@ -152,8 +152,7 @@ def test_deterministic_euler_maruyama_value(setup):
 
 def test_KL_sde(setup):
     """
-    Test the KL_sde function which calculates the KL divergence between two SDEs with same diffusion using
-    Girsanov theorem.
+    The test builds two different ssms, q and p, and compares two ways to evaluate KL[q||p].
 
     We assert with decimal place 2 as KL_SDE is an approximation.
     With finer grid the tolerance can be made much tighter but it results in high running time.
@@ -213,6 +212,27 @@ def test_KL_sde(setup):
 def test_ssm_to_linear_drift(setup):
     """
     Test the function that converts a SSM to linear drift.
+
+    In this function, first we simulate an Ornstein-Uhlenbeck SDE using Euler-Maruyama. Then we construct discretized
+    state transitions and offsets as
+
+    Euler--Maruyama:
+        dx_t = f(x_t) dt + dB_t ; Q is the spectral density.
+        x_{t+1} = x_t + f(x_t) h + N(0, Qh) where d=\Delta t.
+
+    For OU:
+        x_{t+1} = x_t - \lambda x_t h + N(0, Qh)
+        x_{t+1} = x_t(I - \lambda h) + N(0, Qh)
+
+    Thus, discretized state transitions are:
+        A_p:  (I - \lambda h)
+        b_p: 0
+
+    We use these values to construct a SSM and then convert this SSM to a linear drift (continuous state transitions).
+    The true values of the linear drift parameters are:
+
+        true_A = - \lambda
+        true_b = 0
     """
     ou_sde, x0, time_grid = setup
 
@@ -247,7 +267,9 @@ def test_ssm_to_linear_drift(setup):
 
 def test_SSM_KL_with_grads_wrt_exp_params(with_tf_random_seed, num_transitions):
     """
-    Test the SSM_KL_with_grads_wrt_exp_params function which calculates the KL divergence between two SSMs and the
+    Test the SSM_KL_with_grads_wrt_exp_params function.
+
+    This creates two different random SSMs and calculates the KL divergence between theses two SSMs and the
     gradients of it wrt the expectation params of the first SSM.
     """
     dist_p, _ = StateSpaceModelBuilder(

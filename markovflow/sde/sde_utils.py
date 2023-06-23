@@ -272,8 +272,8 @@ def SSM_KL_along_Gaussian_path(
     SSM-q: x_{t+1} = f^q(x_t, t) + e^q_t ; e^q_t ~ N(0, Q_t^q)
            f^q(x_t, t) = A^q_t x_t + b^q_t
 
-    KL[SSM-q || SSM-p] = KL[q(x0) || p(x0)] + 0.5 * ( log(|Q_t^p|/Q_t^q) 
-    + \sum_{t=0}^{N-1} E_{q(x_{t+1}, x_t)} [||x_{t+1} - f^p(x_t, t)||^{2}_{Q_t^{p}^{-1}} 
+    KL[SSM-q || SSM-p] = KL[q(x0) || p(x0)] + 0.5 * ( log(|Q_t^p|/|Q_t^q|)
+    + \sum_{t=0}^{N-1} E_{q(x_{t+1}, x_t)} [||x_{t+1} - f^p(x_t, t)||^{2}_{Q_t^{p}^{-1}}
     - ||x_{t+1} - f^q(x_t, t)||^{2}_{Q_t^{q}^{-1}}])
 
     Rather than doing the 2D quadrature on the join distribution of q(x_{t+1}, x_t) the term is further simplified to
