@@ -21,7 +21,6 @@ import tensorflow_probability as tfp
 from gpflow.base import TensorType
 from gpflow.quadrature import NDiagGHQuadrature
 from gpflow.probability_distributions import Gaussian
-from gpflow.base import Parameter
 
 from markovflow.gauss_markov import BTDGaussian
 from markovflow.ssm_gaussian_transformations import ssm_to_expectations, expectations_to_ssm_params

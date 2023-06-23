@@ -137,16 +137,17 @@ class OrnsteinUhlenbeckSDE(SDE):
     ..math:: dx(t) = -λ x(t) dt + dB(t), the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, decay: float = 1.0, q: tf.Tensor = tf.ones((1, 1)), trainable: bool = False):
+    def __init__(self, decay: float = 1.0, q: tf.Tensor = tf.ones((1, 1)), train_decay: bool = False):
         """
         Initialize the Ornstein-Uhlenbeck SDE.
 
-        :param decay: λ, a float value.
+        :param decay: λ, a float value. Defaults to 1.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        :param train_decay: whether to train decay (λ) value or not, defaults to False.
         """
         super(OrnsteinUhlenbeckSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.decay = tf.Variable(initial_value=decay, trainable=trainable, dtype=self.q.dtype)
+        self.decay = tf.Variable(initial_value=decay, trainable=train_decay, dtype=self.q.dtype)
 
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
@@ -184,17 +185,21 @@ class DoubleWellSDE(SDE):
     where f(x(t)) = scale * x(t) (c - x(t)^2) and the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, q: tf.Tensor = tf.ones((1, 1)), scale_trainable: bool = False, c_trainable: bool = False,
+    def __init__(self, q: tf.Tensor = tf.ones((1, 1)), train_scale: bool = False, train_c: bool = False,
                  scale: float = 4., c: float = 1.):
         """
         Initialize the Double-Well SDE.
 
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        :param train_scale: whether to train scale value in the drift function or not, defaults to False.
+        :param train_c: whether to train c value in the drift function or not, defaults to False.
+        :param scale: scale parameter of the drift function, a float value. Defaults to 4.
+        :param c: c parameter of the drift function, a float value. Defaults to 1.
         """
         super(DoubleWellSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.scale = tf.Variable(initial_value=scale, trainable=scale_trainable, dtype=self.q.dtype)
-        self.c = tf.Variable(initial_value=c, trainable=c_trainable, dtype=self.q.dtype)
+        self.scale = tf.Variable(initial_value=scale, trainable=train_scale, dtype=self.q.dtype)
+        self.c = tf.Variable(initial_value=c, trainable=train_c, dtype=self.q.dtype)
 
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
@@ -226,30 +231,33 @@ class DoubleWellSDE(SDE):
 class BenesSDE(SDE):
     """
     Benes SDE
-    ..math:: dx(t) = \theta tanh(x(t)) dt + dB(t),
+    ..math:: dx(t) = scale * tanh(x(t)) dt + dB(t),
     where the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, theta: float = 1., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+    def __init__(self, scale: float = 1., q: tf.Tensor = tf.ones((1, 1)), train_scale=False):
         """
         Initialize the Benes SDE.
+
+        :param scale: scale parameter of the drift function, a float value. Defaults to 1.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        :param train_scale: whether to train scale value in the drift function or not, defaults to False.
         """
         super(BenesSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+        self.scale = tf.Variable(initial_value=scale, trainable=train_scale, dtype=self.q.dtype)
 
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the double-well process
-        ..math:: f(x(t), t) = tanh(x(t))
+        ..math:: f(x(t), t) = scale * tanh(x(t))
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
         :param t: time `t` with shape ``(n_batch, 1)``.
         :return: Drift value i.e. `f(x(t), t)` with shape ``(n_batch, state_dim)``.
         """
         assert x.shape[-1] == self.state_dim
-        return self.theta * tf.math.tanh(x)
+        return self.scale * tf.math.tanh(x)
 
     def diffusion(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
@@ -271,19 +279,22 @@ class SineDiffusionSDE(SDE):
     ..math:: dx(t) = sin(x(t) - \theta) dt + dB(t), the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, theta: float = 0., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+    def __init__(self, theta: float = 0., q: tf.Tensor = tf.ones((1, 1)), train_theta=False):
         """
         Initialize the SDE.
+
+        :param theta: theta parameter of the drift function, a float value. Defaults to 0.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        :param train_theta: whether to train theta value in the drift function or not, defaults to False.
         """
         super(SineDiffusionSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+        self.theta = tf.Variable(initial_value=theta, trainable=train_theta, dtype=self.q.dtype)
 
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the process
-        ..math:: f(x(t), t) = sin(x(t))
+        ..math:: f(x(t), t) = sin(x(t) - \theta)
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
         :param t: time `t` with shape ``(n_batch, 1)``.
@@ -313,19 +324,22 @@ class SqrtDiffusionSDE(SDE):
     ..math:: dx(t) = sqrt(theta |x(t)|) dt + dB(t), the spectral density of the Brownian motion is specified by q.
     """
 
-    def __init__(self, theta: float = 1., q: tf.Tensor = tf.ones((1, 1)), trainable=False):
+    def __init__(self, theta: float = 1., q: tf.Tensor = tf.ones((1, 1)), train_theta=False):
         """
         Initialize the SDE.
+
+        :param theta: theta parameter of the drift function, a float value. Defaults to 1.
         :param q: spectral density of the Brownian motion ``(state_dim, state_dim)``.
+        :param train_theta: whether to train theta value in the drift function or not, defaults to False.
         """
         super(SqrtDiffusionSDE, self).__init__(state_dim=q.shape[0])
         self.q = q
-        self.theta = tf.Variable(initial_value=theta, trainable=trainable, dtype=self.q.dtype)
+        self.theta = tf.Variable(initial_value=theta, trainable=train_theta, dtype=self.q.dtype)
 
     def drift(self, x: tf.Tensor, t: tf.Tensor = None) -> tf.Tensor:
         """
         Drift of the process
-        ..math:: f(x(t), t) = sqrt(|x(t)|)
+        ..math:: f(x(t), t) = sqrt(theta |x(t)|)
 
         :param x: state at `t` i.e. `x(t)` with shape ``(n_batch, state_dim)``.
         :param t: time `t` with shape ``(n_batch, 1)``.
