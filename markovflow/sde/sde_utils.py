@@ -22,7 +22,7 @@ from gpflow.base import TensorType
 from gpflow.quadrature import NDiagGHQuadrature
 from gpflow.probability_distributions import Gaussian
 
-from markovflow.gauss_markov import BTDGaussian
+from markovflow.gauss_markov import BlockTriDiagonalGaussian
 from markovflow.ssm_gaussian_transformations import ssm_to_expectations, expectations_to_ssm_params
 from markovflow.sde import SDE
 from markovflow.state_space_model import StateSpaceModel
@@ -277,7 +277,7 @@ def SSM_KL_along_Gaussian_path(
     - ||x_{t+1} - f^q(x_t, t)||^{2}_{Q_t^{q}^{-1}}])
 
     Rather than doing the 2D quadrature on the join distribution of q(x_{t+1}, x_t) the term is further simplified to
-    reduce to 1D quadrature.
+    reduce to 1D quadrature by using the property, q(x_{t+1}, x_t) = q(x_{t+1} | x_t) q(x_t).
 
     We use Gaussian quadrature method to approximate the expectation.
 
@@ -326,6 +326,9 @@ def SSM_KL_along_Gaussian_path(
     C = - C_log_det - C_term_D + C_term_trace
 
     def func(x):
+        """
+        The function calculates: ||f_p(x) - f_q(x)||^{2}_{Q^{p}^{-1}} .
+        """
         func_q_val = func_q(x=x)  # [n_pnts, num_transitions, 1]
         func_p_val = func_p(x=x)  # [n_pnts, num_transitions, 1]
 
@@ -359,16 +362,16 @@ def SSM_KL_along_Gaussian_path(
     return vals
 
 
-def ssm_to_btd_nat(ssm: StateSpaceModel) -> BTDGaussian:
+def ssm_to_btd_nat(ssm: StateSpaceModel) -> BlockTriDiagonalGaussian:
     """
-    Get natural parameters from a SSM model as a BTDGaussian.
+    Get natural parameters from a SSM model as a BlockTriDiagonalGaussian.
     """
     assert ssm.batch_shape.is_compatible_with(
         tf.TensorShape([])), "ssm_to_btd_nat function currently does not support batch!"
 
     nat1, nat_diag, nat_subdiag = ssm_to_naturals(ssm)
 
-    nat_btd = BTDGaussian(nat1, nat_diag, nat_subdiag)
+    nat_btd = BlockTriDiagonalGaussian(nat1, nat_diag, nat_subdiag)
 
     return nat_btd
 
@@ -379,6 +382,14 @@ def SSM_KL_with_grads_wrt_exp_params(
     """
     The function calculates the KL divergence between two SSMs, KL[SSM-q || SSM-p], and returns the gradients wrt the
     expectation parameters of SSM-q.
+
+    For the gradients of KL wrt the expectation parameters of SSM-q, the state transitions, state offsets, cholesky
+    process covariance is obtained using the expectation parameters using the function `expectations_to_ssm_params`.
+    Further, the Gaussian path along with the KL is calculated is also obtained using the expectation parameters.
+
+    Then, using these parameters, `SSM_KL_along_Gaussian_path` function is used to calculate the KL value and
+    automatic differentiation is used to calculate the gradients.
+
     Note:
         1. The function only supports SSMs with state-dim=1.
         2. Currently, batching isn't supported.

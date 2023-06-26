@@ -217,7 +217,7 @@ def check_compatible(dist_1: GaussMarkovDistribution, dist_2: GaussMarkovDistrib
     tf.debugging.assert_equal(dist_1.num_transitions, dist_2.num_transitions)
 
 
-class BTDGaussian:
+class BlockTriDiagonalGaussian:
     """
     A block-tri-diagonal Gaussian described by its natural parameters, nat1 and nat2.
     The nat1 parameter is vector of [N,D] shape where as nat2 is a block-tri-diagonal matrix defined by
@@ -226,7 +226,7 @@ class BTDGaussian:
 
     def __init__(self, nat1: tf.Tensor, nat2_diag: tf.Tensor, nat2_subdiag: tf.Tensor):
         """
-        Initialize a BTD Gaussian.
+        Initialize a BlockTriDiagonalGaussian Gaussian.
 
         :param nat1: first natural parameter [N, D]
         :param nat2_diag: second natural parameter [N, D]
