@@ -46,3 +46,17 @@ def _batch_shape_fixture(request):
 @pytest.fixture(name="output_dim", params=[1, 2])
 def _output_dim_fixture(request):
     return request.param
+
+
+@pytest.fixture(
+    name="num_transitions", params=[5, 100],
+)
+def _num_transitions_fixture(request):
+    return request.param
+
+
+@pytest.fixture(
+    name="num_observations", params=[0, 10],
+)
+def _num_observations_fixture(request):
+    return request.param

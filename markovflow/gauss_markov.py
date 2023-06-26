@@ -215,3 +215,31 @@ def check_compatible(dist_1: GaussMarkovDistribution, dist_2: GaussMarkovDistrib
     tf.debugging.assert_equal(dist_1.state_dim, dist_2.state_dim)
     tf.debugging.assert_equal(dist_1.batch_shape, dist_2.batch_shape)
     tf.debugging.assert_equal(dist_1.num_transitions, dist_2.num_transitions)
+
+
+class BlockTriDiagonalGaussian:
+    """
+    A block-tri-diagonal Gaussian described by its natural parameters, nat1 and nat2.
+    The nat1 parameter is vector of [N,D] shape where as nat2 is a block-tri-diagonal matrix defined by
+    its diagonal and sub-diagonal.
+    """
+
+    def __init__(self, nat1: tf.Tensor, nat2_diag: tf.Tensor, nat2_subdiag: tf.Tensor):
+        """
+        Initialize a BlockTriDiagonalGaussian Gaussian.
+
+        :param nat1: first natural parameter [N, D]
+        :param nat2_diag: second natural parameter [N, D]
+        :param nat2_subdiag: second natural parameter [N-1, D]
+        """
+        super().__init__()
+        shape_constraints = [
+            (nat1, ["N", 1]),
+            (nat2_diag, ["N", 1, 1]),
+            (nat2_subdiag, ["N-1", 1, 1])
+        ]
+        tf.debugging.assert_shapes(shape_constraints)
+
+        self.num_data, self.output_dim = nat1.shape
+        self.nat1 = nat1
+        self.nat2 = SymmetricBlockTriDiagonal(diagonal=nat2_diag, sub_diagonal=nat2_subdiag)

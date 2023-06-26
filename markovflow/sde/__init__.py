@@ -20,3 +20,6 @@ Package containing SDE classes and related functions.
 from .sde import SDE as SDE
 from .sde import OrnsteinUhlenbeckSDE as OrnsteinUhlenbeckSDE
 from .sde import DoubleWellSDE as DoubleWellSDE
+from .sde import SqrtDiffusionSDE as SqrtDiffusionSDE
+from .sde import SineDiffusionSDE as SineDiffusionSDE
+from .sde import BenesSDE as BenesSDE

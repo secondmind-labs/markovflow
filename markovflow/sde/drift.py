@@ -25,6 +25,7 @@ class LinearDrift:
     """
     A linear drift of the form, f(x_t, t) = A_t * x_t + b_t.
     """
+
     def __init__(self, A: TensorType = None, b: TensorType = None):
         """
         Initialize the linear drift with the parameters A and b defining it as f(x_t, t) = A_t * x_t + b_t.
@@ -60,8 +61,13 @@ class LinearDrift:
         self.A = (state_transitions - tf.eye(ssm.state_dim, dtype=state_offsets.dtype)) / dt
         self.b = state_offsets / dt
 
-    def to_ssm(self, q: TensorType, transition_times: TensorType, initial_mean: TensorType,
-               initial_chol_covariance: TensorType):
+    def to_ssm(
+            self,
+            q: TensorType,
+            transition_times: TensorType,
+            initial_mean: TensorType,
+            initial_chol_covariance: TensorType
+    ):
         """
         Approximately converts a linear drift SDE of the form: f(x(t), t) = A(t) * x(t) + b(t) to a StateSpaceModel.
 
@@ -76,28 +82,30 @@ class LinearDrift:
 
         self.A = utils.handle_tensor_shape(self.A, desired_dimensions=4)  # (B, N, D, D)
         self.b = utils.handle_tensor_shape(self.b, desired_dimensions=3)  # (B, N, D)
-        transition_times = utils.handle_tensor_shape(transition_times, desired_dimensions=1)  # (N+1, )
+        transition_times = utils.handle_tensor_shape(
+            transition_times, desired_dimensions=1
+        )  # (N+1, )
         q = utils.handle_tensor_shape(q, desired_dimensions=4)  # (B, N, D, D)
         initial_mean = utils.handle_tensor_shape(initial_mean, desired_dimensions=2)  # (B, D, )
-        initial_chol_covariance = utils.handle_tensor_shape(initial_chol_covariance,
-                                                            desired_dimensions=3)  # (B, D, D)
+        initial_chol_covariance = utils.handle_tensor_shape(
+            initial_chol_covariance, desired_dimensions=3
+        )  # (B, D, D)
 
-        B, N, D = self.b .shape
+        B, N, D = self.b.shape
         assert self.A.shape == (B, N, D, D)
         assert self.b.shape == (B, N, D)
-        assert transition_times.shape == (N+1, )
+        assert transition_times.shape == (N + 1,)
         assert initial_mean.shape == (B, D,)
         assert initial_chol_covariance.shape == (B, D, D)
         assert q.shape == (B, N, D, D)
 
         transition_deltas = tf.reshape(transition_times[1:] - transition_times[:-1], (1, -1, 1))
-        state_transitions = self.A * tf.expand_dims(transition_deltas, -1) + tf.eye(self.A.shape[-1],
-                                                                                    dtype=self.A.dtype)
+        state_transitions = self.A * tf.expand_dims(transition_deltas, -1) + tf.eye(
+            self.A.shape[-1], dtype=self.A.dtype
+        )
 
         state_offsets = self.b * transition_deltas
-        chol_process_covariances = q * tf.expand_dims(
-            tf.sqrt(transition_deltas), axis=-1
-        )
+        chol_process_covariances = tf.linalg.cholesky(q * transition_deltas[..., None])
 
         return StateSpaceModel(
             initial_mean=initial_mean,
