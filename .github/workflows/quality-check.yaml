@@ -67,7 +67,10 @@ jobs:
       # install root project
       #----------------------------------------------
       - name: Install library
-        run: poetry install --no-interaction
+        run: |
+          rm poetry.lock
+          poetry lock
+          poetry install --no-interaction
       #----------------------------------------------
       #              run test suite
       #----------------------------------------------
