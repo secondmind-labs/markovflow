@@ -25,9 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ 3.7 ]
-        tensorflow: [ 2.2.1 ]
-    name: Python-${{ matrix.python-version }} tensorflow${{ matrix.tensorflow }}
+        python-version: [ "3.8.12" ]
+    name: Python-${{ matrix.python-version }} 
     steps:
       #----------------------------------------------
       #       check-out repo and set-up python
