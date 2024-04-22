@@ -18,14 +18,14 @@ tensorflow = [
 ]
 importlib-metadata = ">=4.4,<5.0"
 gpflow = "^2.1"
-numpy = "^1.18.0"
+numpy = ">=1.18.0,<2.0.0"
 tensorflow-probability = "0.11.0"
-# banded-matrices = "0.0.6"
-banded-matrices = { git = "https://github.com/secondmind-labs/banded_matrices.git", branch = "va/update-bm" }
+# banded-matrices = "0.1.0"
+banded-matrices = { git = "https://github.com/secondmind-labs/banded_matrices.git", branch = "master" }
 # pip isn't smart enough to resolve these, so we need to include and pin these
 setuptools = "^41.0.0"
 google-auth = "^1.16.0"
-scipy = "^1.4.1"
+scipy = "^1.5.4"
 
 [tool.poetry.dev-dependencies]
 black = "23.7.0"
