@@ -10,7 +10,7 @@ packages = [{include = "markovflow"}]
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 tensorflow = [
-    { version = ">=2.4.0,<2.5.0", markers = "python_version >= '3.7' and python_version < '3.8'" },     
+    { version = ">=2.4.0,<2.7.0", markers = "python_version >= '3.7' and python_version < '3.8'" },     
     { version = ">=2.4.0,<2.7.0", markers = "python_version >= '3.8' and python_version < '3.9'" },
     { version = ">=2.5.0,<2.7.0", markers = "python_version >= '3.9' and python_version < '3.10'" },
     { version = ">=2.7.0,<2.9.0", markers = "python_version >= '3.10' and python_version < '3.11'" },
