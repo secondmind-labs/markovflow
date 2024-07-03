@@ -16,16 +16,18 @@ name: Tests
 
 on:
   push:
-  pull_request:
-    branches:
-      - develop
+  release:
+    types:
+      - created
 
 jobs:
-  test:
+  check-and-test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ "3.8.12" ]
+        python-version: ["3.7", "3.8.12", "3.9.12", "3.10.4"]
+        poetry-version: [1.1.12]
     name: Python-${{ matrix.python-version }} 
     steps:
       #----------------------------------------------
