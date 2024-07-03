@@ -65,8 +65,6 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
-          rm poetry.lock
-          poetry lock
           poetry install --no-interaction --no-root
       #----------------------------------------------
       # install root project
