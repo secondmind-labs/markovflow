@@ -90,7 +90,7 @@ approved_libraries = [
     "utilities"
 ]
 
-# [build-system]
-# requires = ["poetry>=1.0.0"]
-# build-backend = "poetry.masonry.api"
+[build-system]
+requires = ["poetry>=1.0.0"]
+build-backend = "poetry.masonry.api"
 
