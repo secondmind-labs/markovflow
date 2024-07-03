@@ -19,7 +19,7 @@ tensorflow = [
 importlib-metadata = ">=4.4,<5.0"
 gpflow = "^2.1"
 numpy = ">=1.18.0,<2.0.0"
-tensorflow-probability = "0.11.0"
+tensorflow-probability = ">0.11.0"
 banded-matrices = "0.1.0"
 # pip isn't smart enough to resolve these, so we need to include and pin these
 setuptools = "^41.0.0"
