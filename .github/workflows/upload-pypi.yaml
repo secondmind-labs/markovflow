@@ -26,9 +26,10 @@ jobs:
     env:
       DOCS: ""
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ 3.7 ]
-        tensorflow: [ 2.2.1 ]
+        python-version: ["3.7", "3.8.12", "3.9.12", "3.10.4"]
+        poetry-version: [1.1.12]
     name: Python-${{ matrix.python-version }} tensorflow${{ matrix.tensorflow }}
     steps:
       #----------------------------------------------
