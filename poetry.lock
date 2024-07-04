@@ -4752,12 +4752,12 @@ tensorflow-rocm = ["tensorflow-rocm (>=2.15.0,<2.16.0)"]
 
 [[package]]
 name = "tensorflow-probability"
-version = "0.21.0"
+version = "0.15.0"
 description = "Probabilistic modeling and statistical inference in TensorFlow"
 optional = false
-python-versions = ">=3.8"
+python-versions = "*"
 files = [
-    {file = "tensorflow_probability-0.21.0-py2.py3-none-any.whl", hash = "sha256:03ed06bd6fd876541110712842d43367c7be5affe8040d62efa3906c6c9e645d"},
+    {file = "tensorflow_probability-0.15.0-py2.py3-none-any.whl", hash = "sha256:a5c6d1116fa619fa3fcfe076ff81adc276989fb58da179e464c1fd25d824530a"},
 ]
 
 [package.dependencies]
@@ -4768,7 +4768,6 @@ dm-tree = "*"
 gast = ">=0.3.2"
 numpy = ">=1.13.3"
 six = ">=1.10.0"
-typing-extensions = "<4.6.0"
 
 [package.extras]
 jax = ["jax", "jaxlib"]
@@ -5244,4 +5243,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "6af4087c552a903b34ffb91a62b9868f47a2e592a7eaf185b84424a4266b9c2c"
+content-hash = "de555cb323d378ccab499e349246494a77b0d34d44085f5f66ab1b872363b62d"
