@@ -300,12 +300,15 @@ files = [
 
 [[package]]
 name = "banded-matrices"
-version = "0.1.0"
+version = "0.1.3"
 description = "Native (C++) implementation of Banded Matrices for TensorFlow"
 optional = false
-python-versions = ">=3.7,<3.12"
-files = []
-develop = false
+python-versions = "<3.12,>=3.7"
+files = [
+    {file = "banded_matrices-0.1.3-cp38-cp38-manylinux_2_35_x86_64.whl", hash = "sha256:30beda3d08e81519b78d6802446718925116b3547491ed256d7b2aaa1e2d894d"},
+    {file = "banded_matrices-0.1.3-cp39-cp39-manylinux_2_35_x86_64.whl", hash = "sha256:169c0db5f32c940f27fef7b1256e95e85f2f8f47e435685c8c995a4f857f106a"},
+    {file = "banded_matrices-0.1.3.tar.gz", hash = "sha256:51701b9e0ea56807556c17f5a770c249326fd70c86468d899a7a271d4122e792"},
+]
 
 [package.dependencies]
 cmake = ">=3.18.0,<3.19.0"
@@ -317,12 +320,6 @@ tensorflow = [
     {version = ">=2.7.0,<2.9.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
     {version = ">=2.8.0,<2.16.0", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
 ]
-
-[package.source]
-type = "git"
-url = "https://github.com/secondmind-labs/banded_matrices.git"
-reference = "master"
-resolved_reference = "3a765fc052544e3be75c425a951c1c417f4d6150"
 
 [[package]]
 name = "beautifulsoup4"
@@ -5247,4 +5244,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "e03088e4972bc182e9c1e55c26950e9f1e07a846d895487f52ec19a622061d40"
+content-hash = "6af4087c552a903b34ffb91a62b9868f47a2e592a7eaf185b84424a4266b9c2c"
