@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction
 
+      - name: Install banded_matrices compatibility branch
+        run: poetry run python -m pip install --force-reinstall "git+https://github.com/secondmind-labs/banded_matrices.git@update-python-compat"
+
       - name: Build documentation
         run: poetry run make docs
 
