@@ -101,10 +101,9 @@ jobs:
           path: dist
 
       - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@v1.8.8
         with:
           repository-url: https://test.pypi.org/legacy/
           packages-dir: dist
           user: __token__
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          attestations: false
