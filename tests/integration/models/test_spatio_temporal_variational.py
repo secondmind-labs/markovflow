@@ -29,6 +29,7 @@ from markovflow.models import (
     SpatioTemporalSparseCVI,
 )
 from markovflow.models.spatio_temporal_variational import SpatioTemporalBase
+from tests.tools.optimizers import minimize
 
 
 @pytest.fixture(name="st_data_rng")
@@ -102,7 +103,7 @@ def test_spatiotemporalsparsevariational(with_tf_random_seed, st_model_params, g
 
     @tf.function
     def opt_step(data):
-        opt.minimize(lambda: st_model.loss(data), st_model.trainable_variables)
+        minimize(opt, lambda: st_model.loss(data), st_model.trainable_variables)
 
     ntries = 100
     nsteps = 100

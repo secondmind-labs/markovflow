@@ -27,14 +27,8 @@ import tensorflow_probability as tfp
 def ordered():
     """
     A bijector to be used when parameterising inducing points so that we ensure they remain ordered.
-    TensorFlow Probability unfortunately got their naming the wrong way around, see
-    https://github.com/tensorflow/probability/issues/765 - we need to construct
-    Invert(Ordered()) to obtain a Parameter that is always ordered!
-
-    Note: when using TensorFlow Probability >= 0.12.0 this can be replaced with
-    `tfp.bijectors.Ascending`.
     """
-    return tfp.bijectors.Invert(tfp.bijectors.Ordered())
+    return tfp.bijectors.Ascending()
 
 
 SampleShape = Union[Tuple, List, int]

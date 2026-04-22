@@ -18,6 +18,7 @@ import glob
 import os
 import sys
 import traceback
+from contextlib import contextmanager
 from typing import List
 
 import jupytext
@@ -31,6 +32,49 @@ from nbconvert.preprocessors.execute import CellExecutionError
 # different directories with the same base name, they will all get blacklisted
 # (change the blacklisting check to something else in that case, if need be!)
 BLACKLISTED_NOTEBOOKS: List[str] = []
+
+NOTEBOOK_TEST_ENVIRONMENT = {"CI": "true", "MPLBACKEND": "Agg"}
+
+NOTEBOOK_TEST_SETUP = """
+import tensorflow as tf
+
+
+def _markovflow_notebook_minimize(optimizer, loss_fn, var_list=None, **kwargs):
+    if var_list is None:
+        var_list = kwargs.pop("var_list", None)
+    if var_list is None and kwargs:
+        var_list = kwargs.pop("variables", None)
+    if var_list is None:
+        raise TypeError("var_list or variables must be provided")
+
+    with tf.GradientTape() as tape:
+        loss = loss_fn() if callable(loss_fn) else loss_fn
+    gradients = tape.gradient(loss, var_list)
+    optimizer.apply_gradients(
+        (gradient, variable)
+        for gradient, variable in zip(gradients, var_list)
+        if gradient is not None
+    )
+    return loss
+
+
+if not hasattr(tf.optimizers.Optimizer, "minimize"):
+    tf.optimizers.Optimizer.minimize = _markovflow_notebook_minimize
+"""
+
+
+@contextmanager
+def _notebook_test_environment():
+    old_values = {key: os.environ.get(key) for key in NOTEBOOK_TEST_ENVIRONMENT}
+    os.environ.update(NOTEBOOK_TEST_ENVIRONMENT)
+    try:
+        yield
+    finally:
+        for key, value in old_values.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 def _nbpath():
@@ -65,9 +109,11 @@ def _preproc():
 def _exec_notebook(notebook_filename):
     with open(notebook_filename) as notebook_file:
         nb = jupytext.read(notebook_file, as_version=nbformat.current_nbformat)
+        nb.cells.insert(0, nbformat.v4.new_code_cell(NOTEBOOK_TEST_SETUP))
         try:
             meta_data = {"path": os.path.dirname(notebook_filename)}
-            _preproc().preprocess(nb, {"metadata": meta_data})
+            with _notebook_test_environment():
+                _preproc().preprocess(nb, {"metadata": meta_data})
         except CellExecutionError as cell_error:
             traceback.print_exc(file=sys.stdout)
             msg = "Error executing the notebook {0}. See above for error.\nCell error: {1}"

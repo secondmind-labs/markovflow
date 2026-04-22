@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Tests
+name: Build and Upload Markovflow TestPyPI Package
 
 on:
+  workflow_dispatch:
   push:
-  pull_request:
     branches:
-      - develop
+      - update-python-compat
 
 jobs:
   test:
@@ -35,7 +35,7 @@ jobs:
           - os: macos-14
             python-version: "3.12"
     runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    name: Test ${{ matrix.os }} / Python ${{ matrix.python-version }}
 
     steps:
       - name: Check out repository
@@ -54,18 +54,7 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Load cached virtualenv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
-
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install library
         run: poetry install --no-interaction
 
       - name: Run tests
@@ -73,3 +62,45 @@ jobs:
 
       - name: Run notebook smoke tests
         run: poetry run task notebooktest
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Build package
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.3.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Check package metadata
+        run: poetry check
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: markovflow-dist
+          path: dist/*
+
+      - name: Publish to TestPyPI
+        if: github.event_name == 'workflow_dispatch'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/

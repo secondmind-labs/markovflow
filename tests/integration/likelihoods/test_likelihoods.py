@@ -132,7 +132,7 @@ def test_multivariate_gaussian_predict_density(data):
     mvngauss = MultivariateGaussian(chol_covariance=np.eye(1))  # 1d mvn
     mvngauss1 = MultivariateGaussian(chol_covariance=np.eye(2))  # 2d mvn
 
-    uni_pd = unigauss.predict_density(f, f_vars, Y)
+    uni_pd = unigauss.predict_log_density(f, f_vars, Y)
     mvn_pd = mvngauss.predict_density(f, f_covs, Y)
     mvn1_pd = mvngauss1.predict_density(f1, f_covs1, Y1)
 

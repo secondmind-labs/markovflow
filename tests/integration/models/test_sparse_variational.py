@@ -28,6 +28,7 @@ from markovflow.mean_function import LinearMeanFunction
 from markovflow.models import GaussianProcessRegression, SparseVariationalGaussianProcess
 from markovflow.models.variational import VariationalGaussianProcess
 from tests.tools.generate_random_objects import generate_random_time_observations
+from tests.tools.optimizers import minimize
 
 OUT_DIM = 1
 LENGTH_SCALE = 2.0
@@ -157,7 +158,7 @@ def _test_svgp_vs_gpr(svgp, gpr, tol):
 
     @tf.function
     def opt_step():
-        opt.minimize(lambda: svgp.loss(input_data), svgp.trainable_variables)
+        minimize(opt, lambda: svgp.loss(input_data), svgp.trainable_variables)
 
     true_likelihood = gpr.log_likelihood()
     for _ in range(100):  # number of tries
@@ -208,10 +209,10 @@ def test_svgp_vs_vgp_non_gaussian(with_tf_random_seed, batch_shape):
     svgp_opt = tf.optimizers.SGD(learning_rate=1e-2)
 
     def vgp_opt_step():
-        vgp_opt.minimize(vgp.loss, vgp.trainable_variables)
+        minimize(vgp_opt, vgp.loss, vgp.trainable_variables)
 
     def svgp_opt_step(input_data):
-        svgp_opt.minimize(lambda: svgp.loss(input_data), svgp.trainable_variables)
+        minimize(svgp_opt, lambda: svgp.loss(input_data), svgp.trainable_variables)
 
     for _ in range(50):
         vgp_opt_step()

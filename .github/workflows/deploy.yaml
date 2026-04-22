@@ -20,70 +20,44 @@ on:
       - develop
 
 jobs:
-  check-test-deploy-docs:
+  deploy-docs:
     runs-on: ubuntu-latest
-    env:
-      DOCS: ""
-    strategy:
-      matrix:
-        python-version: [ 3.7 ]
-        tensorflow: [ 2.2.1 ]
-    name: Python-${{ matrix.python-version }} tensorflow${{ matrix.tensorflow }}
+    name: Deploy documentation
+
     steps:
-      #----------------------------------------------
-      #       check-out repo and set-up python
-      #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      #----------------------------------------------
-      #  -----  install & configure poetry  -----
-      #----------------------------------------------
+          python-version: "3.12"
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.1.6
+          version: 2.3.4
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-      #----------------------------------------------
-      # install dependencies if cache does not exist
-      #----------------------------------------------
+
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-      #----------------------------------------------
-      # install root project
-      #----------------------------------------------
-      - name: Install library
         run: poetry install --no-interaction
-      #----------------------------------------------
-      # build documentation
-      #----------------------------------------------
-      - name: make documentation
+
+      - name: Build documentation
+        run: poetry run make docs
+
+      - name: Prepare documentation branch
         run: |
-          source .venv/bin/activate
-          make docs
-      - run: |
-          TMP_DIR=$(mktemp -d -p $(pwd))
-          mv docs/_build/html/* $TMP_DIR
+          TMP_DIR=$(mktemp -d -p "$(pwd)")
+          mv docs/_build/html/* "$TMP_DIR"
           rm -rf docs
-          mv $TMP_DIR docs
+          mv "$TMP_DIR" docs
           touch docs/.nojekyll
-      - run: |
-          git add .
+
+      - name: Push documentation
+        run: |
+          git add docs
           git config --global user.email "none"
           git config --global user.name "github-actions-bot"
           git commit -m "build documentation"

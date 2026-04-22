@@ -23,6 +23,7 @@ from markovflow.kernels import Matern12
 from markovflow.mean_function import LinearMeanFunction
 from markovflow.models import GaussianProcessRegression, VariationalGaussianProcess
 from tests.tools.generate_random_objects import generate_random_time_observations
+from tests.tools.optimizers import minimize
 
 LENGTH_SCALE = 2.0
 VARIANCE = 2.25
@@ -138,7 +139,7 @@ def _test_vgp_vs_gpr(vgp, gpr):
 
     @tf.function
     def opt_step():
-        opt.minimize(vgp.loss, vgp.trainable_variables)
+        minimize(opt, vgp.loss, vgp.trainable_variables)
 
     true_likelihood = gpr.log_likelihood()
     for _ in range(100):  # number of tries

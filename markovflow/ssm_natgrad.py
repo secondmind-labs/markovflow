@@ -77,7 +77,7 @@ class SSMNaturalGradient(tf.optimizers.Optimizer):
         :param name: Optional name to give the optimiser.
         """
         name = self.__class__.__name__ if name is None else name
-        super().__init__(name)
+        super().__init__(learning_rate=gamma, name=name)
 
         self.gamma = gamma
         self._momentum = momentum
@@ -115,7 +115,7 @@ class SSMNaturalGradient(tf.optimizers.Optimizer):
         :param loss_fn: A Loss function.
         :param ssm: A state space model that represents our variational posterior.
         """
-        with tf.name_scope(f"{self._name}/natural_gradient_steps"):
+        with tf.name_scope(f"{self.name}/natural_gradient_steps"):
             self._natgrad_step(loss_fn, ssm)
 
     def _natgrad_step(self, loss_fn: Callable, ssm: StateSpaceModel):
@@ -222,11 +222,11 @@ class SSMNaturalGradient(tf.optimizers.Optimizer):
         config = super().get_config()
         config.update(
             {
-                "gamma": self._serialize_hyperparameter("gamma"),
-                "beta1": self._serialize_hyperparameter("beta1"),
-                "beta2": self._serialize_hyperparameter("beta2"),
-                "epsilon": self._serialize_hyperparameter("epsilon"),
-                "momentum": self._serialize_hyperparameter("momentum"),
+                "gamma": self.gamma,
+                "beta1": self._beta1,
+                "beta2": self._beta2,
+                "epsilon": self._epsilon,
+                "momentum": self._momentum,
             }
         )
         return config

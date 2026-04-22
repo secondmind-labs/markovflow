@@ -1,4 +1,4 @@
-# Copyright 2021 The banded_matrices Contributors.
+# Copyright 2021 The Markovflow Contributors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,69 +12,85 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Upload-PyPI
+name: Upload PyPI Package
 
 on:
   workflow_dispatch:
   push:
-    # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
-    tags: v[0-9]+.[0-9]+.[0-9]+*
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
-  check-test-deploy-docs:
-    runs-on: ubuntu-latest
-    env:
-      DOCS: ""
+  test:
     strategy:
+      fail-fast: false
       matrix:
-        python-version: [ 3.7 ]
-        tensorflow: [ 2.2.1 ]
-    name: Python-${{ matrix.python-version }} tensorflow${{ matrix.tensorflow }}
+        include:
+          - os: ubuntu-latest
+            python-version: "3.10"
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: macos-14
+            python-version: "3.12"
+    runs-on: ${{ matrix.os }}
+    name: Test ${{ matrix.os }} / Python ${{ matrix.python-version }}
+
     steps:
-      #----------------------------------------------
-      #       check-out repo and set-up python
-      #----------------------------------------------
       - name: Check out repository
-        uses: actions/checkout@v2
-      - name: Set up python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      #----------------------------------------------
-      #  -----  install & configure poetry  -----
-      #----------------------------------------------
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.1.6
+          version: 2.3.4
           virtualenvs-create: true
           virtualenvs-in-project: true
           installer-parallel: true
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-      #----------------------------------------------
-      # install dependencies if cache does not exist
-      #----------------------------------------------
+
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-      #----------------------------------------------
-      # install root project
-      #----------------------------------------------
-      - name: Install library
-        run: |
-          poetry install --no-interaction
-          poetry build
-      #----------------------------------------------
-      # publish to pypi
-      #----------------------------------------------
+        run: poetry install --no-interaction
+
+      - name: Run tests
+        run: poetry run task quicktest
+
+      - name: Run notebook smoke tests
+        run: poetry run task notebooktest
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Publish package
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 2.3.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Check package metadata
+        run: poetry check
+
+      - name: Build package
+        run: poetry build
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
