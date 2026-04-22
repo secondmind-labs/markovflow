@@ -93,9 +93,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write
-
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -110,3 +107,4 @@ jobs:
           packages-dir: dist
           user: __token__
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          attestations: false
