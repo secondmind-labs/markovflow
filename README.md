@@ -29,7 +29,7 @@ and a comprehensive [API reference](https://secondmind-labs.github.io/markovflow
 
 ## Install Markovflow
 
-This project is assuming you are using `python3`.
+Markovflow currently supports Python 3.10, 3.11, and 3.12.
 
 #### For users
 
@@ -39,9 +39,16 @@ $ pip install markovflow
 ```
 #### For contributors
 
-To install this project in editable mode, run the commands below from the root directory of the `markovflow` repository.
+This project uses [Poetry](https://python-poetry.org/docs) to manage dependencies in a
+local virtual environment. To install this project in editable mode, run the commands
+below from the root directory of the `markovflow` repository.
 ```bash
 poetry install
+```
+If Poetry selects a different Python version, use the command below to point it at a
+supported interpreter before installing:
+```bash
+poetry env use python3.12 && poetry install
 ```
 Check that the installation was successful by running the tests:
 ```bash

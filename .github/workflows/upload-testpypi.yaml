@@ -8,7 +8,6 @@ on:
 
 jobs:
   test:
-    if: github.event_name != 'workflow_dispatch'   # 👈 skip tests on manual runs
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +51,6 @@ jobs:
 
   build:
     needs: test
-    if: always()   # 👈 ensures build still runs when test is skipped
     runs-on: ubuntu-latest
     name: Build package
 

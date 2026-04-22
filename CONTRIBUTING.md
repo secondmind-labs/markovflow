@@ -61,7 +61,7 @@ $ poetry run task test
 
 #### Continuous integration
 
-[GitHub actions](https://docs.github.com/en/actions) will automatically run the quality checks against pull requests to develop or master, by calling into tox. The GitHub repository is set up such that these need to pass in order to merge.
+[GitHub actions](https://docs.github.com/en/actions) will automatically run the quality checks against pull requests to develop or master, using the Poetry tasks defined in `pyproject.toml`. The GitHub repository is set up such that these need to pass in order to merge.
 
 ### Updating dependencies
 
