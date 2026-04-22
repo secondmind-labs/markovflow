@@ -241,14 +241,19 @@ dev = ["backports.zoneinfo ; python_version < \"3.9\"", "freezegun (>=1.0,<2.0)"
 
 [[package]]
 name = "banded-matrices"
-version = "0.2.0"
+version = "0.2.1"
 description = "Native (C++) implementation of Banded Matrices for TensorFlow"
 optional = false
-python-versions = ">=3.10,<3.14"
+python-versions = ">=3.10,<3.13"
 groups = ["main"]
 files = [
-    {file = "banded_matrices-0.2.0-cp312-cp312-macosx_26_0_arm64.whl", hash = "sha256:35d9cbb60787e3a2e931227f984491daf95e9a7bf45d9a7a1cfe656f1f2ce624"},
-    {file = "banded_matrices-0.2.0.tar.gz", hash = "sha256:db31532f4ffec99d29d8b7f33a166e289d9c2be2d0f8c2a0d45740d4868f3273"},
+    {file = "banded_matrices-0.2.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4286164f3d10e3e51677376161e80ad985956a202e01f9a12b44fbb4e54c038f"},
+    {file = "banded_matrices-0.2.1-cp310-cp310-manylinux_2_28_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:4e48406913626e479f0adccf64912a7d6a810e0595640669c162060d05c35a03"},
+    {file = "banded_matrices-0.2.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:3b478bc6c8cf018d36cd845f5071a3aa6bdedafb20d698efb55794a353903e92"},
+    {file = "banded_matrices-0.2.1-cp311-cp311-manylinux_2_28_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:cf4090d3f86b1a6817b6ddccf741ae36d578416c384ad2dc7b5dba5681b6fa55"},
+    {file = "banded_matrices-0.2.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:5098501f4eb4ddf2af598be5f5ce051c038f0b9e793712d3f26c6372f1ce01fc"},
+    {file = "banded_matrices-0.2.1-cp312-cp312-manylinux_2_28_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:0b5e3634c2e347162881e07963e4883e7de547bba6afc380536c91d8c8635a82"},
+    {file = "banded_matrices-0.2.1.tar.gz", hash = "sha256:10520c8d2b8aff8fb2e4c5238eeadf00fde4dfab7ac8a02242ec1c6ba2b90e9c"},
 ]
 
 [package.dependencies]
@@ -5444,4 +5449,4 @@ dev = ["pytest", "setuptools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "7a1a105d247d57499e0899b6aac5569359448992395b5cf0b3e379f2d2629ca8"
+content-hash = "e4f5f1355d4819de2ce0c6fc98596b4856f76c73e17e0e9f73bffa30d8150b9b"

@@ -68,19 +68,6 @@ jobs:
       - name: Install library
         run: poetry install --no-interaction
 
-      - name: Install banded_matrices compatibility branch
-        run: |
-          git clone --depth 1 --branch update-python-compat https://github.com/secondmind-labs/banded_matrices.git /tmp/banded_matrices
-          PYTHON_BIN="$(poetry run python -c 'import sys; print(sys.executable)')"
-          CMAKE_BIN="$(poetry run python -c 'import shutil; print(shutil.which("cmake"))')"
-          PACKAGE_DIR="$(poetry run python -c 'import importlib.util; spec = importlib.util.find_spec("banded_matrices"); print(spec.submodule_search_locations[0])')"
-          mkdir -p "${PACKAGE_DIR}/lib" /tmp/banded_matrices/build-ci
-          pushd /tmp/banded_matrices/build-ci
-          "${CMAKE_BIN}" ../banded_matrices -Wno-dev -DPYTHON_BIN="${PYTHON_BIN}" -DCMAKE_BUILD_TYPE=release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_LIBRARY_OUTPUT_DIRECTORY="${PACKAGE_DIR}/lib" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="${PACKAGE_DIR}/bin" -DCMAKE_VERBOSE_MAKEFILE:BOOL=on -DCMAKE_CXX_STANDARD=17
-          "${CMAKE_BIN}" --build .
-          popd
-          poetry run python -c "from banded_matrices.library import banded_ops; print(banded_ops)"
-
       - name: Run tests
         run: poetry run task quicktest
 

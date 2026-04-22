@@ -9,7 +9,7 @@ packages = [{include = "markovflow"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-banded-matrices = {version = "0.2.0", source = "testpypi"}
+banded-matrices = {version = "0.2.1", source = "testpypi"}
 gpflow = ">=2.5,<2.6"
 numpy = ">=1.26,<2.0"
 scipy = ">=1.11,<2.0"
